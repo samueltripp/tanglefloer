@@ -1,0 +1,6 @@
+load ("StrandDiagram.py")
+load ("SignSequence.py")
+load ("SumOfStrand.py")
+a = SignSequence([-1,1])
+b = StrandDiagram(a,[2,1,0])
+c = differential(b)
