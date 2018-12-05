@@ -11,3 +11,6 @@ class SumOfStrand:
             dict[sd] = dict[sd]+coeff
         else :
             dict[sd] = coeff
+
+    def pop(self,key):
+        self.dict.pop(key,None)
