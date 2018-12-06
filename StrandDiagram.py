@@ -28,6 +28,10 @@ class StrandDiagram:
 
     def __repr__(self):
         return str(self.bijection)+", "+str(self.parent)
+    
+    def __mul__(self,other):
+        return self
+
 
 def differential(sd):
     bijection = sd.bijection
@@ -40,10 +44,10 @@ def differential(sd):
     return diff
 
 def resolve(sd,i,j):
-    range = range(max(sd.bijection[i],j),min(i,sd.bijection[j]))
+    rangey = range(max(sd.bijection[i],j),min(i,sd.bijection[j]))
 
     # if a black strand pulls across a negative (left) oriented orange strand, don't count it
-    for k in range:
+    for k in rangey:
         if sd.parent.sequence[k] == -1:
             return 0
         
