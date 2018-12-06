@@ -28,33 +28,55 @@ class StrandDiagram:
 
     def __repr__(self):
         return str(self.bijection)+", "+str(self.parent)
-    
-    def __mul__(self,other):
+
+    # THIS IS NOT IMPLEMENTED
+    def __mul__(self, other):
         return self
 
+    def __eq__(self, other):
+        if (self.parent == other.parent) and (self.bijection == other.bijection): return true
+        else: return false
 
-def differential(sd):
-    bijection = sd.bijection
-    diff = SumOfStrand({})
-    for i in range(1,len(bijection)):
-        if bijection[i] != -1:
-            for j in range(0,i):
-                if bijection[j]>bijection[i]:
-                    diff.add(resolve(sd,i,j),1)
-    return diff
+    # THIS IS BAD BAD BAD
+    def __hash__(self):
+        return hash(str(self))
+
+
+    def differential(self):
+        bijection = self.bijection
+        diff = SumOfStrand({},self.parent)
+        for i in range(1,len(bijection)):
+            if bijection[i] != -1:
+                for j in range(0,i):
+                    if bijection[j]>bijection[i]:
+                        resolution = resolve(self,i,j)
+                        diff.add(resolution)
+        return diff
 
 def resolve(sd,i,j):
-    rangey = range(max(sd.bijection[i],j),min(i,sd.bijection[j]))
+    bij = sd.bijection
+    parent = sd.parent
 
+    
+    checkrange = range(max(bij[i],j),min(i,bij[j]))
+    
+    # check if black strands double cross
+    for k in range(j,i): 
+        if (bij[i]<bij[k]) and (bij[k]<bij[j]):
+            return [sd,0]
+
+    newgen = list(bij)
+    newgen[i]=bij[j]
+    newgen[j]=bij[i]
+    newgen = StrandDiagram(parent,newgen)
+
+    # if it crosses no orange strands return coeff 1
+    if checkrange == []:
+        return [newgen,1]
+    
     # if a black strand pulls across a negative (left) oriented orange strand, don't count it
-    for k in rangey:
-        if sd.parent.sequence[k] == -1:
-            return 0
-        
-    # if a black strand double crosses another, don't count it
-    for k in range(j,i):
-        if (sd.bijection[i]<sd.bijection[k]) and (sd.bijection[k]<sd.bijection[j]):
-            return 0
+    for k in checkrange:
+        if parent.sequence[k] == -1:
+            return [sd,0]
+    return [newgen,checkrange]
 
-    # if neither of these happen, find the right coefficients and return them
-    return sd
