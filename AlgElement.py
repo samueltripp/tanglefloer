@@ -1,4 +1,4 @@
-class SumOfStrand:
+class AlgElement:
     def __init__(self,dict,parent):
         self.dict = dict
         self.parent = parent
@@ -35,13 +35,21 @@ class SumOfStrand:
         if range != 0:
             coeff = 1
             if range != 1:
-                for k in range:
-                    coeff = coeff*gens[poscount[k]-1]
+                coeff = self.find_coeff(range)
             if gen in dict:
                 dict[gen] = dict[gen]+coeff
             else: 
                 dict[gen] = coeff
 
+    def find_coeff(self,inrange):
+        gens = self.gens
+        poscount = self.poscount
+        retcoeff = 1
+        if all([v == 0 for v in inrange]): return 1
+        for i in range(0,len(inrange)):
+            if (inrange[i]>0) and (poscount[i] == -1):
+                return 0
+            else: 
+                retcoeff = retcoeff * gens[poscount[i]-1]**inrange[i]
 
-    def pop(self,key):
-        self.dict.pop(key,None)
+        return retcoeff
