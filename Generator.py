@@ -112,6 +112,34 @@ class Generator:
     def toAlgElement(self):
         return AlgElement({self:1},self.parent)
 
+    # GRADING METHODS
+    def maslov(self):
+        mgrade = 0
+        bijection = self.bijection
+        for i in range(0,len(bijection)):
+            if (self.bijection[i] != -1):
+                for j in range(0,i):
+                    if (bijection[j] != -1) and (bijection[j]>bijection[i]):
+                        mgrade += 1
+                if i < bijection[i]: checkrange = range(i,bijection[i])
+                else: checkrange = range(bijection[i],i)
+                for k in checkrange:
+                    if self.parent.sequence[k] == 1: mgrade += -1
+        return mgrade
+
+
+    def twoalexander(self):
+        agrade = 0
+        bijection = self.bijection
+        for i in range(0,len(self.bijection)):
+            if (self.bijection[i] != -1):
+                if i<bijection[i]: checkrange = range(i,bijection[i])
+                else: checkrange = range(bijection[i],i)
+                for k in checkrange: agrade += -1*self.parent.sequence[k]
+
+        return agrade
+
+
 def resolve(sd,i,j):
     bij = sd.bijection
     parent = sd.parent
