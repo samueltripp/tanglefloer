@@ -45,7 +45,7 @@ class Generator:
 
     # ARITHMETIC METHODS
     # This adds two elements
-    # Takes in two Generators and returns their product, an AlgElement
+    # Takes in two Generators and returns their sum, an AlgElement
     def __add__(self,other):
         assert self.parent == other.parent
         sum = AlgElement({},self.parent)
