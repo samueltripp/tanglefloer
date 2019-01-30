@@ -14,21 +14,35 @@ class Tangle:
 
         self.etangles = etangles
 
+    # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self):
         return self.etangles[0].left_signs()
 
+    # returns the sign sequence corresponding to the right edge of this tangle
     def right_signs(self):
         return self.etangles[-1].right_signs()
 
+    # add two tangles
     def __add__(self, other):
         assert self.right_signs() == other.left_signs(), "Signs do not match."
         return Tangle(self.etangles + other.etangles, False)
+
+    # right addition is used for things like sum()
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return other.__add__(self)
 
     def __eq__(self, other):
         if isinstance(other, Tangle):
             return self.etangles == other.etangles
         else:
             return False
+
+    def __str__(self):
+        from TangleRenderer import TangleRenderer
+        return TangleRenderer.ascii(self)
 
 
 # an elementary tangle
@@ -54,12 +68,14 @@ class ETangle(Tangle):
 
         self.etangles = [self]
 
+    # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self):
         if self.etype == ETangle.Type.CUP:
             return self.signs[:self.position - 1] + self.signs[self.position + 1:]
         else:
             return self.signs
 
+    # returns the sign sequence corresponding to the right edge of this tangle
     def right_signs(self):
         if self.etype == ETangle.Type.CAP:
             return self.signs[:self.position - 1] + self.signs[self.position + 1:]
@@ -68,6 +84,24 @@ class ETangle(Tangle):
             self.signs[self.position], self.signs[self.position - 1]) + self.signs[self.position + 1:]
         else:
             return self.signs
+
+    # returns the set of points corresponding to the left side of this tangle
+    def left_points(self):
+        if self.etype == ETangle.Type.CUP:
+            return list(range(len(self.signs) - 1))
+        return list(range(len(self.signs) + 1))
+
+    # returns the set of points corresponding to the middle of this tangle
+    def middle_points(self):
+        if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
+            return list(range(self.position)) + list(range(self.position+1, len(self.signs)+1))
+        return list(range(len(self.signs) + 1))
+
+    # returns the set of points corresponding to the right side of this tangle
+    def right_points(self):
+        if self.etype == ETangle.Type.CAP:
+            return list(range(len(self.signs) - 1))
+        return list(range(len(self.signs) + 1))
 
     def __eq__(self, other):
         if isinstance(other, Tangle) and len(other.etangles)==1:
