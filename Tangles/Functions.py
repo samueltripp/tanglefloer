@@ -43,3 +43,8 @@ def copy_and_add(d, k, v):
 # creates a copy of the given dictionary d with (-,v) removed
 def copy_and_remove(d, value_to_remove):
     return {k: v for k, v in d.items() if v != value_to_remove}
+
+
+# creates a point with flipped y-orientation
+def c(x,y):
+    return (x, -y)
