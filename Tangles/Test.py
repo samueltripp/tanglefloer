@@ -38,6 +38,10 @@ unknot2_gens = CTMinus(unknot2).gens
 print(len(unknot2_gens))
 print(unknot2_gens)
 
+# svg rendering example
+TangleRenderer.svg('output/trefoil.svg', trefoil)
+TangleRenderer.svg('output/unknot2.svg', unknot2, unknot2_gens[0])
+
 # this will not run on anybody's computer
 # trefoil_gens = CTMinus(trefoil)
 # print(len(trefoil_gens))
