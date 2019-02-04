@@ -8,27 +8,28 @@ import itertools
 def injections(source, target):
     if len(source) == 0:
         return [{}]
-    if len(target) == 0:
+    elif len(target) < len(source):
         return []
     output = []
     for index,image in enumerate(target):
-        output.extend([copy_and_add(injection, source[0], image) for injection
-                       in injections(source[1:], target[:index] + target[index + 1:])])
+        for inj in injections(source[1:], target[:index] + target[index + 1:]):
+            inj[source[0]] = image
+            output.append(inj)
     return output
 
 
 # returns a list of all partial bijections, modeled as dicts
 def partial_bijections(source, target):
     output = []
-    for sublist in sublists(source):
+    for sublist in sublists(source, min(len(source), len(target))):
         output.extend(injections(sublist, target))
     return output
 
 
-# returns a list of all sublists of the given list
-def sublists(a_list):
+# returns a list of all sublists of the given list of size at most k
+def sublists(a_list, k):
     output = []
-    for i in range(len(a_list) + 1):
+    for i in range(k + 1):
         output.extend(itertools.combinations(a_list, i))
     return output
 
@@ -43,3 +44,8 @@ def copy_and_add(d, k, v):
 # creates a copy of the given dictionary d with (-,v) removed
 def copy_and_remove(d, value_to_remove):
     return {k: v for k, v in d.items() if v != value_to_remove}
+
+
+# creates a point with flipped y-orientation
+def c(x,y):
+    return (x, -y)
