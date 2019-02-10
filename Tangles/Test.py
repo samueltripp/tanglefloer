@@ -1,6 +1,6 @@
-from Tangles import *
-from TangleRenderer import *
-from CTMinus import *
+from Tangles.Tangle import *
+from Tangles.TangleRenderer import *
+from Tangles.CTMinus import *
 
 # some example tangles
 cup = ETangle(ETangle.Type.CUP, (1,-1), 1)
@@ -38,9 +38,9 @@ unknot2_gens = CTMinus(unknot2).gens
 print(len(unknot2_gens))
 print(unknot2_gens)
 
-# svg rendering example
-TangleRenderer.svg('output/trefoil.svg', trefoil)
-TangleRenderer.svg('output/unknot2.svg', unknot2, unknot2_gens[0])
+# # svg rendering example
+# TangleRenderer.svg('output/trefoil.svg', trefoil)
+# TangleRenderer.svg('output/unknot2.svg', unknot2, unknot2_gens[0])
 
 # this will not run on anybody's computer
 # trefoil_gens = CTMinus(trefoil)

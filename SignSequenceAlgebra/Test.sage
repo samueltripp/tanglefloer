@@ -1,3 +1,6 @@
+load('SignSequenceAlgebra/Generator.sage')
+load('SignSequenceAlgebra/SignSequence.sage')
+
 # These are the examples in Figure 2 of Intro To Tangle Floer
 a = SignSequence([-1,1,1,-1])
 b = Generator(a,[4,2,-1,1,-1])

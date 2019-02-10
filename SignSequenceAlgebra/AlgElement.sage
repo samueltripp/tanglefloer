@@ -16,8 +16,8 @@ class AlgElement:
         return self.polyring
 
     def __eq__(self,other):
-        if (self.dict == other.dict) and (self.parent == other.parent): return true
-        else: return false
+        if (self.dict == other.dict) and (self.parent == other.parent): return True
+        else: return False
 
     def __str__(self):
         return str(self.dict)

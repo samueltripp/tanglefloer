@@ -1,4 +1,4 @@
-from Functions import *
+from Tangles.Functions import *
 
 # a class to represent CT^-
 # currently, calling CTMinus(tangle)
