@@ -43,8 +43,8 @@ class SignSequence:
         return str(self.sequence)
 
     def __eq__(self,other):
-        if (self.sequence == other.sequence): return true
-        else: return false
+        if (self.sequence == other.sequence): return True
+        else: return False
 
 
 

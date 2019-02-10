@@ -1,4 +1,6 @@
-class Generator: 
+load('Algebras/AlgElement.sage')
+
+class Generator:
 
     def __init__(self, parent, bijection):
         # Parent is a SignSequence, bijection is a partial bijection
@@ -30,12 +32,12 @@ class Generator:
     def __str__(self):
         return str(self.bijection)+", "+str(self.parent)
 
-    def __repre__(self):
+    def __repr__(self):
         return str(self.bijection)+", "+str(self.parent)
 
     def __eq__(self, other):
-        if (self.parent == other.parent) and (self.bijection == other.bijection): return true
-        else: return false
+        if (self.parent == other.parent) and (self.bijection == other.bijection): return True
+        else: return False
 
     def __hash__(self):
         # Presumably this is bad practice and should be changed
