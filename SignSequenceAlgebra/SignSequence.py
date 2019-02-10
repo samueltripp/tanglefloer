@@ -30,6 +30,12 @@ class SignSequence:
     def npos(self):
         return self.npos
 
+    def __getitem__(self,key):
+        return self.sequence[key]
+
+    def __len__(self):
+        return self.degree
+
     def __str__(self):
         return str(self.sequence)
 
