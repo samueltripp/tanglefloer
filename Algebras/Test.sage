@@ -1,5 +1,5 @@
-load('SignSequenceAlgebra/Generator.sage')
-load('SignSequenceAlgebra/SignSequence.sage')
+load('Algebras/Generator.sage')
+load('Algebras/SignSequence.sage')
 
 # These are the examples in Figure 2 of Intro To Tangle Floer
 a = SignSequence([-1,1,1,-1])

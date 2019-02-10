@@ -1,4 +1,4 @@
-load('SignSequenceAlgebra/AlgElement.sage')
+load('Algebras/AlgElement.sage')
 
 class Generator:
 
