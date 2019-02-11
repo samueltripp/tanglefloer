@@ -1,5 +1,3 @@
-load('Algebras/AlgElement.sage')
-
 class Generator:
 
     def __init__(self, parent, bijection):
@@ -16,7 +14,7 @@ class Generator:
 
         self.parent = parent
         self.degree = parent.degree
-        self.bijection = bijection
+        self.bijection = list(bijection)
 
     # Access Methods
     def parent(self):
@@ -71,7 +69,7 @@ class Generator:
                 for j in range(0,i):
                     if (bijone[j] > bijone[i]) and (bijtwo[bijone[j]] < bijtwo[bijone[i]]): return product
 
-        # coeffdev is a list that counts how many times each orange strand is double crosswed
+        # coeffdev is a list that counts how many times each orange strand is double crossed
         coeffdev = [0]*(len(bijone)-1)
         for i in range(0,len(bijone)):
             if bijone[i] != -1:
