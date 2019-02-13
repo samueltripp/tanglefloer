@@ -2,7 +2,7 @@ class SignSequence:
     def __init__(self, sequence):
         for i in sequence:
             assert (i == 1) or (i == -1)
-        self.sequence = sequence
+        self.sequence = list(sequence)
         self.degree = len(sequence)
 
         # later we need to know, given a positively oriented strand, what count positive strand this is
@@ -29,6 +29,12 @@ class SignSequence:
 
     def npos(self):
         return self.npos
+
+    def __getitem__(self,key):
+        return self.sequence[key]
+
+    def __len__(self):
+        return self.degree
 
     def __str__(self):
         return str(self.sequence)
