@@ -3,7 +3,7 @@ class TypeDA:
 	# edges - a list of Edges
 	def __init__(self, gens, edges):
 		self.gens = gens
-		self.maps = maps
+		self.edges = edges
 	
 	# two cases: other is a TypeDA, or other is a TypeDD
 	def tensor(self, other):
@@ -22,7 +22,7 @@ class TypeDA:
 		# a_coefficient - element of A
 		# 
 		# condition: delta_1^j(source (X) b_multipliers) = a_coefficient (X) (m_coefficient * target)
-		def __init__(self, source, target, b_multipliers, m_coefficient, a_coefficient)
+		def __init__(self, source, target, b_multipliers, a_coefficient, m_coefficient)
 			self.source = source
 			self.target = target
 			self.b_multipliers = b_multipliers
