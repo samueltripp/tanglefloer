@@ -3,7 +3,7 @@ class TypeDD:
 	# edges - a list of Edges
 	def __init__(self, gens, edges):
 		self.gens = gens
-		self.maps = maps
+		self.edges = edges
 	
 	# other is a TypeAA
 	def tensor(self, other):
@@ -18,10 +18,10 @@ class TypeDD:
 	class Edge:
 		# source, target - elements of gens
 		# a_coefficient - element of A
-		# b_coefficient - element of B
 		# m_cofficient - element of k
+		# b_coefficient - element of B
 		# 
-		# condition: delta_1(source) = a_coefficient (X) b_coefficient (X) (m_coefficient * target)
+		# condition: delta_1(source) = a_coefficient (X) (m_coefficient * target) (X) b_coefficient
 		def __init__(self, source, target, a_coefficient, b_coefficient, m_coefficient)
 			self.source = source
 			self.target = target
