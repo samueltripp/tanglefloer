@@ -1,4 +1,4 @@
-class TypeDA:
+class TypeAA:
 	# gens - a list of generators
 	# edges - a list of Edges
 	def __init__(self, gens, edges):
@@ -14,17 +14,17 @@ class TypeDA:
 		# TODO
 		break
 		
-	# represents the action of some delta_1^j on some pair of generators
+	# represents the action of some m_{1,i,j} on some pair of generators
 	class Edge:
 		# source, target - elements of gens
-		# b_multipliers - a tuple of j-1 elements of B
+		# a_multipliers - a tuple of i elements of A
+		# b_multipliers - a tuple of j elements of B
 		# m_cofficient - element of k
-		# a_coefficient - element of A
-		# 
-		# condition: delta_1^j(source (X) b_multipliers) = a_coefficient (X) (m_coefficient * target)
-		def __init__(self, source, target, b_multipliers, m_coefficient, a_coefficient)
+		#
+		# condition: m_{1,i,j}(source (X) a_multipliers (X) b_multipliers) = m_coefficient * target
+		def __init__(self, source, target, a_multipliers, b_multipliers, m_coefficient)
 			self.source = source
 			self.target = target
+			self.a_multipliers = a_multipliers
 			self.b_multipliers = b_multipliers
-			self.a_coefficient = a_coefficient
 			self.m_coefficient = m_coefficient
