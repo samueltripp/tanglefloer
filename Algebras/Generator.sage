@@ -1,13 +1,15 @@
+#Given a sign sequence, a Generator is a partial bijection
+#between the regions on the left and the regions on the right
 class Generator:
 
     def __init__(self, parent, bijection):
         # Parent is a SignSequence, bijection is a partial bijection
-        # of size at most the size of Parent plus one. 
+        # of size at most the size of Parent plus one.
         # Indexing on bijections starts on 0 as the bottom strand
         # Bijection is a list, mapping i to bijection[i]
         # If bijection[i] == -1, there is no strand coming out of i
         assert (parent.degree + 1) == len(bijection)
-        
+
         # need to assert this is a valid bijection still
         # i.e. max value is at most parent.degree + 1, and
         # no value is hit twice
@@ -17,9 +19,12 @@ class Generator:
         self.bijection = list(bijection)
 
     # Access Methods
+
+    #The sign sequence the Generator is defined relative to
     def parent(self):
         return self.parent
 
+    #The degree of the sign sequence for the Generator
     def degree(self):
         return self.degree
 
@@ -63,7 +68,7 @@ class Generator:
         bijone = self.bijection
         bijtwo = other.bijection
 
-        # If two black strings double cross, return 0 AlgElement    
+        # If two black strings double cross, return 0 AlgElement
         for i in range(1,len(bijone)):
             if bijone[i] != -1:
                 for j in range(0,i):
@@ -79,7 +84,7 @@ class Generator:
                 for k in checkrange:
                     coeffdev[k] = coeffdev[k] + 1
 
-        # This is creating the new generator that is just the composition of self and other          
+        # This is creating the new generator that is just the composition of self and other
         newbij = [-1]*len(bijone)
         for i in range(0,len(bijone)):
             if bijone[i] != -1:
@@ -90,7 +95,7 @@ class Generator:
         product.add([newgen,coeffdev])
         return product
 
-    # Returns an AlgElement of the differential of this Generator 
+    # Returns an AlgElement of the differential of this Generator
     # Returns the zero element if your generator has no crossings
     def differential(self):
         bijection = self.bijection
@@ -151,7 +156,7 @@ def resolve(sd,i,j):
     newgen = Generator(parent,newgen)
 
 
-    # if it crosses no orange strands return coeff 1 
+    # if it crosses no orange strands return coeff 1
     if checkrange == []:
         return [newgen,1]
 
