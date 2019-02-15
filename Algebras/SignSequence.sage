@@ -29,6 +29,7 @@ class SignSequence:
         return self.poscount
 
     #The number of positive terms in the sign sequence
+    #For instance, [-1,1,-1,1,1] -> 3
     def npos(self):
         return self.npos
 

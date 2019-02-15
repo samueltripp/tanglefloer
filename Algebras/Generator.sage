@@ -6,8 +6,7 @@ class Generator:
         # Parent is a SignSequence, bijection is a partial bijection
         # of size at most the size of Parent plus one.
         # Indexing on bijections starts on 0 as the bottom strand
-        # Bijection is a list, mapping i to bijection[i]
-        # If bijection[i] == -1, there is no strand coming out of i
+        # Bijection is a dictionary, mapping i to bijection[i]
         assert (parent.degree + 1) == len(bijection)
 
         # need to assert this is a valid bijection still
@@ -16,7 +15,7 @@ class Generator:
 
         self.parent = parent
         self.degree = parent.degree
-        self.bijection = list(bijection)
+        self.bijection = dict(bijection)
 
     # Access Methods
 
@@ -69,26 +68,28 @@ class Generator:
         bijtwo = other.bijection
 
         # If two black strings double cross, return 0 AlgElement
-        for i in range(1,len(bijone)):
-            if bijone[i] != -1:
-                for j in range(0,i):
-                    if (bijone[j] > bijone[i]) and (bijtwo[bijone[j]] < bijtwo[bijone[i]]): return product
+        for i in bijone:
+            if bijone[i] != 0:
+                for j in bijtwo:
+                    if j < i:
+                        if (bijone[j] > bijone[i]) and (bijtwo[bijone[j]] < bijtwo[bijone[i]]): return product
 
         # coeffdev is a list that counts how many times each orange strand is double crossed
         coeffdev = [0]*(len(bijone)-1)
-        for i in range(0,len(bijone)):
-            if bijone[i] != -1:
-                if bijone[i] > i:
-                    checkrange = range(max(i,bijtwo[bijone[i]]),bijone[i])
-                else: checkrange = range(bijone[i],min(i,bijtwo[bijone[i]]))
-                for k in checkrange:
-                    coeffdev[k] = coeffdev[k] + 1
+        for i in bijone:
+            #We are checking which orange strands could be double crossed
+            #If bijone sends i higher, orange strands can only be double-crossed between i and bijone(i)
+            if bijone[i] > i:
+                checkrange = range(max(i,bijtwo[bijone[i]]),bijone[i])
+            #If bijone sends i lower, orange strands can only be double crossed between can double cross bijone(i) and i.
+            else: checkrange = range(bijone[i],min(i,bijtwo[bijone[i]]))
+            for k in checkrange:
+                coeffdev[k] = coeffdev[k] + 1
 
         # This is creating the new generator that is just the composition of self and other
-        newbij = [-1]*len(bijone)
-        for i in range(0,len(bijone)):
-            if bijone[i] != -1:
-                newbij[i] = bijtwo[bijone[i]]
+        newbij = dict({})
+        for i in bijone:
+            newbij[i] = bijtwo[bijone[i]]
         newgen = Generator(self.parent,newbij)
 
         # Add this new generator with appropriate coefficients to the AlgElement, and return
@@ -100,9 +101,9 @@ class Generator:
     def differential(self):
         bijection = self.bijection
         diff = AlgElement({},self.parent)
-        for i in range(1,len(bijection)):
-            if bijection[i] != -1:
-                for j in range(0,i):
+        for i in bijection:
+            for j in bijection:
+                if j < i:
                     if bijection[j]>bijection[i]:
                         resolution = resolve(self,i,j)
                         diff.add(resolution)
@@ -116,11 +117,13 @@ class Generator:
     def maslov(self):
         mgrade = 0
         bijection = self.bijection
-        for i in range(0,len(bijection)):
-            if (self.bijection[i] != -1):
-                for j in range(0,i):
-                    if (bijection[j] != -1) and (bijection[j]>bijection[i]):
+        for i in bijection:
+            for j in range(0,i):
+                try:
+                    if bijection[j]>bijection[i]:
                         mgrade += 1
+                except:
+                    pass
                 if i < bijection[i]: checkrange = range(i,bijection[i])
                 else: checkrange = range(bijection[i],i)
                 for k in checkrange:
@@ -130,12 +133,10 @@ class Generator:
     def twoalexander(self):
         agrade = 0
         bijection = self.bijection
-        for i in range(0,len(self.bijection)):
-            if (self.bijection[i] != -1):
-                if i<bijection[i]: checkrange = range(i,bijection[i])
-                else: checkrange = range(bijection[i],i)
-                for k in checkrange: agrade += -1*self.parent.sequence[k]
-
+        for i in bijection:
+            if i<bijection[i]: checkrange = range(i,bijection[i])
+            else: checkrange = range(bijection[i],i)
+            for k in checkrange: agrade += -1*self.parent.sequence[k]
         return agrade
 
 
@@ -147,10 +148,13 @@ def resolve(sd,i,j):
 
     # check if black strands double cross
     for k in range(j,i):
-        if (bij[i]<bij[k]) and (bij[k]<bij[j]):
-            return [sd,0]
+        try:
+            if (bij[i]<bij[k]) and (bij[k]<bij[j]):
+                return [sd,0]
+        except:
+            pass
 
-    newgen = list(bij)
+    newgen = copy.deepcopy(bij)
     newgen[i]=bij[j]
     newgen[j]=bij[i]
     newgen = Generator(parent,newgen)
@@ -171,16 +175,6 @@ def resolve(sd,i,j):
     return [newgen,returnrange]
 
 def ends_match(sd1,sd2):
-    bijlength = len(sd1.bijection)
-
-    selfright = [-1]*bijlength
-    otherleft = list(selfright)
-
-    for i in range(0,bijlength):
-        if (sd1.bijection[i] != -1):
-            selfright[sd1.bijection[i]] = 1
-
-    for i in range(0,bijlength):
-        if (sd2.bijection[i] != -1):
-            otherleft[i] = 1
-    return selfright == otherleft
+    if len(sd1.bijection) != len(sd2):
+        return False
+    return set({sd1[a] for a in sd1}) == set(sd2)
