@@ -3,8 +3,8 @@ class TypeAA:
 	# edges - a list of Edges
 	def __init__(self, gens, edges):
 		self.gens = gens
-		self.maps = maps
-	
+		self.edges = edges
+		
 	# two cases: other is a TypeDA, or other is a TypeDD
 	def tensor(self, other):
 		# TODO
@@ -21,8 +21,8 @@ class TypeAA:
 		# r_multipliers - a tuple of j elements of B
 		# m_cofficient - element of k
 		#
-		# condition: m_{1,i,j}(source (X) l_multipliers (X) r_multipliers) = m_coefficient * target
-		def __init__(self, source, target, l_multipliers, r_multipliers, m_coefficient)
+		# condition: m_{1,i,j}(a_multipliers (X) source (X) b_multipliers) = m_coefficient * target
+		def __init__(self, source, target, a_multipliers, b_multipliers, m_coefficient)
 			self.source = source
 			self.target = target
 			self.l_multipliers = l_multipliers
