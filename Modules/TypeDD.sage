@@ -25,6 +25,6 @@ class TypeDD:
 		def __init__(self, source, target, a_coefficient, b_coefficient, m_coefficient)
 			self.source = source
 			self.target = target
-			self.l_coefficient = l_coefficient
-			self.r_coefficient = r_coefficient
+			self.a_coefficient = a_coefficient
+			self.b_coefficient = b_coefficient
 			self.m_coefficient = m_coefficient
