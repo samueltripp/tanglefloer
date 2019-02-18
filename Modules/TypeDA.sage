@@ -17,14 +17,14 @@ class TypeDA:
 	# represents the action of some delta_1^j on some pair of generators
 	class Edge:
 		# source, target - elements of gens
-		# r_multipliers - a tuple of j-1 elements of B
+		# b_multipliers - a tuple of j-1 elements of B
 		# m_cofficient - element of k
-		# l_coefficient - element of A
+		# a_coefficient - element of A
 		# 
 		# condition: delta_1^j(source (X) b_multipliers) = a_coefficient (X) (m_coefficient * target)
 		def __init__(self, source, target, b_multipliers, a_coefficient, m_coefficient)
 			self.source = source
 			self.target = target
-			self.r_multipliers = r_multipliers
-			self.l_coefficient = l_coefficient
+			self.b_multipliers = b_multipliers
+			self.a_coefficient = a_coefficient
 			self.m_coefficient = m_coefficient
