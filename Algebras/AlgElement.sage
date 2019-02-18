@@ -32,6 +32,7 @@ class AlgElement:
         var_names = ['U%s'%p for p in range(1,npos + 1)]
         return PolynomialRing(GF(2),npos,var_names)
 
+    #
     def add(self,input):
         dict = self.dict
         gen = input[0]
@@ -61,7 +62,6 @@ class AlgElement:
                 retcoeff = retcoeff * gens[poscount[i]-1]**inrange[i]
 
         return retcoeff
-
 
     def __add__(self,other):
         outdict = copy.deepcopy(self.dict)
