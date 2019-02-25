@@ -11,7 +11,16 @@ class TypeDD:
 		break
 		
 	def reduce(self):
-		# TODO
+        gens = self.gens # get generators
+        edges = self.edges # get edges
+        edges_reduced = {} # initialize empty dictionary of new edges
+        for i in range(0, len(edges)): # loop over edges
+            edge = edges[i]
+            # for each edge loop over pairs of generators
+            for j in range(0, len(gens)):
+                for k in range(0, len(gens)):
+                    # TODO: at least one line of math goes here :)
+        self.edges = edges_reduced
 		break
 		
 	# represents the action of some delta_1 on some pair of generators
