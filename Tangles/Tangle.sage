@@ -50,9 +50,13 @@ class ETangle(Tangle):
 	Type = IntEnum('Type', 'OVER UNDER CUP CAP')
 
 	# etype - one of OVER, UNDER, CUP, or CAP
+	#CUP opens right, CAP opens left
+	#Lower strands take precedence over higher ones
+	#OVER is the bottom strand crossing above the top one
+	#UNDER is the bottom strand crossing under the top one
 	# signs - a tuple {-1,1}* representing the signs of the left edge of the tangle,
 	#         unless etype is CUP, in which case it represents the signs on the right edge
-	# position - nat n, where the cup/cap/crossing is between places n-1 and n
+	# position - natural number n, where the cup/cap/crossing is between places n-1 and n
 	def __init__(self, etype, signs, position):
 		assert etype in list(ETangle.Type), "{} is not a valid type.".format(etype)
 		for sign in signs:
