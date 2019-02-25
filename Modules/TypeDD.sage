@@ -23,7 +23,7 @@ class TypeDD:
 		for xy in MNgens: # look at each (x tensor y) generator
 			for e in other.edges[xy[4]]: # looking at each edge coming out of y (stored as a list in dict with key of source vertex)
 				# starting to like matrices much better... should go back and change that #TODO
-
+				break
 
 
 
