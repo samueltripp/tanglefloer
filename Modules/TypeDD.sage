@@ -14,18 +14,39 @@ class TypeDD:
 	
 	# other is a TypeAA (only option for TypeDD)
 	def tensor(self, other):
-		assert self.rightalgebra = other.leftalgebra, #pseudo - where are the left and right algebras stored?
-			"Error: Algebras not compatible"
+		#assert self.rightalgebra = other.leftalgebra, #pseudo - where are the left and right algebras stored?
+		#	"Error: Algebras not compatible"
 		MNgens = np.zeros(length(self.gens),length(other.gens)) # I think a list will be more efficient than a matrix, since it will probably be quite sparse, but we should discuss
+		listKey = 0
 		for i in length(self.gens):
 			for j in length(other.gens):
 				if self.gens[i][2] == other.gens[j][1]: #this assumes generators are a tuple (x, eL, eR)
-					MNgens[i][j] = [self.gens[i][0]+other.gens[j][0],self.gens[i][1],other.gens[j][2]] #(x tensor y, xeL, yeR)
-					# above "+" assumes the x generator is stored as a list, which I think it no longer is
-					#(but also I think the + operator might have been overwritten for generators, so might work anyway. Check this.)
-
+					MNgens[i][j] = [self.gens[i][1],other.gens[j][2],listKey] #(x tensor y, xeL, yeR)
+					listKey += 1
+		MNedgeDict = {}
 		# TODO: Change the below to match the matrix MNgens above (used to be a list)
-		for xy in MNgens: # look at each (x tensor y) generator
+		for j in length(other.gens):
+			jedges = other.edges_out[j]
+			for e in jedges:
+				for i in length(self.gens):
+					if MNgens[i][j] != 0:
+						if yedge.a_coefficient == []:
+							futureIndex = MNgens[i][j][2]
+							if futureIndex in MNedgeDict[]:
+								MNedgeDict[futureIndex].append(Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
+							else:
+								MNedgeDict[futureIndex] = [Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient)]
+						else: #if a_coeff is not empty
+							for xedge in self.edges_out[i]:
+								if xedge.b_coefficient == yedge.a_coefficient:
+
+								#TODO ENDED HERE
+								Edge(futureIndex,MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient)
+
+			for i in length(self.gens): # look at each (x tensor y) generator
+				if MNgens[i][j] != 0:
+					
+
 			for e in other.edges[xy[4]]: # looking at each edge coming out of y (stored as a list in dict with key of source vertex)
 				# starting to like matrices much better... should go back and change that #TODO
 				break
@@ -86,7 +107,6 @@ class TypeDD:
         self.idempotent_left = idempotent_left
         self.idempotent_right = idempotent_right
 
->>>>>>> upstream/master
 	# represents the action of some delta_1 on some pair of generators
 	class Edge:
 		# source, target - elements of gens
