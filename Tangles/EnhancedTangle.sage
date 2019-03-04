@@ -3,7 +3,7 @@
 #and bijplus is a partial bijection from the set of points in the middle to the set of points on the right
 #such that the set of middle points is the disjoint union of the image of bijminus and the domain of bijplus
 #Basically, we are overlaying black strands on orange strands
-class EnhancedETangle:
+class EnhancedETangle(ETangle):
 
     def __init__(self, parent, bijminus, bijplus):
         # Parent is an ETangle,
@@ -12,22 +12,22 @@ class EnhancedETangle:
         # Indexing on bijections starts on 0 as the bottom strand
 
         #These are the images and domains of our partial bijections--note that they are unordered
-        minusimage = set(bijminus[a] for a in bijminus)
-        plusimage = set(bijplus[a] for a in bijplus)
-        minusdomain = set(bijminus)
-        plusdomain = set(bijplus)
+        self.minusimage = set(bijminus[a] for a in bijminus)
+        self.plusimage = set(bijplus[a] for a in bijplus)
+        self.minusdomain = set(bijminus)
+        self.plusdomain = set(bijplus)
 
         #We check that the disjoint union of minusimage and plusdomain is the middle points
-        assert minusimage & plusdomain == set([])
-        assert minusimage | plusdomain == set(parent.middle_points())
+        assert self.minusimage & self.plusdomain == set([])
+        assert self.minusimage | self.plusdomain == set(parent.middle_points())
 
         # need to assert this is a valid bijection still
         # i.e. max value is at most parent.degree + 1, and
         # no value is hit twice
+        ETangle.__init__(self, parent.etype, parent.signs, parent.position)
         self.parent = parent
-        self.signs = parent.signs
-        self.degree = len(parent.signs)
-        self.position = parent.position
+        self.bijplus = bijplus
+        self.bijminus = bijminus
 
     # Access Methods
 
@@ -53,5 +53,32 @@ class EnhancedETangle:
     def len(self):
         return self.degree
 
+    def bijminus(self):
+        return self.bijminus
+
+    def bijplus(self):
+        return self.bijplus
+
+    #This code is not actually Dplus yet
+    #Instead, it takes in self and returns a list of copies of self, each of which has one crossing uncrossed
     def Dplus(self):
-      
+        output = {}
+        for i, j in self.plusdomain:
+            #wherever there are crossings, we uncross and create a new term
+            if i > j and bijplus[i] < bijplus[j]:
+                newgen = copy.deepcopy(bijplus)
+                newgen[i]=bijplus[j]
+                newgen[j]=bijplus[i]
+                #check if black strands double-cross: if they do, we don't include this term in the output
+                doublecross = False
+                for k in range(j,i):
+                    try:
+                        if (bij[i]<bij[k]) and (bij[k]<bij[j]):
+                            doublecross = True
+                            break
+                    except:
+                        pass
+                if doublecross == False:
+                    for k in xrange(0,len(self.signs)):
+                        
+        return output
