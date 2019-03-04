@@ -6,10 +6,10 @@ class TypeDD:
     # edges_in - a dictionary keyed by target generators
     # deleted edge data...it is stored in the gens
     # dictionary values are lists of edges (each edge is a 5-tuple (source, target, a, b, m))
-	def __init__(self, gens,edges_out):
-		self.gens = gens
+	def __init__(self,gens,edges_out):
+		self.gens = gens # this should just be a list of tuples [eL,eR]
 		self.edges_out = edges_out
-		self.edges_in = edges_in
+		self.edges_in = self.dictTargEdges(edges_out) # Emma says: does anyone need this besides reducation people? I don't think it should be in __init__
 	
 	# other is a TypeAA (only option for TypeDD)
 	def tensor(self, other):
@@ -29,32 +29,18 @@ class TypeDD:
 				for i in length(self.gens):
 					if MNgens[i][j] != 0:
 						if yedge.a_coefficient == []:
-							futureIndex = MNgens[i][j][2]
-							if futureIndex in MNedgeDict:
-								MNedgeDict[futureIndex].append(Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
-							else:
-								MNedgeDict[futureIndex] = [Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient)]
+							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
 						else: #if a_coeff is not empty
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
-									futureIndex = MNgens[i][j][2]
-									if futureIndex in MNedgeDict:
-										MNedgeDict[futureIndex].append(Edge(futureIndex,MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
-									else:
-										MNedgeDict[futureIndex] = [Edge(futureIndex,MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient)]
+									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
 
 		for i in length(self.gens):
-			iedges = self.edges_out[i]
-			for e in iedges:
+			for xedge in self.edges_out[i]:
 				for j in length(other.gens):
 					if MNgens[i][j] != 0:
-						xedge = self.gens[i]
 						if xedge.b_coefficient == []:
-							futureIndex = MNgens[i][j][2]
-							if futureIndex in MNedgeDict:
-								MNedgeDict[futureIndex].append(Edge(futureIndex, MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
-							else:
-								MNedgeDict[futureIndex] = [Edge(futureIndex, MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient)]
+							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
 
 		#put generators in list
 		outGenList = []
@@ -63,18 +49,24 @@ class TypeDD:
 				if MNgens[i][j] != 0:
 					outGenList.append([MNgens[i][j][0],MNgens[i][j][1]])
 
-		#TODO: make dictionary keyed by target generators
+		return TypeDA(outGenList,MNedgeDict)
 
-	
-	#creates a dictionary of the edges, keyed by source vertex. The values are a list of edges.
-	def dictEdges(self,edges): # matrix instead??
-		edgeDict = dict()
-		for e in edges:
-			if e.source in edgeDict:
-				edgeDict[e.source].append(e)
-				# I'm not convinced the above works as I intend - need to test small example
-			else:
-				edgeDict[e.source] = [e]
+	def add_to_dict(self,index_key,in_dict,new_edge):
+		if index_key in in_dict:
+			in_dict[index_key].append(new_edge)
+		else:
+			in_dict[index_key] = [new_edge]
+
+
+	#creates a dictionary of the edges, keyed by target vertex. The values are a list of edges.
+	def dictTargEdges(self,inEdgeDict):
+		outEdgeDict = {}
+		for s in inEdgeDict:
+			for e in inEdgeDict[s]:
+				if e.target in outEdgeDict:
+					outEdgeDict[e.target].append(e)
+				else:
+					edgeDict[e.target] = [e]
 		return edgeDict
 
 		
@@ -168,6 +160,7 @@ class TypeDD:
             # make new TypeDD
             break
 
+    # Emma asks: is this getting used by anyone??
     class Generator:
         # in/out edges
         # left/right idempotents
