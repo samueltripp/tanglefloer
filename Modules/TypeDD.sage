@@ -19,17 +19,15 @@ class TypeDD:
 		listKey = 0
 		for i in length(self.gens):
 			for j in length(other.gens):
-				if self.gens[i][2] == other.gens[j][1]: #this assumes generators are a tuple (x, eL, eR)
-					MNgens[i][j] = [self.gens[i][1],other.gens[j][2],listKey] #(x tensor y, xeL, yeR)
+				if self.gens[i][1] == other.gens[j][0]: #this assumes generators are a tuple (eL, eR)
+					MNgens[i][j] = [self.gens[i][0],other.gens[j][1],listKey] #(xeL, yeR)
 					listKey += 1
 		MNedgeDict = {}
 
 		for j in length(other.gens):
-			jedges = other.edges_out[j]
-			for e in jedges:
+			for yedge in other.edges_out[j]:
 				for i in length(self.gens):
 					if MNgens[i][j] != 0:
-						yedge = other.gens[j]
 						if yedge.a_coefficient == []:
 							futureIndex = MNgens[i][j][2]
 							if futureIndex in MNedgeDict:
