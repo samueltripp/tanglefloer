@@ -79,6 +79,19 @@ class EnhancedETangle(ETangle):
                     except:
                         pass
                 if doublecross == False:
-                    for k in xrange(0,len(self.signs)):
-                        
+                    #if we doublecross left-oriented orange strands, we don't include this term in the output
+                    if i < bijplus[i] and newgen[j] < bijplus[j]:
+                        orangestrandcrossing == False
+                        for k in [i-1,newgen[i]]:
+                            if self.signs[k] == -1:
+                                orangestrandcrossing == True
+                                break
+                        #SOMETHING GOES HERE
+                    if i > bijplus[i] and newgen[j] > bijplus[j]:
+                        orangestrandcrossing = False
+                        for k in [i-1,newgen[i]]:
+                            if self.signs[k] == -1:
+                                orangestrandcrossing == True
+                                break
+                        #SOMETHING GOES HERE
         return output
