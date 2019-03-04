@@ -1,3 +1,5 @@
+import copy
+
 #Given a sign sequence, a Generator is a partial bijection
 #between the regions on the left and the regions on the right
 class Generator:
@@ -15,7 +17,10 @@ class Generator:
 
         self.parent = parent
         self.degree = parent.degree
-        self.bijection = dict(bijection)
+        tups = []
+        for i in range(len(bijection)):
+            tups.append((i,bijection[i]))
+        self.bijection = dict(tups)
 
     # Access Methods
 
@@ -29,6 +34,8 @@ class Generator:
 
     def bijection(self):
         return self.bijection
+
+
 
     # Underlying methods
     def __str__(self):
@@ -44,6 +51,10 @@ class Generator:
     def __hash__(self):
         # Presumably this is bad practice and should be changed
         return hash(str(self))
+    
+    def __len__(self):
+        #return the length of the bijection
+        return len(self.bijection)
 
     # ARITHMETIC METHODs
     # This adds two elements
@@ -175,6 +186,6 @@ def resolve(sd,i,j):
     return [newgen,returnrange]
 
 def ends_match(sd1,sd2):
-    if len(sd1.bijection) != len(sd2):
+    if len(sd1.bijection) != len(sd2.bijection):
         return False
-    return set({sd1[a] for a in sd1}) == set(sd2)
+    return set({sd1.bijection[a] for a in sd1.bijection.keys()}) == set(sd2.bijection.keys())
