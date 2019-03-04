@@ -6,7 +6,7 @@ class TypeDD:
     # edges_in - a dictionary keyed by target generators
     # deleted edge data...it is stored in the gens
     # dictionary values are lists of edges (each edge is a 5-tuple (source, target, a, b, m))
-	def __init__(self, gens):
+	def __init__(self, gens,edges_out):
 		self.gens = gens
 		self.edges_out = edges_out
 		self.edges_in = edges_in
@@ -67,21 +67,17 @@ class TypeDD:
 
 		#TODO: make dictionary keyed by target generators
 
-		
-	def reduce(self):
-		# TODO
-		break
-
-	# #creates a dictionary of the edges, keyed by source vertex. The values are a list of edges.
-	# def dictEdges(self,edges): # matrix instead??
-	# 	edgeDict = dict()
-	# 	for e in edges:
-	# 		if e.source in edgeDict:
-	# 			edgeDict[e.source].append(e)
-	# 			# I'm not convinced the above works as I intend - need to test small example
-	# 		else:
-	# 			edgeDict[e.source] = [e]
-	# 	return edgeDict
+	
+	#creates a dictionary of the edges, keyed by source vertex. The values are a list of edges.
+	def dictEdges(self,edges): # matrix instead??
+		edgeDict = dict()
+		for e in edges:
+			if e.source in edgeDict:
+				edgeDict[e.source].append(e)
+				# I'm not convinced the above works as I intend - need to test small example
+			else:
+				edgeDict[e.source] = [e]
+		return edgeDict
 
 		
     # test if edge is empty
