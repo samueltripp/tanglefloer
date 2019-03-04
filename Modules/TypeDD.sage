@@ -95,8 +95,29 @@ class TypeDD:
         for x in self.gens:
             for e in x.edges_out:
                 if is_empty_edge(e):
-                    return [e]
+                    # now check to see if there are other edges between x and target of e
+                    y = e[1] # target of e
+                    # check size of list of edges from x to y is 1
+                    assertion_1 = len(get_edges_between(self, x, y)) == 1
+                    # check that there are no edges from y to x
+                    assertion_2 = len(get_edges_between(self, y, x)) == 0
+                    if assertion_1 and assertion_2:
+                        return [e]
         return []
+
+    # get edges z->w
+    # M: TypeDD
+    # z: source generator
+    # w: target generator
+    # returns list of edges z->w
+    def get_edges_between(M, z, w):
+        edges_out_z = M.edges_out(z)
+        edges_in_w = M.edges_in(w)
+        edges = []
+        for edge in edges_out_z:
+            if edge in edges_in_w:
+                edges.append(edge)
+        return edges
 
     # input is a TypeDD
     # copy generators and update
@@ -107,25 +128,39 @@ class TypeDD:
         if len(edge_list) == 0: # in this case self is reduced
             return self
         else: # in this case we have at least one edge to reduce
-            old_gens = self.gens
             edge = edge_list[0]
-            source = edge.source # x
-            target = edge.target # y
-            new_gens = self.gens
+            x = edge.source
+            y = edge.target
+            # new list of generators without reference to self.gens
+            new_gens = []
+            for v in self.gens:
+                if v != x and v != y:
+                    new_gens.append(v)
+            # new edges_out edges_in dictionaries each with an empty list of edges
+            new_edges_out = {}
+            new_edges_in = {}
+            for v in new_gens:
+                new_edges_out[v] = []
+                new_edges_in[v] = []
             for z in new_gens:
-                if not (z in [source, target]):
-                    # compute all targets of z
-                    z_targets = [ edge[1] for edge in z.edges_out ]
-                    for w in new_gens:
-                        if not (w in [source, target]):
-                            z_points_to_y = y in z_targets
-                            # compute all sources of w
-                            w_sources = [ edge[0] for edge in w.edges_in ]
-                            x_points_to_w = x in w_sources
-                            # if z points to y and x points to x then update edge from z to w
-                            if z_points_to_y and x_points_to_w: # otherwise don't update anything
-                                # TODO MATH
-                                # new_gens are the generators that get updated to make new TypeDD
+                # compute all targets of z
+                z_targets = [ edge[1] for edge in z.edges_out ]
+                for w in new_gens:
+                    # get edge(s) z->w
+                    edges_z_to_w = get_edges_between(self, z, w)
+                    z_points_to_y = y in z_targets
+                    # compute all sources of w
+                    w_sources = [ edge[0] for edge in w.edges_in ]
+                    x_points_to_w = x in w_sources
+                    # if z points to y and x points to x then update edge from z to w
+                    if z_points_to_y and x_points_to_w: # otherwise don't update anything
+                        # TODO: a, b, m determined by MATH
+                        new_edge = Edge(z, w, a, b, m)
+                        new_edges_out[z].append(new_edge)
+                        new_edges_in[w].append(new_edge)
+                    else: # just copy over from previous dictionaries
+                        new_edges_out[z] += edges_z_to_w
+                        new_edges_in[w] += edges_z_to_w
             # delete all x,y data
             # delete source and target generators of edge to be reduced
             new_gens.remove(source)
@@ -156,8 +191,3 @@ class TypeDD:
 			self.a_coefficient = a_coefficient
 			self.b_coefficient = b_coefficient
 			self.m_coefficient = m_coefficient
-
-# 03/01/19
-# NOTES (tensor says)
-# generators: list, we care about index
-# edges: dictionary, keyed by index of source generator
