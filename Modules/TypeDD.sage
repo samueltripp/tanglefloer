@@ -19,23 +19,30 @@ class TypeDD:
 		listKey = 0
 		for i in length(self.gens):
 			for j in length(other.gens):
+				#Here we are comparing left and right idempotents of generators, one from each structure. If the idempotents agree, add the new tensored generator and its idempotent info to the matrix
 				if self.gens[i][1] == other.gens[j][0]: #this assumes generators are a tuple (eL, eR)
 					MNgens[i][j] = [self.gens[i][0],other.gens[j][1],listKey] #(xeL, yeR)
 					listKey += 1
+					
 		MNedgeDict = {}
 
 		for j in length(other.gens):
+			#Scan the generators of the AA structure, and for each one look at the edges coming out
 			for yedge in other.edges_out[j]:
 				for i in length(self.gens):
+					#for each gen in DD, check if the idempotents agree 
 					if MNgens[i][j] != 0:
+						#if the AA edge is not taking in an element on the left, tensor with identity map with every compatible DD gen
 						if yedge.a_coefficient == []:
 							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
+						#if AA edge is taking an element on the left, for each compatible DD gen scan its edges for any edge that produces the appropriate element to the right
 						else: #if a_coeff is not empty
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
 									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
 
 		for i in length(self.gens):
+			#for each edge that DD gen has that produces an idempotent to the right, tensor with the identity with every compatible AA gen
 			for xedge in self.edges_out[i]:
 				for j in length(other.gens):
 					if MNgens[i][j] != 0:
