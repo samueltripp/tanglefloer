@@ -6,10 +6,10 @@ class TypeDD:
     # edges_in - a dictionary keyed by target generators
     # deleted edge data...it is stored in the gens
     # dictionary values are lists of edges (each edge is a 5-tuple (source, target, a, b, m))
-	def __init__(self, gens):
-		self.gens = gens
+	def __init__(self,gens,edges_out):
+		self.gens = gens # this should just be a list of tuples [eL,eR]
 		self.edges_out = edges_out
-		self.edges_in = edges_in
+		self.edges_in = self.dictTargEdges(edges_out) # Emma says: does anyone need this besides reducation people? I don't think it should be in __init__
 	
 	# other is a TypeAA (only option for TypeDD)
 	def tensor(self, other):
@@ -29,32 +29,18 @@ class TypeDD:
 				for i in length(self.gens):
 					if MNgens[i][j] != 0:
 						if yedge.a_coefficient == []:
-							futureIndex = MNgens[i][j][2]
-							if futureIndex in MNedgeDict:
-								MNedgeDict[futureIndex].append(Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
-							else:
-								MNedgeDict[futureIndex] = [Edge(futureIndex, MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient)]
+							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
 						else: #if a_coeff is not empty
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
-									futureIndex = MNgens[i][j][2]
-									if futureIndex in MNedgeDict:
-										MNedgeDict[futureIndex].append(Edge(futureIndex,MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
-									else:
-										MNedgeDict[futureIndex] = [Edge(futureIndex,MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient)]
+									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
 
 		for i in length(self.gens):
-			iedges = self.edges_out[i]
-			for e in iedges:
+			for xedge in self.edges_out[i]:
 				for j in length(other.gens):
 					if MNgens[i][j] != 0:
-						xedge = self.gens[i]
 						if xedge.b_coefficient == []:
-							futureIndex = MNgens[i][j][2]
-							if futureIndex in MNedgeDict:
-								MNedgeDict[futureIndex].append(Edge(futureIndex, MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
-							else:
-								MNedgeDict[futureIndex] = [Edge(futureIndex, MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient)]
+							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
 
 		#put generators in list
 		outGenList = []
@@ -63,23 +49,25 @@ class TypeDD:
 				if MNgens[i][j] != 0:
 					outGenList.append([MNgens[i][j][0],MNgens[i][j][1]])
 
-		#TODO: make dictionary keyed by target generators
+		return TypeDA(outGenList,MNedgeDict)
 
-		
-	def reduce(self):
-		# TODO
-		break
+	def add_to_dict(self,index_key,in_dict,new_edge):
+		if index_key in in_dict:
+			in_dict[index_key].append(new_edge)
+		else:
+			in_dict[index_key] = [new_edge]
 
-	# #creates a dictionary of the edges, keyed by source vertex. The values are a list of edges.
-	# def dictEdges(self,edges): # matrix instead??
-	# 	edgeDict = dict()
-	# 	for e in edges:
-	# 		if e.source in edgeDict:
-	# 			edgeDict[e.source].append(e)
-	# 			# I'm not convinced the above works as I intend - need to test small example
-	# 		else:
-	# 			edgeDict[e.source] = [e]
-	# 	return edgeDict
+
+	#creates a dictionary of the edges, keyed by target vertex. The values are a list of edges.
+	def dictTargEdges(self,inEdgeDict):
+		outEdgeDict = {}
+		for s in inEdgeDict:
+			for e in inEdgeDict[s]:
+				if e.target in outEdgeDict:
+					outEdgeDict[e.target].append(e)
+				else:
+					edgeDict[e.target] = [e]
+		return edgeDict
 
 		
     # test if edge is empty
@@ -99,8 +87,29 @@ class TypeDD:
         for x in self.gens:
             for e in x.edges_out:
                 if is_empty_edge(e):
-                    return [e]
+                    # now check to see if there are other edges between x and target of e
+                    y = e[1] # target of e
+                    # check size of list of edges from x to y is 1
+                    assertion_1 = len(get_edges_between(self, x, y)) == 1
+                    # check that there are no edges from y to x
+                    assertion_2 = len(get_edges_between(self, y, x)) == 0
+                    if assertion_1 and assertion_2:
+                        return [e]
         return []
+
+    # get edges z->w
+    # M: TypeDD
+    # z: source generator
+    # w: target generator
+    # returns list of edges z->w
+    def get_edges_between(M, z, w):
+        edges_out_z = M.edges_out(z)
+        edges_in_w = M.edges_in(w)
+        edges = []
+        for edge in edges_out_z:
+            if edge in edges_in_w:
+                edges.append(edge)
+        return edges
 
     # input is a TypeDD
     # copy generators and update
@@ -111,25 +120,39 @@ class TypeDD:
         if len(edge_list) == 0: # in this case self is reduced
             return self
         else: # in this case we have at least one edge to reduce
-            old_gens = self.gens
             edge = edge_list[0]
-            source = edge.source # x
-            target = edge.target # y
-            new_gens = self.gens
+            x = edge.source
+            y = edge.target
+            # new list of generators without reference to self.gens
+            new_gens = []
+            for v in self.gens:
+                if v != x and v != y:
+                    new_gens.append(v)
+            # new edges_out edges_in dictionaries each with an empty list of edges
+            new_edges_out = {}
+            new_edges_in = {}
+            for v in new_gens:
+                new_edges_out[v] = []
+                new_edges_in[v] = []
             for z in new_gens:
-                if not (z in [source, target]):
-                    # compute all targets of z
-                    z_targets = [ edge[1] for edge in z.edges_out ]
-                    for w in new_gens:
-                        if not (w in [source, target]):
-                            z_points_to_y = y in z_targets
-                            # compute all sources of w
-                            w_sources = [ edge[0] for edge in w.edges_in ]
-                            x_points_to_w = x in w_sources
-                            # if z points to y and x points to x then update edge from z to w
-                            if z_points_to_y and x_points_to_w: # otherwise don't update anything
-                                # TODO MATH
-                                # new_gens are the generators that get updated to make new TypeDD
+                # compute all targets of z
+                z_targets = [ edge[1] for edge in z.edges_out ]
+                for w in new_gens:
+                    # get edge(s) z->w
+                    edges_z_to_w = get_edges_between(self, z, w)
+                    z_points_to_y = y in z_targets
+                    # compute all sources of w
+                    w_sources = [ edge[0] for edge in w.edges_in ]
+                    x_points_to_w = x in w_sources
+                    # if z points to y and x points to x then update edge from z to w
+                    if z_points_to_y and x_points_to_w: # otherwise don't update anything
+                        # TODO: a, b, m determined by MATH
+                        new_edge = Edge(z, w, a, b, m)
+                        new_edges_out[z].append(new_edge)
+                        new_edges_in[w].append(new_edge)
+                    else: # just copy over from previous dictionaries
+                        new_edges_out[z] += edges_z_to_w
+                        new_edges_in[w] += edges_z_to_w
             # delete all x,y data
             # delete source and target generators of edge to be reduced
             new_gens.remove(source)
@@ -137,6 +160,7 @@ class TypeDD:
             # make new TypeDD
             break
 
+    # Emma asks: is this getting used by anyone??
     class Generator:
         # in/out edges
         # left/right idempotents
@@ -160,8 +184,3 @@ class TypeDD:
 			self.a_coefficient = a_coefficient
 			self.b_coefficient = b_coefficient
 			self.m_coefficient = m_coefficient
-
-# 03/01/19
-# NOTES (tensor says)
-# generators: list, we care about index
-# edges: dictionary, keyed by index of source generator
