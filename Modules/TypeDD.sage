@@ -1,11 +1,11 @@
 class TypeDD:
-	# gens - a list of generators
+    # gens - a list of generators
     # edges_out - a dictionary keyed by source generators
     # edges_in - a dictionary keyed by target generators
     # deleted edge data...it is stored in the gens
     # dictionary values are lists of edges (each edge is a 5-tuple (source, target, a, b, m))
-	def __init__(self, gens):
-		self.gens = gens
+    def __init__(self, gens):
+        self.gens = gens
 
 	# other is a TypeAA
 	def tensor(self, other):
