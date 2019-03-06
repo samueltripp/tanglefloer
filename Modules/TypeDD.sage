@@ -7,10 +7,10 @@ class TypeDD:
     def __init__(self, gens):
         self.gens = gens
 
-	# other is a TypeAA
-	def tensor(self, other):
-		# TODO
-		break
+    # other is a TypeAA
+    def tensor(self, other):
+        # TODO
+        break
 
     # test if edge is empty
     # maybe this should go somewhere else ?
@@ -25,7 +25,7 @@ class TypeDD:
             return False
 
     # input is list of generators
-	def get_reducible_edge(self):
+    def get_reducible_edge(self):
         for x in self.gens:
             for e in x.edges_out:
                 if is_empty_edge(e):
@@ -111,17 +111,17 @@ class TypeDD:
             self.idempotent_left = idempotent_left
             self.idempotent_right = idempotent_right
 
-	# represents the action of some delta_1 on some pair of generators
-	class Edge:
-		# source, target - elements of gens
-		# a_coefficient - element of A
-		# m_cofficient - element of k
-		# b_coefficient - element of B
-		# 
-		# condition: delta_1(source) = a_coefficient (X) (m_coefficient * target) (X) b_coefficient
+    # represents the action of some delta_1 on some pair of generators
+    class Edge:
+        # source, target - elements of gens
+        # a_coefficient - element of A
+        # m_cofficient - element of k
+        # b_coefficient - element of B
+        # 
+        # condition: delta_1(source) = a_coefficient (X) (m_coefficient * target) (X) b_coefficient
         def __init__(self, source, target, a_coefficient, b_coefficient, m_coefficient):
-			self.source = source
-			self.target = target
-			self.a_coefficient = a_coefficient
-			self.b_coefficient = b_coefficient
-			self.m_coefficient = m_coefficient
+            self.source = source
+            self.target = target
+            self.a_coefficient = a_coefficient
+            self.b_coefficient = b_coefficient
+            self.m_coefficient = m_coefficient
