@@ -11,36 +11,47 @@ class TypeDD:
 		self.gens = gens # this should just be a list of tuples [eL,eR]
 		self.edges_out = edges_out
 		self.edges_in = self.dictTargEdges(edges_out) # Emma says: does anyone need this besides reducation people? I don't think it should be in __init__
-	
-	# other is a TypeAA (only option for TypeDD)
+	#-Z: Presumably the preceeding lines are defining gens and edges_out, correct? Or is it saying that 'self' is an object consisting of gens and edges_out, and you can call these sub-objects by writing 'self.gens' or 'self.edges_out'?
+	# other is a TypeAA (only option for TypeDD) 
 	def tensor(self, other):
 		#assert self.rightalgebra = other.leftalgebra, #pseudo - where are the left and right algebras stored?
 		#	"Error: Algebras not compatible"
-		MNgens = np.zeros(length(self.gens),length(other.gens)) # I think a list will be more efficient than a matrix, since it will probably be quite sparse, but we should discuss
-		listKey = 0
+		MNgens = np.zeros(length(self.gens),length(other.gens)) # I think a list will be more efficient than a matrix, since it will probably be quite sparse, but we should discuss.
+		#-Z: this is just a matrix of zeros, indexed by the number of generators for the DD-bimodule and the AA-bimodule resp.
+		listKey = 0 
+		#-Z: this is initializing an index for those entries of MNgens that will be nonzero below.
 		for i in length(self.gens):
 			for j in length(other.gens):
 				#Here we are comparing left and right idempotents of generators, one from each structure. If the idempotents agree, add the new tensored generator and its idempotent info to the matrix
 				if self.gens[i][1] == other.gens[j][0]: #this assumes generators are a tuple (eL, eR)
 					MNgens[i][j] = [self.gens[i][0],other.gens[j][1],listKey] #(xeL, yeR)
-					listKey += 1
-					
-		MNedgeDict = {}
+					listKey += 1 
+		#-Z: if the idempotents (i,j) match up, we make an entry in the (i,j) slot which consists of the outer idempotents together with a unique index
+		MNedgeDict = {} 
+		#-Z: initializing a dictionary, which will eventually consist of the edges (representing summands of the total differential) of the box tensor product.
 
-		for j in length(other.gens):
+		for j in length(other.gens): 
 			#Scan the generators of the AA structure, and for each one look at the edges coming out
-			for yedge in other.edges_out[j]:
-				for i in length(self.gens):
+			#-Z: for each AA gen,
+			for yedge in other.edges_out[j]: 
+				#-Z: for each edge out of that AA gen
+				for i in length(self.gens): 
 					#for each gen in DD, check if the idempotents agree 
-					if MNgens[i][j] != 0:
+					#-Z: and for each DD gen that...
+					if MNgens[i][j] != 0: 
 						#if the AA edge is not taking in an element on the left, tensor with identity map with every compatible DD gen
-						if yedge.a_coefficient == []:
+						#-Z: ... can be paired to it
+						if yedge.a_coefficient == []: 
+							#-Z: Case 1: The right coeff of the chosen edge is [], and we pair with the identity map from gen i to gen i in DD module.
 							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
 						#if AA edge is taking an element on the left, for each compatible DD gen scan its edges for any edge that produces the appropriate element to the right
-						else: #if a_coeff is not empty
+						#-Z: in this case, we add to the dictionary of box tensor product edges a new edge, ?keyed by the index for the gen (i,j)?, from gen (i,j) to gen (i,target of edge out of j) that also has left coeff []; right and base ring coeff of the original edge.
+						else: #-Z: Case 2: if a_coeff is not empty, and we try to pair with a nonempty edge in the DD module which matches. 
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
 									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
+						#-Z: in this case, we add the edge, ?keyed? by the index for the i,j gen, which has source (i,j), target (target xedge, target yedge), right-coeff of the DD edge, left coeff of the AA edge, and product of ground ring coeff's. 
+            
 							####### Trying to add the option for y to have multiple algebra elements:
 							recurse_source = i #start recursion with x_i
 							#for xedge in self.edges_out[recurse_source]:
@@ -49,16 +60,21 @@ class TypeDD:
 
 
 							###### end new section
-
-		for i in length(self.gens):
+              
+		for i in length(self.gens): 
 			#for each edge that DD gen has that produces an idempotent to the right, tensor with the identity with every compatible AA gen
-			for xedge in self.edges_out[i]:
-				for j in length(other.gens):
-					if MNgens[i][j] != 0:
-						if xedge.b_coefficient == []:
+			#-Z: for each DD gen,
+			for xedge in self.edges_out[i]: 
+				#-Z: for each edge out of it,
+				for j in length(other.gens): 
+					#-Z: and for each AA gen....
+					if MNgens[i][j] != 0: 
+						#-Z: ...that can pair to it
+						if xedge.b_coefficient == []: 
+							#-Z: Case 3: the DD right coeff is [], and we pair with the identity on the gen j in the AA module		
 							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
-
-		#put generators in list
+						#-Z: in this case, we add an edge ... Q: So we are keying by source vertex with the goal of making the 'tensor(DD,AA).edges_out' dictionary, correct?
+		#put generators in list -Z: yeah, ok
 		outGenList = []
 		for i in length(self.gens):
 			for j in length(other.gens):
