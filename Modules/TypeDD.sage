@@ -127,10 +127,7 @@ class TypeDD:
         assertion_1 = (e.source.idempotent_left == e.a_coefficient)
         assertion_2 = (e.source.idempotent_right == e.a_coefficient)
         assertion_3 = (e.m_coefficient == 1) # 1 in kk
-        if assertion_1 and assertion_2 and assertion_3:
-            return True
-        else:
-            return False
+        return assertion_1 and assertion_2 and assertion_3
 
     # input: TypeDD
     # len(output) in {0,1}
@@ -201,10 +198,9 @@ class TypeDD:
                     else: # just copy over from previous dictionaries
                         new_edges_out[z] += edges_z_to_w
                         new_edges_in[w] += edges_z_to_w
-            # delete all x,y data
+
             # delete source and target generators of edge to be reduced
-            new_gens.remove(x)
-            new_gens.remove(y)
+
             # update self
             self.gens = new_gens
             self.edges_out = new_edges_out
