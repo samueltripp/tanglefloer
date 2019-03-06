@@ -32,7 +32,7 @@ class TypeDD:
 					if MNgens[i][j] != 0: #-Z: ... can be paired to it
 						if yedge.a_coefficient == []: #-Z: Case 1: The right coeff of the chosen edge is [], and we pair with the identity map from gen i to gen i in DD module.
 							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
-						#-Z: in this case, we add to the dictionary of box tensor product edges a new edge, ?keyed by the index for the gen (i,j)?, from gen (i,j) to gen (i,target of edge out of j) that also has right coeff []; left and base ring coeff of the original edge.
+						#-Z: in this case, we add to the dictionary of box tensor product edges a new edge, ?keyed by the index for the gen (i,j)?, from gen (i,j) to gen (i,target of edge out of j) that also has left coeff []; right and base ring coeff of the original edge.
 						else: #-Z: Case 2: if a_coeff is not empty, and we try to pair with a nonempty edge in the DD module which matches. 
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
