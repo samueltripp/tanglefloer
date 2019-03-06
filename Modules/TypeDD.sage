@@ -21,10 +21,7 @@ class TypeDD:
         assertion_1 = (e.source.idempotent_left == e.a_coefficient)
         assertion_2 = (e.source.idempotent_right == e.a_coefficient)
         assertion_3 = (e.m_coefficient == 1) # 1 in kk
-        if assertion_1 and assertion_2 and assertion_3:
-            return True
-        else:
-            return False
+        return assertion_1 and assertion_2 and assertion_3
 
     # input: TypeDD
     # len(output) in {0,1}
