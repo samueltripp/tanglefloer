@@ -34,6 +34,14 @@ class TypeDD:
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
 									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
+							####### Trying to add the option for y to have multiple algebra elements:
+							recurse_source = i #start recursion with x_i
+							#for xedge in self.edges_out[recurse_source]:
+							#	counter = 0
+							self.match_path(i,yedge.a_coefficient)
+
+
+							###### end new section
 
 		for i in length(self.gens):
 			for xedge in self.edges_out[i]:
@@ -51,11 +59,22 @@ class TypeDD:
 
 		return TypeDA(outGenList,MNedgeDict)
 
+	def match_path(self,recurse_source,y_a_coeff)
+	#TODO: track u variables as well (m_coefficient) and multiple l_coeff from DD edges as you go
+	#TODO: order of y coeff. vs. x path? backwards or forwards?
+		if y_a_coeff = []: 
+			return recurse_source
+		for xedge in self.edges_out[recurse_source]:
+			if xedge.b_coefficient == y_a_coeff[0]:#DD edges stored as lists or one element??
+				y_a_coeff.pop(0)
+				match_path(xedge.target,y_a_coeff)
+		return 0 ## need a way to get out if there is no path. I think this will do that...
+
 	def add_to_dict(self,index_key,in_dict,new_edge):
 		if index_key in in_dict:
 			in_dict[index_key].append(new_edge)
 		else:
-			in_dict[index_key] = [new_edge]
+			in_dict[index_key] = [new_edge] #need to return dictionary??
 
 
 	#creates a dictionary of the edges, keyed by target vertex. The values are a list of edges.
