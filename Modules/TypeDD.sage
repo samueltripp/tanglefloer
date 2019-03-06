@@ -43,37 +43,38 @@ class TypeDD:
 						#-Z: ... can be paired to it
 						if yedge.a_coefficient == []: 
 							#-Z: Case 1: The right coeff of the chosen edge is [], and we pair with the identity map from gen i to gen i in DD module.
-							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
+							MNedgeDict = self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
 						#if AA edge is taking an element on the left, for each compatible DD gen scan its edges for any edge that produces the appropriate element to the right
 						#-Z: in this case, we add to the dictionary of box tensor product edges a new edge, ?keyed by the index for the gen (i,j)?, from gen (i,j) to gen (i,target of edge out of j) that also has left coeff []; right and base ring coeff of the original edge.
 						else: #-Z: Case 2: if a_coeff is not empty, and we try to pair with a nonempty edge in the DD module which matches. 
+							
+							####### This is the old version
 							for xedge in self.edges_out[i]:
 								if xedge.b_coefficient == yedge.a_coefficient:
-									self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[i][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
+									MNedgeDict = self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[xedge.target][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
 						#-Z: in this case, we add the edge, ?keyed? by the index for the i,j gen, which has source (i,j), target (target xedge, target yedge), right-coeff of the DD edge, left coeff of the AA edge, and product of ground ring coeff's. 
-            
-							####### Trying to add the option for y to have multiple algebra elements:
-							recurse_source = i #start recursion with x_i
-							#for xedge in self.edges_out[recurse_source]:
-							#	counter = 0
-							self.match_path(i,yedge.a_coefficient)
+            				####### END old version
 
-
-							###### end new section
+							####### This is the new version (add the option for y to have multiple algebra elements)
+							xy_edges = self.match_path(i,yedge.a_coefficient,yedge.m_coefficient)
+							for e in xy_edges: # e is a list that looks like [x target generator, a_coeff for new edge, m_coeff for new edge]
+								#DOUG: do we need to check if the result target edge (x tensor y) exists? or is it required to exist by some math?
+								MNedgeDict = self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2],MNgens[e[0]][yedge.target][2],e[1],yedge.b_coefficient,e[2]))
+							###### END new version
               
 		for i in length(self.gens): 
 			#for each edge that DD gen has that produces an idempotent to the right, tensor with the identity with every compatible AA gen
 			#-Z: for each DD gen,
 			for xedge in self.edges_out[i]: 
 				#-Z: for each edge out of it,
-				for j in length(other.gens): 
-					#-Z: and for each AA gen....
-					if MNgens[i][j] != 0: 
-						#-Z: ...that can pair to it
-						if xedge.b_coefficient == []: 
+				if xedge.b_coefficient == []: 
+					for j in length(other.gens): 
+						#-Z: and for each AA gen....
+						if MNgens[i][j] != 0: 
+							#-Z: ...that can pair to it
 							#-Z: Case 3: the DD right coeff is [], and we pair with the identity on the gen j in the AA module		
-							self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
-						#-Z: in this case, we add an edge ... Q: So we are keying by source vertex with the goal of making the 'tensor(DD,AA).edges_out' dictionary, correct?
+							MNedgeDict = self.add_to_dict(MNgens[i][j][2],MNedgeDict,Edge(MNgens[i][j][2], MNgens[xedge.target][j][2],xedge.a_coefficient, [], xedge.m_coefficient))
+							#-Z: in this case, we add an edge ... Q: So we are keying by source vertex with the goal of making the 'tensor(DD,AA).edges_out' dictionary, correct?
 		#put generators in list -Z: yeah, ok
 		outGenList = []
 		for i in length(self.gens):
@@ -83,22 +84,28 @@ class TypeDD:
 
 		return TypeDA(outGenList,MNedgeDict)
 
-	def match_path(self,recurse_source,y_a_coeff)
-	#TODO: track u variables as well (m_coefficient) and multiple l_coeff from DD edges as you go
+	def match_path(self,recurse_source,y_a_coeff,m_coeff,x_a_coeff)
+	#TODO: track u variables as well (m_coefficient) and multiply l_coeff from DD edges as you go
 	#TODO: order of y coeff. vs. x path? backwards or forwards?
+		result = []
 		if y_a_coeff = []: 
-			return recurse_source
+			return [recurse_source,m_coeff,x_a_coeff],1 #when the path is complete, return
 		for xedge in self.edges_out[recurse_source]:
-			if xedge.b_coefficient == y_a_coeff[0]:#DD edges stored as lists or one element??
+			if xedge.b_coefficient[0] == y_a_coeff[0]:#DD edges stored as lists or one element?? this assumes as lists
 				y_a_coeff.pop(0)
-				match_path(xedge.target,y_a_coeff)
-		return 0 ## need a way to get out if there is no path. I think this will do that...
+				recurse_result,bottom = match_path(xedge.target,y_a_coeff,m_coeff*xedge.m_coefficient,x_a_coeff*xedge.a_coefficient)
+				if bottom == 1:
+					result.append(recurse_result) # if this is the "bottom" of the recursive call, append the result to the list of results
+				else:
+					result += recurse_result # if it's not the bottom, concatenate the lists of results.
+		return result,0 ## need a way to get out if there is no path. I think this will do that...
 
 	def add_to_dict(self,index_key,in_dict,new_edge):
 		if index_key in in_dict:
 			in_dict[index_key].append(new_edge)
 		else:
-			in_dict[index_key] = [new_edge] #need to return dictionary??
+			in_dict[index_key] = [new_edge]
+		return in_dict
 
 
 	#creates a dictionary of the edges, keyed by target vertex. The values are a list of edges.
