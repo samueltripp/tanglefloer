@@ -92,10 +92,9 @@ class TypeDD:
                     else: # just copy over from previous dictionaries
                         new_edges_out[z] += edges_z_to_w
                         new_edges_in[w] += edges_z_to_w
-            # delete all x,y data
+
             # delete source and target generators of edge to be reduced
-            new_gens.remove(x)
-            new_gens.remove(y)
+
             # update self
             self.gens = new_gens
             self.edges_out = new_edges_out
