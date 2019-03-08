@@ -2,6 +2,7 @@ import numpy as np
 from collections import defaultdict
 load('Modules/TypeDA.sage')
 load('Modules/TypeAA.sage')
+load('Modules/Edge.sage')
 
 class TypeDD:
     # gens - a list of generators
@@ -14,6 +15,7 @@ class TypeDD:
 		self.gens = gens # this should just be a list of tuples [eL,eR]
 		self.edges_out = defaultdict(list,edges_out)
 		self.edges_in = self.dictTargEdges(edges_out) # Emma says: does anyone need this besides reduction people? I don't think it should be in __init__
+	
 	# other is a TypeAA (only option for TypeDD) 
 	def tensor(self, other):
 		#assert self.rightalgebra = other.leftalgebra, #pseudo - where are the left and right algebras stored?
@@ -44,18 +46,17 @@ class TypeDD:
 							MNedgeDict[MNgens[i][j][2]].append(Edge(MNgens[i][j][2], MNgens[i][yedge.target][2], [], yedge.b_coefficient, yedge.m_coefficient))
 						#in this case, we add to the dictionary of box tensor product edges a new edge, keyed by the index for the gen (i,j), from gen (i,j) to gen (i,target of edge out of j) that also has left coeff []; right and base ring coeff of the original edge.
 						else: #Case 2: if a_coeff is not empty, and we try to pair with a nonempty edge in the DD module which matches. 		
-							####### This is the old version
-							for xedge in self.edges_out[i]:
-								if xedge.b_coefficient == yedge.a_coefficient:
-									MNedgeDict[MNgens[i][j][2]].append(Edge(MNgens[i][j][2],MNgens[xedge.target][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
-						#-in this case, we add the edge, keyed by the index for the i,j gen, which has source (i,j), target (target xedge, target yedge), right-coeff of the DD edge, left coeff of the AA edge, and product of ground ring coeff's. 
-            				####### END old version
+						
+						# 	####### This is the old version
+						# 	for xedge in self.edges_out[i]:
+						# 		if xedge.b_coefficient == yedge.a_coefficient:
+						# 			MNedgeDict[MNgens[i][j][2]].append(Edge(MNgens[i][j][2],MNgens[xedge.target][yedge.target][2], xedge.a_coefficient,yedge.b_coefficient, xedge.m_coefficient*yedge.m_coefficient))
+						# #-in this case, we add the edge, keyed by the index for the i,j gen, which has source (i,j), target (target xedge, target yedge), right-coeff of the DD edge, left coeff of the AA edge, and product of ground ring coeff's. 
+   						# 	####### END old version
 
 							####### This is the new version (add the option for y to have multiple algebra elements)
 							xy_edges = self.match_path(i,yedge.a_coefficient,yedge.m_coefficient,1)[0]
 							for e in xy_edges: # e is a list that looks like [x target generator, a_coeff for new edge, m_coeff for new edge]
-								#DOUG: do we need to check if the result target edge (x tensor y) exists? or is it required to exist by some math?
-								#it is required to exist
 								MNedgeDict[MNgens[i][j][2]].append(Edge(MNgens[i][j][2],MNgens[e[0]][yedge.target][2],e[1],yedge.b_coefficient,e[2]))
 							###### END new version
               
@@ -81,28 +82,18 @@ class TypeDD:
 		return TypeDA(outGenList,MNedgeDict)
 
 	def match_path(self,recurse_source,y_a_coeff,m_coeff,x_a_coeff):
-	#TODO: order of y coeff. vs. x path? backwards or forwards?
 		result = []
 		if y_a_coeff == []: 
 			return [recurse_source,m_coeff,x_a_coeff],1 #when the path is complete, return
 		for xedge in self.edges_out[recurse_source]:
-			if xedge.b_coefficient!=[] and xedge.b_coefficient[0] == y_a_coeff[0]:#DD edges stored as lists or one element?? this assumes as lists
-				#they should be only ever exist as single elements, but storage might end up weird I guess?
-				recurse_result,bottom = self.match_path(xedge.target,y_a_coeff[1:],m_coeff*xedge.m_coefficient,x_a_coeff*xedge.a_coefficient)
+			if xedge.b_coefficient!=[] and xedge.b_coefficient[0] == y_a_coeff[-1]:#DD edges stored as lists with one element (or empty if it's an idempotent)
+				recurse_result,bottom = self.match_path(xedge.target,y_a_coeff[:-1],m_coeff*xedge.m_coefficient,x_a_coeff*xedge.a_coefficient)
 				if bottom == 1:
 					result.append(recurse_result) # if this is the "bottom" of the recursive call, append the result to the list of results
 				else:
 					result += recurse_result # if it's not the bottom, concatenate the lists of results.
 		return result,0 
 		
-	# don't need this anymore now that we're using defaultdict, but keeping around just in case there are issues
-	# def add_to_dict(self,index_key,in_dict,new_edge):
-	# 	if index_key in in_dict:
-	# 		in_dict[index_key].append(new_edge)
-	# 	else:
-	# 		in_dict[index_key] = [new_edge]
-	# 	return in_dict
-
 
 	#creates a dictionary of the edges, keyed by target vertex. The values are a list of edges.
 	def dictTargEdges(self,inEdgeDict):
@@ -216,17 +207,3 @@ class Generator:
         self.idempotent_left = idempotent_left
         self.idempotent_right = idempotent_right
 
-# represents the action of some delta_1 on some pair of generators
-class Edge:
-    # source, target - elements of gens
-    # a_coefficient - element of A
-    # m_cofficient - element of k
-    # b_coefficient - element of B
-    # 
-    # condition: delta_1(source) = a_coefficient (X) (m_coefficient * target) (X) b_coefficient
-    def __init__(self, source, target, a_coefficient, b_coefficient, m_coefficient):
-        self.source = source
-        self.target = target
-        self.a_coefficient = a_coefficient
-        self.b_coefficient = b_coefficient
-        self.m_coefficient = m_coefficient
