@@ -69,8 +69,12 @@ class ETangle(Tangle):
 		self.etype = etype
 		self.signs = signs
 		self.position = position
+		self.degree = len(signs)
 
 		self.etangles = [self]
+
+	def degree(self):
+			return self.degree
 
 	# returns the sign sequence corresponding to the left edge of this tangle
 	def left_signs(self):
