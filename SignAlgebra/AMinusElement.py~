@@ -1,0 +1,6 @@
+class AMinusGen:
+    def __init__(self,dict):
+        self.dict = dict
+
+    def __eq__(self,other):
+        return self.dict == other.dict
