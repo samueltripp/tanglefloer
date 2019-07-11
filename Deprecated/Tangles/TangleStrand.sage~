@@ -1,0 +1,12 @@
+class ETangleStrand():
+
+    def __init__(self, etangle, bijminus,bijplus):
+        # Assert a valid pair of bijections
+        assert validPair(etangle,a,b);
+
+
+
+    def validPair(etangle,a,b):
+        aImage = set(bijminus[a] for a in bijminus)
+        bDomain = set(bijplus)
+        return aImage & bDomain == set([]) and aImage | bDomain == set(parent.middle_points())

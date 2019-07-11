@@ -1,0 +1,9 @@
+load("AMinus.py")
+load("AMinusElement.py")
+am = AMinus([-1,1,1,-1])
+gena = {4:0,3:1}
+genb = {0:0,1:3}
+elta = AMinusGen(gena)
+eltb = AMinusGen(genb)
+
+prod = am.multiply(elta,eltb)
