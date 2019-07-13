@@ -19,6 +19,9 @@ class AMinus:
     def zero(self):
         return AMinusElement(self, {})
 
+    def gen(self, strands):
+        return AMinusGen(self, strands).to_element()
+
     @multimethod
     def diff(self, gen: AMinusGen) -> AMinusElement:
         return self.gen_diff(gen)
@@ -112,8 +115,6 @@ class AMinus:
 
     def twoalex_gen(self, gen: AMinusGen, coeff):
         strands = dict(gen.strands)
-        if strands is None:
-            return None
         twoalex = -2 * coeff.degree()
         for key in strands.keys():
             if key < strands[key]:
@@ -126,20 +127,15 @@ class AMinus:
         return twoalex
 
     def maslov(self, elt: AMinusElement):
-        if isinstance(elt, AMinusGen):
-            return self.maslov_gen(elt, self.polyring.one())
-        else:
-            firstkey = set(elt.coefficients.keys()).pop
-            maslov = self.maslov_gen(firstkey, elt.coefficients[firstkey])
-            for key in elt.coefficients.keys():
-                if self.maslov_gen(key, elt.coefficients[key]) != maslov:
-                    return None
-            return maslov
+        firstkey = set(elt.coefficients.keys()).pop
+        maslov = self.maslov_gen(firstkey, elt.coefficients[firstkey])
+        for key in elt.coefficients.keys():
+            if self.maslov_gen(key, elt.coefficients[key]) != maslov:
+                return None
+        return maslov
 
     def maslov_gen(self, gen, coeff):
         strands = gen.strands
-        if strands is None:
-            return None
         maslov = -2 * coeff.degree()
         for key in strands.keys():
             for keyb in strands.keys():
@@ -161,11 +157,6 @@ class AMinusElement:
         self.algebra = algebra
         self.coefficients = {gen: coefficient for (gen, coefficient) in coefficients.items() if coefficient != 0}
 
-    @multimethod
-    def __add__(self, other: AMinusGen):
-        return self + other.to_element()
-
-    @multimethod
     def __add__(self, other: AMinusElement):
         out_coefficients = {}
         for gen in self.coefficients.keys() - other.coefficients.keys():
@@ -189,10 +180,6 @@ class AMinusElement:
         for (gen, coefficient) in self.coefficients.items():
             out += (other * coefficient) * gen
         return out
-
-    @multimethod
-    def __mul__(self, other: AMinusGen) -> AMinusElement:
-        return self * other.to_element()
 
     @multimethod
     def __mul__(self, other: AMinusElement):
@@ -224,24 +211,17 @@ class AMinusGen:
     def to_element(self) -> AMinusElement:
         return AMinusElement(self.algebra, {self: 1})
 
-    def __add__(self, other) -> AMinusElement:
-        return self.to_element() + other
-
     @multimethod
-    def __mul__(self, other: int):
+    def __mul__(self, other: int) -> AMinusElement:
         return AMinusElement(self.algebra, {self: other})
 
     @multimethod
-    def __mul__(self, other: Z2Polynomial):
+    def __mul__(self, other: Z2Polynomial) -> AMinusElement:
         return AMinusElement(self.algebra, {self: other})
 
     @multimethod
-    def __mul__(self, other: AMinusGen):
+    def __mul__(self, other: AMinusGen) -> AMinusElement:
         return self.algebra.gen_mult(self, other)
-
-    @multimethod
-    def __mul__(self, other: AMinusElement):
-        return self.to_element() * other
 
     @multimethod
     def __rmul__(self, other: int):
