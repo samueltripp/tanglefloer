@@ -1,6 +1,7 @@
+from __future__ import annotations
+from multimethod import multimethod
 import copy
 from SignAlgebra.Z2PolynomialRing import *
-from SignAlgebra.AMinusGen import *
 
 
 class AMinus:
@@ -15,207 +16,261 @@ class AMinus:
         np = len(self.positives)
         return Z2PolynomialRing(['U%s' % p for p in range(1, np + 1)])
 
-    def multiply(self, elta, eltb):
-        # if you call multiply on two generators, multiply
-        agen = isinstance(elta, AMinusGen)
-        bgen = isinstance(eltb, AMinusGen)
-        assert agen == bgen
-        if agen and bgen:
-            return self.gen_mult(elta, eltb)
-        # else extend linearly
-        else:
-            eltout = {}
-            for keya in elta.keys():
-                for keyb in eltb.keys():
-                    genprod = self.gen_mult(keya, keyb)
-                    eltout = self.add(eltout, genprod)
-            return AMinus.clean(eltout)
+    def zero(self):
+        return AMinusElement(self, {})
 
-    def diff(self, elt):
-        # if a generator, return the differential of that generator
-        if isinstance(elt, AMinusGen):
-            return AMinus.clean(self.gen_diff(elt))
-        # else sum the differentials of all the strand diagrams
-        else:
-            eltout = {}
-            for key in elt.keys():
-                diff = self.gen_diff(key)
-                diff = AMinus.scale(diff, elt[key])
-                eltout = self.add(eltout, diff)
-            return AMinus.clean(eltout)
+    @multimethod
+    def diff(self, gen: AMinusGen) -> AMinusElement:
+        return self.gen_diff(gen)
 
-    # scale an arbitrary element by some coefficient
-    @staticmethod
-    def scale(elt, coeff):
-        # assert coeff in self.polyring
-        if isinstance(elt, AMinusGen):
-            return AMinus.clean({elt: coeff})
-        else:
-            for key in elt.keys():
-                elt[key] = elt[key] * coeff
-            return AMinus.clean(elt)
+    @multimethod
+    def diff(self, elt: AMinusElement) -> AMinusElement:
+        # sum the differentials of all the strand diagrams
+        out = self.zero()
+        for gen, coefficient in elt.coefficients.items():
+            out += coefficient * self.gen_diff(gen)
+        return out
 
-    def add(self, elta, eltb):
-        # cases. if a or b is a generator, make it an arbitrary element with coeff 1 then add
-        agen = isinstance(elta, AMinusGen)
-        bgen = isinstance(eltb, AMinusGen)
-        if agen and bgen:
-            return self.add({elta: 1}, {eltb: 1})
-        elif agen:
-            return self.add({elta: 1}, eltb)
-        elif bgen:
-            return self.add(elta, {eltb: 1})
-        # add two elements. create output, add values that are common to both, values just in a, and values just in b
-        else:
-            eltout = {}
-            bkeys = eltb.keys()
-            for key in elta.keys():
-                if key in bkeys:
-                    eltout[key] = elta[key] + eltb[key]
-                    bkeys.remove(key)
-                else:
-                    eltout[key] = elta[key]
-
-            for key in bkeys:
-                eltout[key] = eltb[key]
-
-            return AMinus.clean(eltout)
-
-    def gen_mult(self, gena, genb):
-        gena = dict(gena.strands)
-        genb = dict(genb.strands)
+    def gen_mult(self, gen1, gen2):
+        strands1 = gen1.strands
+        strands2 = gen2.strands
         # check if the ends don't match
-        if set(gena.values()) != set(genb.keys()):
-            return {}
+        if set(strands1.values()) != strands2.keys():
+            return self.zero()
 
         # check if black strands double cross
-        for keya1 in gena.keys():
-            for keya2 in gena.keys():
-                if (genb[gena[keya1]] > genb[gena[keya2]] and gena[keya1] < gena[keya2]) \
-                        or (genb[gena[keya1]] < genb[gena[keya2]] and gena[keya1] > gena[keya2]):
-                    return {}
+        for key1 in strands1.keys():
+            for key2 in strands1.keys():
+                if (strands2[strands1[key1]] > strands2[strands1[key2]] and strands1[key1] < strands1[key2]) \
+                        or (strands2[strands1[key1]] < strands2[strands1[key2]] and strands1[key1] > strands1[key2]):
+                    return self.zero()
 
         # count double crossed orange strands
-        coeff = self.polyring.one()
-        for key in gena.keys():
-            if gena[key] > key:
-                checkrange = range(max(i, genb[gena[key]]), gena[key])
+        c = self.polyring.one()
+        for key in strands1.keys():
+            if strands1[key] > key:
+                checkrange = range(max(key, strands2[strands1[key]]), strands1[key])
             else:
-                checkrange = range(gena[key], min(key, genb[gena[key]]))
+                checkrange = range(strands1[key], min(key, strands2[strands1[key]]))
 
             for i in checkrange:
                 if i not in self.positives:
-                    return {}
+                    return self.zero()
                 else:
-                    coeff = coeff * self.polyring['U' + str(self.positives.index(i) + 1)]
+                    c *= self.polyring['U' + str(self.positives.index(i) + 1)]
 
         # construct the new generator
-        newgen = {}
-        for key in gena.keys():
-            newgen[key] = genb[gena[key]]
+        strands = {}
+        for key in strands1.keys():
+            strands[key] = strands2[strands1[key]]
 
-        return {AMinusGen(newgen): coeff}
+        return c * AMinusGen(self, strands)
 
-    def gen_diff(self, gen):
-        gen = dict(gen.strands)
-        if gen is None:
-            return {AMinusGen({}): 0}
+    def gen_diff(self, gen: AMinusGen) -> AMinusElement:
         # find all strands that cross, and resolve them
-        else:
-            eltout = {}
-            keys = gen.keys()
-            for keya in keys:
-                for keyb in keys:
-                    if keyb < keya and gen[keyb] > gen[keya]:
-                        eltout = self.add(eltout, self.resolve(gen, keya, keyb))
-            return eltout
+        out = self.zero()
+        for s1, t1 in gen.strands.items():
+            for s2, t2 in gen.strands.items():
+                if s2 < s1 and t2 > t1:
+                    out += AMinusElement(self, self.resolve(gen, s1, s2))
+        return out
 
-    def resolve(self, gen, i, j):
-        keys = gen.keys()
+    def resolve(self, gen: AMinusGen, i, j):
         # check if black strands double cross
-        for key in set(keys) & set(range(j, i)):
-            if gen[i] < gen[key] < gen[j]:
-                return {AMinusGen({}): 0}
+        for s in gen.strands.keys() & set(range(j, i)):
+            if gen.strands[i] < gen.strands[s] < gen.strands[j]:
+                return {}
 
         # construct the output generator
-        output = copy.deepcopy(gen)
-        output[i] = gen[j]
-        output[j] = gen[i]
-        output = AMinusGen(output)
+        out = AMinusGen(self, copy.deepcopy(gen.strands))
+        out.strands[i] = gen.strands[j]
+        out.strands[j] = gen.strands[i]
 
         # calculate the appropriate coefficient
-        checkrange = range(max(gen[i], j), min(i, gen[j]))
-        coeff = self.polyring.one()
+        checkrange = range(max(gen.strands[i], j), min(i, gen.strands[j]))
+        c = self.polyring.one()
         for i in checkrange:
             if i not in self.positives:
-                return {output: 0}
+                return {}
             else:
-                coeff = coeff * self.polyring['U' + str(self.positives.index(i) + 1)]
+                c = c * self.polyring['U' + str(self.positives.index(i) + 1)]
 
-        return {output: coeff}
+        return {out: c}
 
-    @staticmethod
-    def clean(elt):
-        if isinstance(elt, AMinusGen):
-            return elt
-        else:
-            for key in list(elt.keys()):
-                if elt[key] == 0:
-                    del elt[key]
-            return elt
+    @multimethod
+    def twoalexander(self, elt: AMinusGen):
+        return self.twoalex_gen(elt, self.polyring.one())
 
-    def twoalexander(self, elt):
-        if isinstance(elt, AMinusGen):
-            return self.twoalex_gen(elt, self.polyring.one())
-        else:
-            firstkey = elt.keys()[0]
-            twoalex = self.twoalex_gen(firstkey, elt[firstkey])
-            for key in elt.keys():
-                if self.twoalex_gen(key, elt[key]) != twoalex:
-                    return None
-            return twoalex
+    @multimethod
+    def twoalexander(self, elt: AMinusElement):
+        firstkey = set(elt.coefficients.keys()).pop()
+        twoalex = self.twoalex_gen(firstkey, elt.coefficients[firstkey])
+        for key in elt.coefficients.keys():
+            if self.twoalex_gen(key, elt.coefficients[key]) != twoalex:
+                return None
+        return twoalex
 
-    def twoalex_gen(self, gen, coeff):
-        gen = dict(gen.strands)
-        if gen is None:
+    def twoalex_gen(self, gen: AMinusGen, coeff):
+        strands = dict(gen.strands)
+        if strands is None:
             return None
         twoalex = -2 * coeff.degree()
-        for key in gen.keys():
-            if key < gen[key]:
-                checkrange = range(key, gen[key])
+        for key in strands.keys():
+            if key < strands[key]:
+                checkrange = range(key, strands[key])
             else:
-                checkrange = range(gen[key], key)
+                checkrange = range(strands[key], key)
             for k in checkrange:
                 twoalex = twoalex + (-1) * self.ss[k]
 
         return twoalex
 
-    def maslov(self, elt):
+    def maslov(self, elt: AMinusElement):
         if isinstance(elt, AMinusGen):
             return self.maslov_gen(elt, self.polyring.one())
         else:
-            firstkey = elt.keys()[0]
-            maslov = self.maslov_gen(firstkey, elt[firstkey])
-            for key in elt.keys():
-                if self.maslov_gen(key, elt[key]) != maslov:
+            firstkey = set(elt.coefficients.keys()).pop
+            maslov = self.maslov_gen(firstkey, elt.coefficients[firstkey])
+            for key in elt.coefficients.keys():
+                if self.maslov_gen(key, elt.coefficients[key]) != maslov:
                     return None
             return maslov
 
     def maslov_gen(self, gen, coeff):
-        gen = dict(gen.strands)
-        if gen is None:
+        strands = gen.strands
+        if strands is None:
             return None
         maslov = -2 * coeff.degree()
-        for key in gen.keys():
-            for keyb in gen.keys():
-                if keyb < key and gen[keyb] > gen[key]:
+        for key in strands.keys():
+            for keyb in strands.keys():
+                if keyb < key and strands[keyb] > strands[key]:
                     maslov = maslov + 1
-            if key < gen[key]:
-                checkrange = range(key, gen[key])
+            if key < strands[key]:
+                checkrange = range(key, strands[key])
             else:
-                checkrange = range(gen[key], key)
+                checkrange = range(strands[key], key)
             for k in checkrange:
                 if k in self.positives:
                     maslov = maslov - 1
 
         return maslov
+
+
+class AMinusElement:
+    def __init__(self, algebra, coefficients):
+        self.algebra = algebra
+        self.coefficients = {gen: coefficient for (gen, coefficient) in coefficients.items() if coefficient != 0}
+
+    @multimethod
+    def __add__(self, other: AMinusGen):
+        return self + other.to_element()
+
+    @multimethod
+    def __add__(self, other: AMinusElement):
+        out_coefficients = {}
+        for gen in self.coefficients.keys() - other.coefficients.keys():
+            out_coefficients[gen] = self.coefficients[gen]
+        for gen in self.coefficients.keys() & other.coefficients.keys():
+            out_coefficients[gen] = self.coefficients[gen] + other.coefficients[gen]
+        for gen in other.coefficients.keys() - self.coefficients.keys():
+            out_coefficients[gen] = other.coefficients[gen]
+        return AMinusElement(self.algebra, out_coefficients)
+
+    @multimethod
+    def __mul__(self, other: int) -> AMinusElement:
+        out = self.algebra.zero()
+        for (gen, coefficient) in self.coefficients.items():
+            out += (other * coefficient) * gen
+        return out
+
+    @multimethod
+    def __mul__(self, other: Z2Monomial) -> AMinusElement:
+        out = self.algebra.zero()
+        for (gen, coefficient) in self.coefficients.items():
+            out += (other * coefficient) * gen
+        return out
+
+    @multimethod
+    def __mul__(self, other: Z2Polynomial) -> AMinusElement:
+        out = self.algebra.zero()
+        for (gen, coefficient) in self.coefficients.items():
+            out += (other * coefficient) * gen
+        return out
+
+    @multimethod
+    def __mul__(self, other: AMinusGen) -> AMinusElement:
+        return self * other.to_element()
+
+    @multimethod
+    def __mul__(self, other: AMinusElement):
+        out = self.algebra.zero()
+        for (gen1, coefficient1) in self.coefficients.items():
+            for (gen2, coefficient2) in other.coefficients.items():
+                out += (coefficient1 * coefficient2) * (gen1 * gen2)
+
+        return out
+
+    def __rmul__(self, other: Union[int, Z2Monomial, Z2Polynomial]) -> AMinusElement:
+        return self * other
+
+    def __eq__(self, other: AMinusElement):
+        return self.algebra == other.algebra and self.coefficients == other.coefficients
+
+    def __repr__(self):
+        return str(self.coefficients)
+
+
+# this only exists because I want to use strand diagrams as keys in algebra elements.
+# strand diagrams are dictionaries, however, and you can't use dictionaries as keys in dictionaries.
+# hence, wrap them in a class.
+class AMinusGen:
+    def __init__(self, algebra, strands):
+        self.algebra = algebra
+        self.strands = strands
+
+    def to_element(self) -> AMinusElement:
+        return AMinusElement(self.algebra, {self: 1})
+
+    def __add__(self, other) -> AMinusElement:
+        return self.to_element() + other
+
+    @multimethod
+    def __mul__(self, other: int):
+        return AMinusElement(self.algebra, {self: other})
+
+    @multimethod
+    def __mul__(self, other: Z2Monomial):
+        return AMinusElement(self.algebra, {self: other})
+
+    @multimethod
+    def __mul__(self, other: Z2Polynomial):
+        return AMinusElement(self.algebra, {self: other})
+
+    @multimethod
+    def __mul__(self, other: AMinusGen):
+        return self.algebra.gen_mult(self, other)
+
+    @multimethod
+    def __mul__(self, other: AMinusElement):
+        return self.to_element() * other
+
+    @multimethod
+    def __rmul__(self, other: int):
+        return self * other
+
+    @multimethod
+    def __rmul__(self, other: Z2Monomial):
+        return self * other
+
+    @multimethod
+    def __rmul__(self, other: Z2Polynomial):
+        return self * other
+
+    def __eq__(self, other):
+        return self.algebra == other.algebra and self.strands == other.strands
+
+    def __hash__(self):
+        return hash(self.algebra) + hash(frozenset(self.strands.items()))
+
+    def __repr__(self):
+        return str(self.strands)
