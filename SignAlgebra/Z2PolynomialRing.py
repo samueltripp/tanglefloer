@@ -47,10 +47,6 @@ class Z2Polynomial:
         return self + other * self.ring.one()
 
     @multimethod
-    def __add__(self, other: Z2Monomial) -> Z2Polynomial:
-        return self + other.to_polynomial()
-
-    @multimethod
     def __add__(self, other: Z2Polynomial) -> Z2Polynomial:
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
 
@@ -66,16 +62,12 @@ class Z2Polynomial:
         return self if other % 2 == 1 else self.ring.zero()
 
     @multimethod
-    def __mul__(self, other: Z2Monomial) -> Z2Polynomial:
-        return self * other.to_polynomial()
-
-    @multimethod
     def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
         out = self.ring.zero()
 
         for term1 in self.terms:
             for term2 in other.terms:
-                out += term1 * term2
+                out += (term1 * term2).to_polynomial()
 
         return out
 
@@ -88,10 +80,6 @@ class Z2Polynomial:
             return self == self.ring.zero()
         else:
             return self == self.ring.one()
-
-    @multimethod
-    def __eq__(self, other: Z2Monomial):
-        return self == other.to_polynomial()
 
     @multimethod
     def __eq__(self, other: Z2Polynomial):
@@ -120,38 +108,11 @@ class Z2Monomial:
     def to_polynomial(self):
         return Z2Polynomial(self.ring, {self})
 
-    def __add__(self, other) -> Z2Polynomial:
-        return self.to_polynomial() + other
+    def __mul__(self, other: Z2Monomial) -> Z2Monomial:
+        return Z2Monomial(self.ring, tuple(map(add, self.powers, other.powers)))
 
-    def __radd__(self, other: int) -> Z2Polynomial:
-        return self.to_polynomial() + other
-
-    @multimethod
-    def __mul__(self, other: int) -> Z2Polynomial:
-        return self.to_polynomial() * other
-
-    @multimethod
-    def __mul__(self, other: Z2Monomial) -> Z2Polynomial:
-        return Z2Monomial(self.ring, tuple(map(add, self.powers, other.powers))).to_polynomial()
-
-    @multimethod
-    def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
-        return self.to_polynomial() * other
-
-    def __rmul__(self, other: int) -> Z2Polynomial:
-        return self * other
-
-    @multimethod
-    def __eq__(self, other: int):
-        return sum(self.powers) == 0 and other % 2 == 1
-
-    @multimethod
     def __eq__(self, other: Z2Monomial):
         return self.ring == other.ring and self.powers == other.powers
-
-    @multimethod
-    def __eq__(self, other: Z2Polynomial):
-        return self.to_polynomial() == other
 
     def __hash__(self):
         return hash(self.ring) + hash(self.powers)

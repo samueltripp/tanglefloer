@@ -184,13 +184,6 @@ class AMinusElement:
         return out
 
     @multimethod
-    def __mul__(self, other: Z2Monomial) -> AMinusElement:
-        out = self.algebra.zero()
-        for (gen, coefficient) in self.coefficients.items():
-            out += (other * coefficient) * gen
-        return out
-
-    @multimethod
     def __mul__(self, other: Z2Polynomial) -> AMinusElement:
         out = self.algebra.zero()
         for (gen, coefficient) in self.coefficients.items():
@@ -210,7 +203,7 @@ class AMinusElement:
 
         return out
 
-    def __rmul__(self, other: Union[int, Z2Monomial, Z2Polynomial]) -> AMinusElement:
+    def __rmul__(self, other: Union[int, Z2Polynomial]) -> AMinusElement:
         return self * other
 
     def __eq__(self, other: AMinusElement):
@@ -239,10 +232,6 @@ class AMinusGen:
         return AMinusElement(self.algebra, {self: other})
 
     @multimethod
-    def __mul__(self, other: Z2Monomial):
-        return AMinusElement(self.algebra, {self: other})
-
-    @multimethod
     def __mul__(self, other: Z2Polynomial):
         return AMinusElement(self.algebra, {self: other})
 
@@ -256,10 +245,6 @@ class AMinusGen:
 
     @multimethod
     def __rmul__(self, other: int):
-        return self * other
-
-    @multimethod
-    def __rmul__(self, other: Z2Monomial):
         return self * other
 
     @multimethod
