@@ -25,3 +25,6 @@ assert elta * eltb == am.gen({4: 0, 3: 1})
 # testing differentials
 elt = am.gen({0: 4, 1: 2, 3: 1})
 assert am.diff(elt) == U1 * am.gen({0: 4, 1: 1, 3: 2}) + am.gen({0: 2, 1: 4, 3: 1})
+
+# testing gradings
+# TODO

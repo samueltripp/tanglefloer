@@ -42,24 +42,12 @@ class Z2Polynomial:
             else:
                 return degrees.pop()
 
-    @multimethod
-    def __add__(self, other: int) -> Z2Polynomial:
-        return self + other * self.ring.one()
-
-    @multimethod
     def __add__(self, other: Z2Polynomial) -> Z2Polynomial:
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
-
-    def __radd__(self, other: int):
-        return self + other
 
     @multimethod
     def __mul__(self, other):
         return other.__rmul__(self)
-
-    @multimethod
-    def __mul__(self, other: int) -> Z2Polynomial:
-        return self if other % 2 == 1 else self.ring.zero()
 
     @multimethod
     def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
@@ -70,16 +58,6 @@ class Z2Polynomial:
                 out += (term1 * term2).to_polynomial()
 
         return out
-
-    def __rmul__(self, other: int) -> Z2Polynomial:
-        return self * other
-
-    @multimethod
-    def __eq__(self, other: int):
-        if other % 2 == 0:
-            return self == self.ring.zero()
-        else:
-            return self == self.ring.one()
 
     @multimethod
     def __eq__(self, other: Z2Polynomial):
