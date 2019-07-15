@@ -20,7 +20,7 @@ class Bimodule:
 
     # I wrote this for DD tensor AA but it might be generic enough for all cases
     # the only specialized parts are the variable names delta and m
-    def tensor(self, other) -> Bimodule:
+    def tensor(self, other: Bimodule) -> Bimodule:
         assert self.right_algebra == other.left_algebra
 
         generators = it.product(self.graph.nodes, other.graph.nodes)
