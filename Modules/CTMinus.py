@@ -4,6 +4,14 @@ from Modules.Bimodule import *
 from Tangles.Functions import *
 
 
+# represents a pair of partial bijection overlaid
+class StrandDiagram:
+    def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
+        self.etangle = etangle
+        self.left_strands = left_strands
+        self.right_strands = right_strands
+
+
 def type_da(etangle: ETangle) -> Bimodule:
     left_algebra = AMinus(etangle.left_signs())
     right_algebra = AMinus(etangle.right_signs())
