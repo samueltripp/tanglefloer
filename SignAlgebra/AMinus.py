@@ -3,10 +3,11 @@ from multimethod import multimethod
 import copy
 from SignAlgebra.Z2PolynomialRing import *
 from Tangles.Functions import *
+from typing import Iterable
 
 
 class AMinus:
-    def __init__(self, sign_sequence: Tuple, polyring: Z2PolynomialRing = None):
+    def __init__(self, sign_sequence, polyring: Z2PolynomialRing = None):
         # store the overarching sign sequence, the list of positive indices, and the polynomial ring
         self.ss = sign_sequence
         self.positives = list(i for i in range(len(sign_sequence)) if sign_sequence[i] == 1)
