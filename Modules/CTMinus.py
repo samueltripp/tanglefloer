@@ -2,6 +2,7 @@ from __future__ import annotations
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
+import copy
 
 
 # represents a pair of partial bijection overlaid
@@ -19,6 +20,65 @@ def type_da(etangle: ETangle) -> Bimodule:
     maps = None  # TODO
 
     return Bimodule(left_algebra, right_algebra, gens, maps)
+
+def dplus(sd: StrandDiagram):
+    strands = sd.right_strands
+    keys = strands.keys()
+    out = {}
+    for key1 in keys:
+        for key2 in keys:
+            if key2 < key1 and strands[key2]>strands[key1]:
+                res = resolveplus(sd,key1,key2)
+                if res[1] != 0 and res[0] in out.keys():
+                    out[res[0]] = res[1]+out[res[0]]
+                elif res[1] != 0:
+                    out[res[0]] = res[1]
+    return out
+
+def resolveplus(sd: StrandDiagram, i, j):
+    strands = sd.right_strands
+    # if double crossing black, return none
+    for s in strands.keys() & set(range(j,i)):
+        if strands[i]<strands[s]<strands[j]: 
+            return [None,0]
+        
+    # output
+    out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
+    out.right_strands[j] = strands[i]
+    out.right_strands[i] = strands[j]
+
+
+    # calculate coefficient from orange correctly
+    pos = sd.etangle.position
+    if sd.etangle.etype == ETangle.Type.CAP:
+        checkrange = range(max(strands[i],j),min(i,strands[j]))
+        c = sd.etangle.polyring.one()
+        for k in checkrange:
+            index = k
+            if k >= pos - 1: index = k+2
+            if sd.etangle.signs[index] == -1: 
+                return [None,0]
+            else:
+                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[index]+1)]
+        return [out,c]
+    elif sd.etangle.etype == ETangle.Type.CUP:
+        checkrange = range(max(strands[i],j+j>=pos),min(i+i>=pos,strands[j]))
+        c = sd.etangle.polyring.one()
+        for k in checkrange:
+            if sd.etangle.signs[k] == -1:
+                return [None,0]
+            else:
+                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[k]+1)]
+        return [out,c]
+    else:
+        checkrange = range(max(strands[i],j),min(i,strands[j]))
+        c = sd.etangle.polyring.one()
+        for k in checkrange:
+            if sd.etangle.signs[k] == -1:
+                return [None,0]
+            else:
+                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[k]+1)]
+        return [out,c]
 
 
 # points - a list of sets of points
