@@ -2,28 +2,39 @@ from __future__ import annotations
 from networkx import MultiDiGraph
 from typing import Iterable, Any
 from SignAlgebra.AMinus import *
+from Modules.CTMinus import *
 import itertools as it
 
 
 # Base class for Type DD, AA, DA, and AD structures
 class Bimodule:
     def __init__(self, left_algebra: AMinus, right_algebra: AMinus,
-                 generators: Iterable, maps: Iterable[Bimodule.Edge]):
+                 generators: Iterable[Bimodule.Generator], maps: Iterable[Bimodule.Edge]):
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
 
         self.graph = MultiDiGraph()
-        self.graph.add_nodes_from(generators)
+        for gen in generators:
+            self.graph.add_node(gen.key, left_idempotent=gen.left_idempotent, right_idempotent=gen.right_idempotent)
         for edge in maps:
             if edge.c != 0:
-                self.graph.add_edge(edge.source, edge.target, c=edge.c, left=edge.left, right=edge.right)
+                self.graph.add_edge(edge.source_key, edge.target_key, c=edge.c, left=edge.left, right=edge.right)
+
+    @classmethod
+    def from_strand_diagrams(cls, left_algebra: AMinus, right_algebra: AMinus,
+                             generators: Iterable[StrandDiagram], maps: Iterable[Bimodule.Edge]):
+        return Bimodule(left_algebra, right_algebra,
+                        [Bimodule.Generator(sd, sd.left_idempotent(), sd.right_idempotent())
+                         for sd in generators], maps)
 
     # I wrote this for DD tensor AA but it might be generic enough for all cases
     # the only specialized parts are the variable names delta and m
     def tensor(self, other: Bimodule) -> Bimodule:
         assert self.right_algebra == other.left_algebra
 
-        generators = it.product(self.graph.nodes, other.graph.nodes)
+        generators = [Bimodule.Generator((xm, xn), xm['left_idempotent'], xn['right_idempotent'])
+                      for xm in self.graph.nodes for xn in other.graph.nodes
+                      if xm['right_idempotent'] == xn['left_idempotent']]
 
         maps = set()
         for (xm, xn) in generators:
@@ -39,10 +50,16 @@ class Bimodule:
 
         return Bimodule(self.left_algebra, other.right_algebra, generators, maps)
 
+    class Generator:
+        def __init__(self, key, left_idempotent: AMinusElement, right_idempotent: AMinusElement):
+            self.key = key
+            self.left_idempotent = left_idempotent
+            self.right_idempotent = right_idempotent
+
     class Edge:
-        def __init__(self, source, target, c: Z2Polynomial, left: AMinusElement, right: AMinusElement):
-            self.source = source
-            self.target = target
+        def __init__(self, source_key, target_key, c: Z2Polynomial, left: AMinusElement, right: AMinusElement):
+            self.source_key = source_key
+            self.target_key = target_key
             self.c = c
             self.left = left
             self.right = right

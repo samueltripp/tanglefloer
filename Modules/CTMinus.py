@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import List
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
@@ -6,10 +7,23 @@ from Tangles.Functions import *
 
 # represents a pair of partial bijections overlaid on an elementary tangle
 class StrandDiagram:
-    def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
+    def __init__(self, etangle: ETangle, left_algebra: AMinus, right_algebra: AMinus,
+                 left_strands: Dict, right_strands: Dict):
         self.etangle = etangle
+        self.left_algebra = left_algebra
+        self.right_algebra = right_algebra
         self.left_strands = left_strands
         self.right_strands = right_strands
+
+    # the idempotent e^D_L
+    def left_idempotent(self):
+        occupied = self.left_strands.keys()
+        total = set(range(len(self.left_algebra.ss)))
+        return self.left_algebra.idempotent(list(total - occupied))
+
+    # the idempotent e^A_R
+    def right_idempotent(self) -> AMinusElement:
+        return self.right_algebra.idempotent(list(self.right_strands.values()))
 
     def __repr__(self):
         return str((self.etangle, self.left_strands, self.right_strands))
@@ -18,15 +32,21 @@ class StrandDiagram:
 def type_da(etangle: ETangle) -> Bimodule:
     left_algebra = AMinus(etangle.left_signs())
     right_algebra = AMinus(etangle.right_signs())
-    gens = [StrandDiagram(etangle, left_strands, right_strands) for left_strands, right_strands in
-            enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
-    maps = None  # TODO
+    strand_diagrams = [StrandDiagram(etangle, left_algebra, right_algebra, left_strands, right_strands)
+                       for left_strands, right_strands in
+                       enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+    maps = sum((delta1_1(x) for x in strand_diagrams), []) + \
+        sum((delta1_2(x, a) for x in strand_diagrams for a in right_algebra.left_gens(list(x.left_strands.keys()))), [])
 
-    return Bimodule(left_algebra, right_algebra, gens, maps)
+    return Bimodule.from_strand_diagrams(left_algebra, right_algebra, strand_diagrams, maps)
 
 
-def reverse_injection(d):
-    return {v: k for k, v in d.items()}
+def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
+    return []  # TODO
+
+
+def delta1_2(x: StrandDiagram, a: AMinusElement) -> List[Bimodule.Edge]:
+    return []  # TODO
 
 
 # points - a list of sets of points

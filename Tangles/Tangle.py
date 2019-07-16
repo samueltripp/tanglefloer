@@ -1,5 +1,7 @@
 from __future__ import annotations
 from enum import *
+from SignAlgebra.Z2PolynomialRing import *
+from SignAlgebra.AMinus import *
 import numpy
 
 
@@ -13,6 +15,11 @@ class Tangle:
                 "Signs do not match at index {}".format(i)
 
         self.etangles = etangles
+
+        height = max(len(etangle.signs) for etangle in etangles)
+        self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, height + 1)])
+        self.left_algebra = AMinus(self.left_signs(), self.polyring)
+        self.right_algebra = AMinus(self.right_signs(), self.polyring)
 
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self):

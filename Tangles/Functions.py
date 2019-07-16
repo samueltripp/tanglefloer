@@ -10,7 +10,7 @@ def injections(source, target):
     if len(target) == 0:
         return []
     output = []
-    for index,image in enumerate(target):
+    for index, image in enumerate(target):
         output.extend([copy_and_add(injection, source[0], image) for injection
                        in injections(source[1:], target[:index] + target[index + 1:])])
     return output
@@ -22,6 +22,10 @@ def partial_bijections(source, target):
     for sublist in sublists(source):
         output.extend(injections(sublist, target))
     return output
+
+
+def invert_injection(inj):
+    return {t: s for s, t in inj.items()}
 
 
 # returns a list of all sublists of the given list
@@ -45,5 +49,5 @@ def copy_and_remove(d, value_to_remove):
 
 
 # creates a point with flipped y-orientation
-def c(x, y):
+def invert(x, y):
     return x, -y
