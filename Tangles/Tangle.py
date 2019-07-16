@@ -103,6 +103,9 @@ class ETangle(Tangle):
             return list(range(len(self.signs) - 1))
         return list(range(len(self.signs) + 1))
 
+    def __repr__(self):
+        return str((self.etype, self.signs, self.position))
+
     def __eq__(self, other):
         if isinstance(other, Tangle) and len(other.etangles)==1:
             other_etangle = other.etangles[0]
