@@ -1,25 +1,49 @@
 from __future__ import annotations
+from typing import List
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
 import copy
 
 
-# represents a pair of partial bijection overlaid
+# represents a pair of partial bijections overlaid on an elementary tangle
 class StrandDiagram:
     def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
         self.etangle = etangle
         self.left_strands = left_strands
         self.right_strands = right_strands
 
+    # the idempotent e^D_L
+    def left_idempotent(self):
+        occupied = self.left_strands.keys()
+        total = set(range(len(self.etangle.left_algebra.ss)))
+        return self.etangle.left_algebra.idempotent(list(total - occupied))
+
+    # the idempotent e^A_R
+    def right_idempotent(self) -> AMinusElement:
+        return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
+
+    def __repr__(self):
+        return str((self.etangle, self.left_strands, self.right_strands))
+
 
 def type_da(etangle: ETangle) -> Bimodule:
-    left_algebra = AMinus(etangle.left_signs())
-    right_algebra = AMinus(etangle.right_signs())
-    gens = enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])
-    maps = None  # TODO
+    strand_diagrams = [StrandDiagram(etangle, left_strands, right_strands)
+                       for left_strands, right_strands in
+                       enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+    maps = sum((delta1_1(x) for x in strand_diagrams), []) + \
+        sum((delta1_2(x, a) for x in strand_diagrams
+             for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))), [])
 
-    return Bimodule(left_algebra, right_algebra, gens, maps)
+    return Bimodule.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
+
+
+def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
+    return []  # TODO
+
+
+def delta1_2(x: StrandDiagram, a: AMinusElement) -> List[Bimodule.Edge]:
+    return []  # TODO
 
 def dplus(sd: StrandDiagram):
     strands = sd.right_strands
@@ -83,34 +107,28 @@ def resolveplus(sd: StrandDiagram, i, j):
 
 # points - a list of sets of points
 def enumerate_gens(points):
-    def reverse_injection(d):
-        return {v: k for k, v in d.items()}
-
     sequences = []
     if len(points) < 2:
         return sequences
     elif len(points) == 2:
         return [[pb] for pb in partial_bijections(points[0], points[1])]
     else:
-        mid = len(points) // 2
-        for pb in partial_bijections(points[mid], points[mid + 1]):
-            r, s = list(reversed(points[:mid + 1])), points[mid + 1:]
-
-            r[0] = list(set(r[0]).difference(pb.keys()))
-            s[0] = list(set(s[0]).difference(pb.values()))
-
-            t = list(enumerate_gens_helper(s))
-            sequences.extend([[reverse_injection(inj) for inj in reversed(s1)]
-                              + [pb] + s2 for s1 in enumerate_gens_helper(r) for s2 in t])
-        return sequences
+        for pb in partial_bijections(points[0], points[1]):
+            coker = set(points[1]).difference(pb.values())
+            sequences.extend(
+                [[pb] + sequence for sequence in enumerate_gens_helper([list(coker)] + points[2:])])
+    return sequences
 
 
 def enumerate_gens_helper(points):
-    if len(points) == 2:
-        for inj in injections(points[0], points[1]):
-            yield [inj]
-    elif len(points) > 2:
+    sequences = []
+    if len(points) < 2:
+        return sequences
+    elif len(points) == 2:
+        return [[inj] for inj in injections(points[0], points[1])]
+    else:
         for inj in injections(points[0], points[1]):
             coker = set(points[1]).difference(inj.values())
-            for sequence in enumerate_gens_helper([list(coker)] + points[2:]):
-                yield [inj] + sequence
+            sequences.extend(
+                [[inj] + sequence for sequence in enumerate_gens_helper([list(coker)] + points[2:])])
+    return sequences

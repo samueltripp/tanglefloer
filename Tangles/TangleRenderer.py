@@ -69,42 +69,46 @@ class TangleRenderer:
 
         if etangle.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
             for i in range(etangle.position - 1):
-                paths.append(line(c(0, i), (1, i)))
+                paths.append(line(invert(0, i), (1, i)))
             for i in range(etangle.position + 1, len(etangle.signs)):
-                paths.append(line(c(0, i), c(1, i)))
+                paths.append(line(invert(0, i), invert(1, i)))
             if etangle.etype == ETangle.Type.OVER:
-                paths.append(line(c(0, etangle.position - 1), c(0.5, etangle.position - 1)))
-                paths.append(line(c(0, etangle.position), c(0.5, etangle.position)))
+                paths.append(line(invert(0, etangle.position - 1), invert(0.5, etangle.position - 1)))
+                paths.append(line(invert(0, etangle.position), invert(0.5, etangle.position)))
                 paths.append(
-                    cubic_bezier(c(0.5, etangle.position - 1), c(0.75, etangle.position - 1), c(0.75, etangle.position),
-                                 c(1, etangle.position)))
+                    cubic_bezier(invert(0.5, etangle.position - 1), invert(0.75, etangle.position - 1),
+                                 invert(0.75, etangle.position),
+                                 invert(1, etangle.position)))
                 paths.append(
-                    cubic_bezier(c(0.5, etangle.position), c(0.75, etangle.position), c(0.75, etangle.position - 1),
-                                 c(1, etangle.position - 1), under=True))
+                    cubic_bezier(invert(0.5, etangle.position), invert(0.75, etangle.position),
+                                 invert(0.75, etangle.position - 1),
+                                 invert(1, etangle.position - 1), under=True))
             elif etangle.etype == ETangle.Type.UNDER:
                 paths.append(
-                    cubic_bezier(c(0, etangle.position), c(0.25, etangle.position), c(0.25, etangle.position - 1),
-                                 c(0.5, etangle.position - 1)))
+                    cubic_bezier(invert(0, etangle.position), invert(0.25, etangle.position),
+                                 invert(0.25, etangle.position - 1),
+                                 invert(0.5, etangle.position - 1)))
                 paths.append(
-                    cubic_bezier(c(0, etangle.position - 1), c(0.25, etangle.position - 1), c(0.25, etangle.position),
-                                 c(0.5, etangle.position), under=True))
-                paths.append(line(c(0.5, etangle.position - 1), c(1, etangle.position - 1)))
-                paths.append(line(c(0.5, etangle.position - 1), c(1, etangle.position - 1)))
-                paths.append(line(c(0.5, etangle.position), c(1, etangle.position)))
+                    cubic_bezier(invert(0, etangle.position - 1), invert(0.25, etangle.position - 1),
+                                 invert(0.25, etangle.position),
+                                 invert(0.5, etangle.position), under=True))
+                paths.append(line(invert(0.5, etangle.position - 1), invert(1, etangle.position - 1)))
+                paths.append(line(invert(0.5, etangle.position - 1), invert(1, etangle.position - 1)))
+                paths.append(line(invert(0.5, etangle.position), invert(1, etangle.position)))
         elif etangle.etype == ETangle.Type.CUP:
             for i in range(etangle.position - 1):
-                paths.append(line(c(0, i), c(1, i)))
+                paths.append(line(invert(0, i), invert(1, i)))
             for i in range(etangle.position + 1, len(etangle.signs)):
-                paths.append(cubic_bezier(c(0, i), c(0.25, i), c(0.25, i + 2), c(0.5, i + 2)))
-                paths.append(line(c(0.5, i), c(1, i)))
-            paths.append(semicircle(c(1, etangle.position - 1), 0.5, 1))
+                paths.append(cubic_bezier(invert(0, i), invert(0.25, i), invert(0.25, i + 2), invert(0.5, i + 2)))
+                paths.append(line(invert(0.5, i), invert(1, i)))
+            paths.append(semicircle(invert(1, etangle.position - 1), 0.5, 1))
         elif etangle.etype == ETangle.Type.CAP:
             for i in range(etangle.position - 1):
-                paths.append(line(c(0, i), c(1, i)))
+                paths.append(line(invert(0, i), invert(1, i)))
             for i in range(etangle.position + 1, len(etangle.signs)):
-                paths.append(line(c(0, i), c(0.5, i)))
-                paths.append(cubic_bezier(c(0.5, i), c(0.75, i), c(0.75, i - 2), c(1, i - 2)))
-            paths.append(semicircle(c(0, etangle.position - 1), 0.5, 0))
+                paths.append(line(invert(0, i), invert(0.5, i)))
+                paths.append(cubic_bezier(invert(0.5, i), invert(0.75, i), invert(0.75, i - 2), invert(1, i - 2)))
+            paths.append(semicircle(invert(0, etangle.position - 1), 0.5, 0))
 
         return paths
 
@@ -118,8 +122,9 @@ class TangleRenderer:
         if generator:
             for i, partial_bijection in enumerate(generator):
                 for x, y in partial_bijection.items():
-                    paths.append(cubic_bezier(c(i / 2, x - .5), c(i / 2 + 0.25, x - .5), c(i / 2 + 0.25, y - .5),
-                                              c(i / 2 + 0.5, y - .5), 'black'))
+                    paths.append(
+                        cubic_bezier(invert(i / 2, x - .5), invert(i / 2 + 0.25, x - .5), invert(i / 2 + 0.25, y - .5),
+                                     invert(i / 2 + 0.5, y - .5), 'black'))
         dwg = svgwrite.Drawing(filename=filename, debug=True)
         for path in paths:
             dwg.add(path)

@@ -3,33 +3,35 @@ import itertools
 
 # helper functions
 
-
 # returns a list of all injections, modeled as dicts
 def injections(source, target):
     if len(source) == 0:
         return [{}]
-    elif len(target) < len(source):
+    if len(target) == 0:
         return []
     output = []
     for index, image in enumerate(target):
-        for inj in injections(source[1:], target[:index] + target[index + 1:]):
-            inj[source[0]] = image
-            output.append(inj)
+        output.extend([copy_and_add(injection, source[0], image) for injection
+                       in injections(source[1:], target[:index] + target[index + 1:])])
     return output
 
 
 # returns a list of all partial bijections, modeled as dicts
 def partial_bijections(source, target):
     output = []
-    for sublist in sublists(source, min(len(source), len(target))):
+    for sublist in sublists(source):
         output.extend(injections(sublist, target))
     return output
 
 
-# returns a list of all sublists of the given list of size at most k
-def sublists(a_list, k):
+def invert_injection(inj):
+    return {t: s for s, t in inj.items()}
+
+
+# returns a list of all sublists of the given list
+def sublists(a_list):
     output = []
-    for i in range(k + 1):
+    for i in range(len(a_list) + 1):
         output.extend(itertools.combinations(a_list, i))
     return output
 
@@ -47,5 +49,5 @@ def copy_and_remove(d, value_to_remove):
 
 
 # creates a point with flipped y-orientation
-def c(x, y):
+def invert(x, y):
     return x, -y

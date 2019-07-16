@@ -8,5 +8,3 @@ under = ETangle(ETangle.Type.UNDER, (-1, 1), 1)
 cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
 unknot = Tangle([cup, cap])
 unknot2 = Tangle([cup, over, under, cap])
-
-print(enumerate_gens([over.left_points(), over.middle_points(), over.right_points()]))

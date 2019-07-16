@@ -2,25 +2,38 @@ from __future__ import annotations
 from multimethod import multimethod
 import copy
 from SignAlgebra.Z2PolynomialRing import *
+from Tangles.Functions import *
+from typing import Iterable
 
 
 class AMinus:
-    def __init__(self, sign_sequence):
+    def __init__(self, sign_sequence, polyring: Z2PolynomialRing = None):
         # store the overarching sign sequence, the list of positive indices, and the polynomial ring
         self.ss = sign_sequence
         self.positives = list(i for i in range(len(sign_sequence)) if sign_sequence[i] == 1)
-        self.polyring = self.initpolyring()
+        self.polyring = polyring or self.initpolyring()
 
     # construct the polynomial ring based on the number of positives
     def initpolyring(self):
-        np = len(self.positives)
-        return Z2PolynomialRing(['U%s' % p for p in range(1, np + 1)])
+        return Z2PolynomialRing(['U%s' % p for p in range(1, len(self.ss) + 1)])
 
     def zero(self):
         return AMinusElement(self, {})
 
     def gen(self, strands):
         return AMinusGen(self, strands).to_element()
+
+    # returns all generators with the given points occupied on the left
+    def left_gens(self, points):
+        return [self.gen(inj) for inj in injections(points, list(range(len(self.ss) + 1)))]
+
+    # returns all generators with the given points occupied on the right
+    def right_gens(self, points):
+        return [self.gen(invert_injection(inj)) for inj in injections(points, list(range(len(self.ss) + 1)))]
+
+    # returns the idempotent with the given points occupied
+    def idempotent(self, points):
+        return self.gen({p: p for p in points})
 
     @multimethod
     def diff(self, gen: AMinusGen) -> AMinusElement:
@@ -60,7 +73,7 @@ class AMinus:
                 if i not in self.positives:
                     return self.zero()
                 else:
-                    c *= self.polyring['U' + str(self.positives.index(i) + 1)]
+                    c *= self.polyring['U' + str(i + 1)]
 
         # construct the new generator
         strands = {}
@@ -96,7 +109,7 @@ class AMinus:
             if i not in self.positives:
                 return {}
             else:
-                c = c * self.polyring['U' + str(self.positives.index(i) + 1)]
+                c = c * self.polyring['U' + str(i + 1)]
 
         return {out: c}
 
