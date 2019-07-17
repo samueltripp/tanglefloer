@@ -61,6 +61,7 @@ class ETangle(Tangle):
     # signs - a tuple {-1,1}* representing the signs of the left edge of the tangle,
     #         unless etype is CUP, in which case it represents the signs on the right edge
     # position - nat n, where the cup/cap/crossing is between places n-1 and n
+    # over/under represents what the bottom strand does; under on the left, over on the right
     def __init__(self, etype: ETangle.Type, signs, position):
         for sign in signs:
             assert sign in (-1, 1), "{} is not a valid sign.".format(sign)
