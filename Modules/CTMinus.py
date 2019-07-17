@@ -89,36 +89,47 @@ def resolveplus(sd: StrandDiagram, i, j):
 
     # calculate coefficient from orange correctly
     pos = sd.etangle.position
-    if sd.etangle.etype == ETangle.Type.CAP:
+    if sd.etangle.etype == ETangle.Type.UNDER:
         checkrange = range(max(strands[i],j),min(i,strands[j]))
         c = sd.etangle.polyring.one()
+        signs = sd.etangle.right_signs()
         for k in checkrange:
-            index = k
-            if k >= pos - 1: index = k+2
-            if sd.etangle.signs[index] == -1:
+            if signs[k] == -1:
                 return [None,0]
             else:
-                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[index]+1)]
+                c = c*sd.etangle.polyring['U'+str(k+1)]
+        return [out,c]
+    elif sd.etangle.etype == ETangle.Type.OVER:
+        checkrange = range(max(strands[i],j+j>=pos),min(i,strands[j]+strands[j]>=pos))
+        c = sd.etangle.polyring.one()
+        signs = sd.etangle.left_signs()
+        for k in checkrange:
+            if signs[k] == -1:
+                return [None,0]
+            else:
+                c = c*sd.etangle.polyring['U'+str(k+1)]
+    elif sd.etangle.etype == ETangle.Type.CAP:
+        checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strand[j]))
+        c = sd.etangle.polyring.one()
+        for k in checkrange:
+            if k>=pos - 1:
+                if signs[k+2] == -1:
+                    return [None,0]
+                else: c=c*sd.etangle.polyring['U'+str(k+2+1)]
+            else: 
+                if signs[k] == -1:
+                    return [None,0]
+                else: c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
     elif sd.etangle.etype == ETangle.Type.CUP:
         checkrange = range(max(strands[i],j+j>=pos),min(i+i>=pos,strands[j]))
         c = sd.etangle.polyring.one()
-        for k in checkrange:
+        for k in checkrange: 
             if sd.etangle.signs[k] == -1:
                 return [None,0]
-            else:
-                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[k]+1)]
+            else: 
+                c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
-    else:
-        checkrange = range(max(strands[i],j),min(i,strands[j]))
-        c = sd.etangle.polyring.one()
-        for k in checkrange:
-            if sd.etangle.signs[k] == -1:
-                return [None,0]
-            else:
-                c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[k]+1)]
-        return [out,c]
-
 
 # points - a list of sets of points
 def enumerate_gens(points):
