@@ -9,7 +9,7 @@ import numpy
 class Tangle:
     # etangles - a list of elementary tangles
     # check - whether or not to check if etangles are compatible with each other
-    def __init__(self, etangles):
+    def __init__(self, etangles: Tuple):
         for i in range(len(etangles) - 1):
             assert etangles[i].right_signs() == etangles[i + 1].left_signs(), \
                 "Signs do not match at index {}".format(i)
@@ -50,7 +50,6 @@ class Tangle:
 
 # an elementary tangle
 class ETangle(Tangle):
-
     class Type(Enum):
         OVER = auto()
         UNDER = auto()
@@ -88,8 +87,9 @@ class ETangle(Tangle):
         if self.etype == ETangle.Type.CAP:
             return self.signs[:self.position - 1] + self.signs[self.position + 1:]
         elif self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
-            return self.signs[:self.position - 1] + (
-            self.signs[self.position], self.signs[self.position - 1]) + self.signs[self.position + 1:]
+            return self.signs[:self.position - 1] + \
+                   (self.signs[self.position], self.signs[self.position - 1]) + \
+                   self.signs[self.position + 1:]
         else:
             return self.signs
 
@@ -102,7 +102,7 @@ class ETangle(Tangle):
     # returns the set of points corresponding to the middle of this tangle
     def middle_points(self):
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
-            return list(range(self.position)) + list(range(self.position+1, len(self.signs)+1))
+            return list(range(self.position)) + list(range(self.position + 1, len(self.signs) + 1))
         return list(range(len(self.signs) + 1))
 
     # returns the set of points corresponding to the right side of this tangle
@@ -163,10 +163,13 @@ class ETangle(Tangle):
         return str((self.etype, self.signs, self.position))
 
     def __eq__(self, other):
-        if isinstance(other, Tangle) and len(other.etangles)==1:
+        if isinstance(other, Tangle) and len(other.etangles) == 1:
             other_etangle = other.etangles[0]
             return self.etype == other_etangle.etype \
                 and self.signs == other_etangle.signs \
                 and self.position == other_etangle.position
         else:
             return False
+
+    def __hash__(self):
+        return hash(self.etype) + hash(self.signs) + hash(self.position)

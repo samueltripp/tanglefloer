@@ -6,7 +6,7 @@ from typing import Set, Dict, FrozenSet, Tuple, overload, Union
 
 class Z2PolynomialRing:
     def __init__(self, variables):
-        self.variables = variables
+        self.variables = tuple(variables)
 
     def zero(self) -> Z2Polynomial:
         return Z2Polynomial(self, set())
