@@ -18,7 +18,7 @@ class Bimodule:
             self.graph.add_node(gen.key, left_idempotent=gen.left_idempotent, right_idempotent=gen.right_idempotent)
         for edge in maps:
             if edge.c != 0:
-                self.graph.add_edge(edge.source_key, edge.target_key, c=edge.c, left=edge.left, right=edge.right)
+                self.graph.add_edge(edge.source_diagram, edge.target_diagram, c=edge.c, left=edge.left, right=edge.right)
 
     @classmethod
     def from_strand_diagrams(cls, left_algebra: AMinus, right_algebra: AMinus,
@@ -57,9 +57,9 @@ class Bimodule:
             self.right_idempotent = right_idempotent
 
     class Edge:
-        def __init__(self, source_key, target_key, c: Z2Polynomial, left: AMinusElement, right: AMinusElement):
-            self.source_key = source_key
-            self.target_key = target_key
+        def __init__(self, source_diagram, target_diagram, c: Z2Polynomial, left: Tuple, right: Tuple):
+            self.source_diagram = source_diagram
+            self.target_diagram = target_diagram
             self.c = c
             self.left = left
             self.right = right

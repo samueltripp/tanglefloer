@@ -32,18 +32,33 @@ def type_da(etangle: ETangle) -> Bimodule:
                        for left_strands, right_strands in
                        enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
     maps = sum((delta1_1(x) for x in strand_diagrams), []) + \
-        sum((delta1_2(x, a) for x in strand_diagrams
-             for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))), [])
+        [delta1_2(x, a) for x in strand_diagrams
+         for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
 
     return Bimodule.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
 
 
 def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
-    return []  # TODO
+    out = []
+    out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dplus(x)]
+    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dminus(x)]
+    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dmixed(x)]
+    out += [deltal(x)]
+    return out
 
 
-def delta1_2(x: StrandDiagram, a: AMinusElement) -> List[Bimodule.Edge]:
-    return []  # TODO
+def delta1_2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
+    e = m2(x, a)
+    return Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), (a,))
+
+
+def m2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
+    pass  # TODO
+
+
+def deltal(x: StrandDiagram) -> Bimodule.Edge:
+    pass  # TODO
+
 
 def dplus(sd: StrandDiagram):
     strands = sd.right_strands
@@ -59,18 +74,18 @@ def dplus(sd: StrandDiagram):
                     out[res[0]] = res[1]
     return out
 
+
 def resolveplus(sd: StrandDiagram, i, j):
     strands = sd.right_strands
     # if double crossing black, return none
     for s in strands.keys() & set(range(j,i)):
-        if strands[i]<strands[s]<strands[j]: 
+        if strands[i]<strands[s]<strands[j]:
             return [None,0]
-        
+
     # output
     out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
     out.right_strands[j] = strands[i]
     out.right_strands[i] = strands[j]
-
 
     # calculate coefficient from orange correctly
     pos = sd.etangle.position
@@ -80,7 +95,7 @@ def resolveplus(sd: StrandDiagram, i, j):
         for k in checkrange:
             index = k
             if k >= pos - 1: index = k+2
-            if sd.etangle.signs[index] == -1: 
+            if sd.etangle.signs[index] == -1:
                 return [None,0]
             else:
                 c = c*sd.etangle.polyring['U'+str(sd.etangle.middle[index]+1)]
