@@ -27,9 +27,27 @@ class Bimodule:
                         [Bimodule.Generator(sd, sd.left_idempotent(), sd.right_idempotent())
                          for sd in generators], maps)
 
-    # I wrote this for DD tensor AA but it might be generic enough for all cases
-    # the only specialized parts are the variable names delta and m
-    def tensor(self, other: Bimodule) -> Bimodule:
+    class Generator:
+        def __init__(self, key, left_idempotent: AMinusElement, right_idempotent: AMinusElement):
+            self.key = key
+            self.left_idempotent = left_idempotent
+            self.right_idempotent = right_idempotent
+
+    class Edge:
+        def __init__(self, source_diagram, target_diagram, c: Z2Polynomial, left: Tuple, right: Tuple):
+            self.source_diagram = source_diagram
+            self.target_diagram = target_diagram
+            self.c = c
+            self.left = left
+            self.right = right
+
+
+class TypeDA(Bimodule):
+    def __init__(self, left_algebra: AMinus, right_algebra: AMinus,
+                 generators: Iterable[Bimodule.Generator], maps: Iterable[Bimodule.Edge]):
+        super().__init__(left_algebra, right_algebra, generators, maps)
+
+    def tensor(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra == other.left_algebra
 
         generators = [Bimodule.Generator((xm, xn), xm['left_idempotent'], xn['right_idempotent'])
@@ -48,18 +66,4 @@ class Bimodule:
                                 continue
                             maps.add(Bimodule.Edge((xm, xn), (ym, yn), delta['c'] * m['c'], delta['left'], m['right']))
 
-        return Bimodule(self.left_algebra, other.right_algebra, generators, maps)
-
-    class Generator:
-        def __init__(self, key, left_idempotent: AMinusElement, right_idempotent: AMinusElement):
-            self.key = key
-            self.left_idempotent = left_idempotent
-            self.right_idempotent = right_idempotent
-
-    class Edge:
-        def __init__(self, source_diagram, target_diagram, c: Z2Polynomial, left: Tuple, right: Tuple):
-            self.source_diagram = source_diagram
-            self.target_diagram = target_diagram
-            self.c = c
-            self.left = left
-            self.right = right
+        return TypeDA(self.left_algebra, other.right_algebra, generators, maps)

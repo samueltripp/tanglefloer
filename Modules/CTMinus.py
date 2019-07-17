@@ -32,7 +32,7 @@ class StrandDiagram:
                self.right_strands == other.right_strands
 
 
-def type_da(etangle: ETangle) -> Bimodule:
+def type_da(etangle: ETangle) -> TypeDA:
     strand_diagrams = [StrandDiagram(etangle, left_strands, right_strands)
                        for left_strands, right_strands in
                        enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
