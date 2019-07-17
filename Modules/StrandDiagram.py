@@ -1,4 +1,8 @@
-# represents a pair of partial bijections overlaid on an elementary tangle                                                                                
+from __future__ import annotations
+from Modules.CTMinus import *
+
+
+# represents a pair of partial bijections overlaid on an elementary tangle
 class StrandDiagram:
     def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
         self.etangle = etangle
@@ -17,3 +21,8 @@ class StrandDiagram:
 
     def __repr__(self):
         return str((self.etangle, self.left_strands, self.right_strands))
+
+    def __eq__(self, other: StrandDiagram):
+        return self.etangle == other.etangle and \
+                self.left_strands == other.left_strands and \
+                self.right_strands == other.right_strands
