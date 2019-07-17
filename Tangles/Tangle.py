@@ -110,6 +110,54 @@ class ETangle(Tangle):
             return list(range(len(self.signs) - 1))
         return list(range(len(self.signs) + 1))
 
+    # returns the mapping {left_point: middle_point}
+    def left_to_middle(self) -> Dict:
+        num_left_points = len(self.left_points())
+        if self.etype == ETangle.Type.OVER:
+            out = {p: p for p in range(num_left_points)}
+            return out
+        elif self.etype == ETangle.Type.UNDER:
+            out = {p: p for p in range(num_left_points)}
+            out[self.position - 1] = self.position
+            out[self.position] = self.position - 1
+            return out
+        elif self.etype == ETangle.Type.CUP:
+            out = {}
+            for p in range(self.position - 1):
+                out[p] = p
+            for p in range(self.position, num_left_points):
+                out[p] = p + 2
+            return out
+        elif self.etype == ETangle.Type.CAP:
+            out = {p: p for p in range(num_left_points)}
+            del out[self.position - 1]
+            del out[self.position]
+            return out
+
+    # returns the mapping {right_point: middle_point}
+    def right_to_middle(self) -> Dict:
+        num_right_points = len(self.right_points())
+        if self.etype == ETangle.Type.UNDER:
+            out = {p: p for p in range(num_right_points)}
+            return out
+        elif self.etype == ETangle.Type.OVER:
+            out = {p: p for p in range(num_right_points)}
+            out[self.position - 1] = self.position
+            out[self.position] = self.position - 1
+            return out
+        elif self.etype == ETangle.Type.CAP:
+            out = {}
+            for p in range(self.position - 1):
+                out[p] = p
+            for p in range(self.position, num_right_points):
+                out[p] = p + 2
+            return out
+        elif self.etype == ETangle.Type.CUP:
+            out = {p: p for p in range(num_right_points)}
+            del out[self.position - 1]
+            del out[self.position]
+            return out
+
     def __repr__(self):
         return str((self.etype, self.signs, self.position))
 

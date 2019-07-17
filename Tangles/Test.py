@@ -28,5 +28,5 @@ assert t1 + t2 == t1 + ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
 assert trefoil == t1 + t2 + t3 + t4 + t5 + t6 + t7 == sum([t1, t2, t3, t4, t5, t6, t7])
 
 # svg rendering example
-TangleRenderer.svg('output/trefoil.svg', trefoil)
-TangleRenderer.svg('output/unknot2.svg', unknot2)
+# TangleRenderer.svg('output/trefoil.svg', trefoil)
+# TangleRenderer.svg('output/unknot2.svg', unknot2)
