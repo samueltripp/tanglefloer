@@ -3,28 +3,8 @@ from typing import List
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
+from Modules.StrandDiagrams import *
 import copy
-
-
-# represents a pair of partial bijections overlaid on an elementary tangle
-class StrandDiagram:
-    def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
-        self.etangle = etangle
-        self.left_strands = left_strands
-        self.right_strands = right_strands
-
-    # the idempotent e^D_L
-    def left_idempotent(self):
-        occupied = self.left_strands.keys()
-        total = set(range(len(self.etangle.left_algebra.ss)))
-        return self.etangle.left_algebra.idempotent(list(total - occupied))
-
-    # the idempotent e^A_R
-    def right_idempotent(self) -> AMinusElement:
-        return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
-
-    def __repr__(self):
-        return str((self.etangle, self.left_strands, self.right_strands))
 
 
 def type_da(etangle: ETangle) -> Bimodule:
@@ -63,24 +43,40 @@ def deltal(x: StrandDiagram) -> Bimodule.Edge:
 def dplus(sd: StrandDiagram):
     strands = sd.right_strands
     keys = strands.keys()
+    zero = sd.etangle.polyring.zero()
     out = {}
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]>strands[key1]:
                 res = resolveplus(sd,key1,key2)
-                if res[1] != 0 and res[0] in out.keys():
+                if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
-                elif res[1] != 0:
+                elif res[1] != zero:
                     out[res[0]] = res[1]
     return out
 
+def dminus(sd: StrandDiagram):
+    strands = sd.left_strands
+    keys = strands.keys()
+    out = {}
+    zero = sd.etangle.polyring.zero()
+    for key1 in keys:
+        for key2 in keys:
+            if key2 < key1 and strands[key2]<strands[key1]:
+                res = resolveminus(sd,key1,key2)
+                if res[1] != zero and res[0] in out.keys():
+                    out[res[0]] = res[1]+out[res[0]]
+                elif res[1] != zero:
+                    out[res[0]] = res[1]
+    return out
 
 def resolveplus(sd: StrandDiagram, i, j):
+    zero = sd.etangle.polyring.zero()
     strands = sd.right_strands
     # if double crossing black, return none
     for s in strands.keys() & set(range(j,i)):
         if strands[i]<strands[s]<strands[j]:
-            return [None,0]
+            return [None,zero]
 
     # output
     out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
@@ -95,7 +91,7 @@ def resolveplus(sd: StrandDiagram, i, j):
         signs = sd.etangle.right_signs()
         for k in checkrange:
             if signs[k] == -1:
-                return [None,0]
+                return [None,zero]
             else:
                 c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
@@ -108,17 +104,19 @@ def resolveplus(sd: StrandDiagram, i, j):
                 return [None,0]
             else:
                 c = c*sd.etangle.polyring['U'+str(k+1)]
+        return [out,c]
     elif sd.etangle.etype == ETangle.Type.CAP:
-        checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strand[j]))
+        checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strands[j]))
         c = sd.etangle.polyring.one()
+        signs = sd.etangle.left_signs()
         for k in checkrange:
             if k>=pos - 1:
                 if signs[k+2] == -1:
-                    return [None,0]
+                    return [None,zero]
                 else: c=c*sd.etangle.polyring['U'+str(k+2+1)]
             else: 
                 if signs[k] == -1:
-                    return [None,0]
+                    return [None,zero]
                 else: c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
     elif sd.etangle.etype == ETangle.Type.CUP:
@@ -126,10 +124,21 @@ def resolveplus(sd: StrandDiagram, i, j):
         c = sd.etangle.polyring.one()
         for k in checkrange: 
             if sd.etangle.signs[k] == -1:
-                return [None,0]
+                return [None,zero]
             else: 
                 c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
+
+
+def resolveminus(sd:StrandDiagram, i, j):
+    zero = sd.etangle.polyring.zero()
+    strands = sd.right_strands
+
+    #check if we need to double cross black to introduce crossing
+    
+    
+
+
 
 # points - a list of sets of points
 def enumerate_gens(points):
