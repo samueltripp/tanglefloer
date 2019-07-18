@@ -48,7 +48,7 @@ def dplus(sd: StrandDiagram,verbose=False):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]>strands[key1]:
-                res = resolveplus(sd,key1,key2)
+                res = resolveplus(sd,key1,key2,verbose)
                 if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
                 elif res[1] != zero:
@@ -63,14 +63,14 @@ def dminus(sd: StrandDiagram,verbose = False):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]<strands[key1]:
-                res = resolveminus(sd,key1,key2)
+                res = resolveminus(sd,key1,key2,verbose)
                 if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
                 elif res[1] != zero:
                     out[res[0]] = res[1]
     return out
 
-def resolveplus(sd: StrandDiagram, i, j):
+def resolveplus(sd: StrandDiagram, i, j,verbose):
     zero = sd.etangle.polyring.zero()
     strands = sd.right_strands
     t = sd.etangle.type
@@ -141,7 +141,7 @@ def resolveplus(sd: StrandDiagram, i, j):
         return [out,c]
 
 
-def resolveminus(sd:StrandDiagram, i, j):
+def resolveminus(sd:StrandDiagram, i, j,verbose):
     zero = sd.etangle.polyring.zero()
     strands = sd.left_strands
     signs = sd.etangle.left_signs()
