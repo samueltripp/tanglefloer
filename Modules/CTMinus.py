@@ -81,9 +81,11 @@ def resolveplus(sd: StrandDiagram, i, j):
             return [None,zero]
 
     # output
-    out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
-    out.right_strands[j] = strands[i]
-    out.right_strands[i] = strands[j]
+    left_strands = dict(sd.left_strands)
+    right_strands = dict(sd.right_strands)
+    right_strands[j] = strands[i]
+    right_strands[i] = strands[j]
+    out = StrandDiagram(sd.etangle, left_strands, right_strands)
 
     # calculate coefficient from orange correctly
     pos = sd.etangle.position
@@ -141,15 +143,17 @@ def resolveminus(sd:StrandDiagram, i, j):
         if strands[j]<strands[s]<strands[i]:
             return [None,zero]
 
-    #output 
-    out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
-    out.left_strands[j] = strands[i]
-    out.left_strands[i] = strands[j]
+    #output
+    left_strands = dict(sd.left_strands)
+    right_strands = dict(sd.right_strands)
+    left_strands[j] = strands[i]
+    left_strands[i] = strands[j]
+    out = StrandDiagram(sd.etangle, left_strands, right_strands)
 
     # calculate coefficient from orange
     pos = sd.etangle.position
     c = sd.etangle.polyring.one()
-    t = sd.etangle.type
+    t = sd.etangle.etype
 
     if t == ETangle.Type.OVER:
         checkrange = range(max(j,strands[j]),min(i,strands[i]))

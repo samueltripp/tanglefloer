@@ -55,7 +55,7 @@ class TypeDA(Bimodule):
                       for xm in self.graph.nodes for xn in other.graph.nodes
                       if xm['right_idempotent'] == xn['left_idempotent']]
 
-        maps = set()
+        maps = []
         for (xm, xn) in generators:
             for ym in self.graph[xm]:
                 for i in self.graph[xm][ym]:
@@ -67,7 +67,7 @@ class TypeDA(Bimodule):
                             delta_n = self.graph[xn][yn][j]
                             if delta_1['right'] != delta_n['left']:
                                 continue
-                            maps.add(
+                            maps.append(
                                 Bimodule.Edge((xm, xn), (ym, yn),
                                               delta_1['c'] * delta_n['c'], delta_1['left'], delta_n['right']))
 
