@@ -144,7 +144,7 @@ def resolveminus(sd:StrandDiagram, i, j):
     #output 
     out = StrandDiagram(sd.etangle,copy.deepcopy(sd.left_strands),copy.deepcopy(sd.right_strands))
     out.left_strands[j] = strands[i]
-    out.right_strands[i] = strands[j]
+    out.left_strands[i] = strands[j]
 
     # calculate coefficient from orange
     pos = sd.etangle.position
