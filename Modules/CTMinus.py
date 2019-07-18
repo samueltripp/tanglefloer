@@ -4,7 +4,6 @@ from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
 from Modules.StrandDiagram import *
-import copy
 
 
 def type_da(etangle: ETangle) -> TypeDA:

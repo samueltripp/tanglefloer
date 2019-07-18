@@ -1,6 +1,5 @@
 from __future__ import annotations
 from multimethod import multimethod
-import copy
 from SignAlgebra.Z2PolynomialRing import *
 from Tangles.Functions import *
 from typing import Iterable
@@ -98,7 +97,7 @@ class AMinus:
                 return {}
 
         # construct the output generator
-        out = AMinusGen(self, copy.deepcopy(gen.strands))
+        out = AMinusGen(self, dict(gen.strands))
         out.strands[i] = gen.strands[j]
         out.strands[j] = gen.strands[i]
 
