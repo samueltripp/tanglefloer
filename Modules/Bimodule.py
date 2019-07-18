@@ -18,7 +18,8 @@ class Bimodule:
             self.graph.add_node(gen.key, left_idempotent=gen.left_idempotent, right_idempotent=gen.right_idempotent)
         for edge in maps:
             if edge.c != 0:
-                self.graph.add_edge(edge.source_diagram, edge.target_diagram, c=edge.c, left=edge.left, right=edge.right)
+                self.graph.add_edge(edge.source_diagram, edge.target_diagram,
+                                    c=edge.c, left=edge.left, right=edge.right)
 
     @classmethod
     def from_strand_diagrams(cls, left_algebra: AMinus, right_algebra: AMinus,
@@ -58,12 +59,16 @@ class TypeDA(Bimodule):
         for (xm, xn) in generators:
             for ym in self.graph[xm]:
                 for i in self.graph[xm][ym]:
-                    delta = self.graph[xm][ym][i]
+                    delta_1 = self.graph[xm][ym][i]
+                    if len(delta_1['left']) > 1:
+                        continue
                     for yn in self.graph[xn]:
                         for j in self.graph[xn][yn]:
-                            m = self.graph[xn][yn][j]
-                            if delta['right'] != m['left']:
+                            delta_n = self.graph[xn][yn][j]
+                            if delta_1['right'] != delta_n['left']:
                                 continue
-                            maps.add(Bimodule.Edge((xm, xn), (ym, yn), delta['c'] * m['c'], delta['left'], m['right']))
+                            maps.add(
+                                Bimodule.Edge((xm, xn), (ym, yn),
+                                              delta_1['c'] * delta_n['c'], delta_1['left'], delta_n['right']))
 
         return TypeDA(self.left_algebra, other.right_algebra, generators, maps)
