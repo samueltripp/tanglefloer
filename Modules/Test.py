@@ -15,7 +15,7 @@ def fill_right(etangle, left_strands):
     return out
 
 
-lefts = [{1: 1, 5: 2}, {3: 2, 5: 4}, {4: 4, 6: 5}, {1: 1, 5: 4}, {0: 0, 1: 5}, {1: 1, 3: 4}]
+lefts = [{1: 1, 5: 2}, {3: 2, 5: 3}, {4: 3, 6: 4}, {1: 1, 5: 3}, {0: 0, 1: 4}, {1: 1, 3: 3}]
 
 print('cap1')
 for left in lefts:
