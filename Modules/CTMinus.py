@@ -20,9 +20,9 @@ def type_da(etangle: ETangle) -> TypeDA:
 
 def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
     out = []
-    out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dplus(x)]
-    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dminus(x)]
-    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dmixed(x)]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dplus(x).items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dminus(x).items()]
+    # out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dmixed(x).items()]
     out += [deltal(x)]
     return out
 

@@ -9,12 +9,12 @@ import numpy
 class Tangle:
     # etangles - a list of elementary tangles
     # check - whether or not to check if etangles are compatible with each other
-    def __init__(self, etangles: Tuple):
+    def __init__(self, etangles):
         for i in range(len(etangles) - 1):
             assert etangles[i].right_signs() == etangles[i + 1].left_signs(), \
                 "Signs do not match at index {}".format(i)
 
-        self.etangles = etangles
+        self.etangles = tuple(etangles)
 
         height = max(len(etangle.signs) for etangle in etangles)
         self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, height + 1)])
@@ -73,7 +73,7 @@ class ETangle(Tangle):
         self.signs = signs
         self.position = position
 
-        super().__init__([self])
+        super().__init__((self,))
 
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self):
