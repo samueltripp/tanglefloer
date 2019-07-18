@@ -102,7 +102,7 @@ class ETangle(Tangle):
     # returns the set of points corresponding to the middle of this tangle
     def middle_points(self):
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
-            return list(range(self.position)) + list(range(self.position + 1, len(self.signs) + 1))
+            return list(range(len(self.signs)))
         return list(range(len(self.signs) + 1))
 
     # returns the set of points corresponding to the right side of this tangle
