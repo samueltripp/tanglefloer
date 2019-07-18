@@ -40,7 +40,7 @@ def deltal(x: StrandDiagram) -> Bimodule.Edge:
     pass  # TODO
 
 
-def dplus(sd: StrandDiagram):
+def dplus(sd: StrandDiagram,verbose=False):
     strands = sd.right_strands
     keys = strands.keys()
     zero = sd.etangle.polyring.zero()
@@ -48,14 +48,14 @@ def dplus(sd: StrandDiagram):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]>strands[key1]:
-                res = resolveplus(sd,key1,key2)
+                res = resolveplus(sd,key1,key2,verbose)
                 if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
                 elif res[1] != zero:
                     out[res[0]] = res[1]
     return out
 
-def dminus(sd: StrandDiagram):
+def dminus(sd: StrandDiagram,verbose = False):
     strands = sd.left_strands
     keys = strands.keys()
     out = {}
@@ -63,14 +63,14 @@ def dminus(sd: StrandDiagram):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]<strands[key1]:
-                res = resolveminus(sd,key1,key2)
+                res = resolveminus(sd,key1,key2,verbose)
                 if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
                 elif res[1] != zero:
                     out[res[0]] = res[1]
     return out
 
-def resolveplus(sd: StrandDiagram, i, j):
+def resolveplus(sd: StrandDiagram, i, j,verbose):
     zero = sd.etangle.polyring.zero()
     strands = sd.right_strands
     t = sd.etangle.type
@@ -93,6 +93,8 @@ def resolveplus(sd: StrandDiagram, i, j):
 
     if t == ETangle.Type.UNDER:
         checkrange = range(max(strands[i],j),min(i,strands[j]))
+        if verbose:
+            print(i,j,list(checkrange))
         signs = sd.etangle.right_signs()
         for k in checkrange:
             if signs[k] == -1:
@@ -102,6 +104,8 @@ def resolveplus(sd: StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.OVER:
         checkrange = range(max(strands[i],j+j>=pos),min(i,strands[j]+strands[j]>=pos))
+        if verbose:
+            print(i,j,list(checkrange))
         signs = sd.etangle.left_signs()
         for k in checkrange:
             if signs[k] == -1:
@@ -111,6 +115,8 @@ def resolveplus(sd: StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.CAP:
         checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strands[j]))
+        if verbose:
+            print(i,j,list(checkrange))
         signs = sd.etangle.left_signs()
         for k in checkrange:
             if k>=pos - 1:
@@ -125,6 +131,8 @@ def resolveplus(sd: StrandDiagram, i, j):
     elif t == ETangle.Type.CUP:
         signs = sd.etangle.right_signs()
         checkrange = range(max(strands[i],j+j>=pos),min(i+i>=pos,strands[j]))
+        if verbose:
+            print(i,j,list(checkrange))
         for k in checkrange: 
             if sd.etangle.signs[k] == -1:
                 return [None,zero]
@@ -133,7 +141,7 @@ def resolveplus(sd: StrandDiagram, i, j):
         return [out,c]
 
 
-def resolveminus(sd:StrandDiagram, i, j):
+def resolveminus(sd:StrandDiagram, i, j,verbose):
     zero = sd.etangle.polyring.zero()
     strands = sd.left_strands
     signs = sd.etangle.left_signs()
@@ -157,6 +165,8 @@ def resolveminus(sd:StrandDiagram, i, j):
 
     if t == ETangle.Type.OVER:
         checkrange = range(max(j,strands[j]),min(i,strands[i]))
+        if verbose:
+            print(i,j,list(checkrange))
         for k in checkrange:
             if signs[k] == 1:
                 return [None,zero]
@@ -165,6 +175,8 @@ def resolveminus(sd:StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.UNDER:
         checkrange = range(max(j+(j>=pos),strands[j]),min(i,strands[i]+(strands[i]>=pos)))
+        if verbose:
+            print(i,j,list(checkrange))
         for k in checkrange:
             if k not in [pos-1,pos]:
                 if signs[k] == 1:
@@ -186,6 +198,8 @@ def resolveminus(sd:StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.CAP:
         checkrange = range(max(j+(j>=pos),strands[j]),min(i+(i>=pos),strands[i]))
+        if verbose:
+            print(i,j,list(checkrange))
         for k in checkrange:
             if signs[k] == 1:
                 return [None,zero]
@@ -194,6 +208,8 @@ def resolveminus(sd:StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.CUP:
         checkrange = range(max(j - (j>=pos),strands[j]),min(i-(i>=pos),strands[i]))
+        if verbose:
+            print(i,j,list(checkrange))
         signs = sd.etangle.right_signs()
         for k in checkrange:
             if k>=pos - 1:
