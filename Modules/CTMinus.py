@@ -151,7 +151,7 @@ def resolveminus(sd:StrandDiagram, i, j):
     c = sd.etangle.polyring.one()
     t = sd.etangle.type
 
-    if t = ETangle.Type.OVER:
+    if t == ETangle.Type.OVER:
         checkrange = range(max(j,strands[j]),min(i,strands[i]))
         for k in checkrange:
             if signs[k] == 1:
@@ -159,7 +159,7 @@ def resolveminus(sd:StrandDiagram, i, j):
             else:
                 c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
-    elif t = ETangle.Type.UNDER:
+    elif t == ETangle.Type.UNDER:
         checkrange = range(max(j+j>=pos,strands[j]),min(i,strands[i]+strands[i]>=pos))
         for k in checkrange:
             if k not in [pos-1,pos]:
@@ -180,7 +180,7 @@ def resolveminus(sd:StrandDiagram, i, j):
                     else:
                         c = c*sd.etangle.polyring['U'+str(k+1+1)]
         return [out,c]
-    elif t = ETangle.Type.CAP:
+    elif t == ETangle.Type.CAP:
         checkrange = range(max(j+j>=pos,strands[j]),min(i+i>=pos,strands[i]))
         for k in checkrange:
             if signs[k] == 1:
@@ -188,7 +188,7 @@ def resolveminus(sd:StrandDiagram, i, j):
             else:
                 c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
-    elif t = ETangle.Type.CUP:
+    elif t == ETangle.Type.CUP:
         checkrange = range(max(j - j>=pos,strands[j]),min(i-i>=pos,strands[i]))
         signs = sd.etangle.right_signs()
         for k in checkrange:
