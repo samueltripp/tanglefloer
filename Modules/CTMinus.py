@@ -3,11 +3,11 @@ from typing import List
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Tangles.Functions import *
-from Modules.StrandDiagrams import *
+from Modules.StrandDiagram import *
 import copy
 
 
-def type_da(etangle: ETangle) -> Bimodule:
+def type_da(etangle: ETangle) -> TypeDA:
     strand_diagrams = [StrandDiagram(etangle, left_strands, right_strands)
                        for left_strands, right_strands in
                        enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
@@ -15,14 +15,14 @@ def type_da(etangle: ETangle) -> Bimodule:
         [delta1_2(x, a) for x in strand_diagrams
          for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
 
-    return Bimodule.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
+    return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
 
 
 def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
     out = []
-    out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dplus(x)]
-    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dminus(x)]
-    # out += [Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), tuple()) for e in dmixed(x)]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dplus(x).items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dminus(x).items()]
+    # out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dmixed(x).items()]
     out += [deltal(x)]
     return out
 

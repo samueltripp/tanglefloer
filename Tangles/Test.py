@@ -6,8 +6,8 @@ cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
 over = ETangle(ETangle.Type.OVER, (1, -1), 1)
 under = ETangle(ETangle.Type.UNDER, (-1, 1), 1)
 cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
-unknot = Tangle([cup, cap])
-unknot2 = Tangle([cup, over, under, cap])
+unknot = Tangle((cup, cap))
+unknot2 = Tangle((cup, over, under, cap))
 print(unknot + unknot2)
 
 # the trefoil from the paper
@@ -18,7 +18,7 @@ t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
 t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
 t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
 t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-trefoil = Tangle([t1, t2, t3, t4, t5, t6, t7])
+trefoil = Tangle((t1, t2, t3, t4, t5, t6, t7))
 print(trefoil)
 
 # example of using + and == to compare tangles
