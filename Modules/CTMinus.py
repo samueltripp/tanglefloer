@@ -100,7 +100,7 @@ def resolveplus(sd: StrandDiagram, i, j,verbose):
             if signs[k] == -1:
                 return [None,zero]
             else:
-                c = c*sd.etangle.polyring['U'+str(k+1)]
+                c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
     elif t == ETangle.Type.OVER:
         checkrange = range(max(strands[i],j+j>=pos),min(i,strands[j]+strands[j]>=pos))
@@ -111,7 +111,7 @@ def resolveplus(sd: StrandDiagram, i, j,verbose):
             if signs[k] == -1:
                 return [None,0]
             else:
-                c = c*sd.etangle.polyring['U'+str(k+1)]
+                c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
     elif t == ETangle.Type.CAP:
         checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strands[j]))
@@ -122,11 +122,11 @@ def resolveplus(sd: StrandDiagram, i, j,verbose):
             if k>=pos - 1:
                 if signs[k+2] == -1:
                     return [None,zero]
-                else: c=c*sd.etangle.polyring['U'+str(k+2+1)]
+                else: c=c*sd.etangle.polyring['U'+str(k+2)]
             else: 
                 if signs[k] == -1:
                     return [None,zero]
-                else: c = c*sd.etangle.polyring['U'+str(k+1)]
+                else: c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
     elif t == ETangle.Type.CUP:
         signs = sd.etangle.right_signs()
@@ -137,7 +137,7 @@ def resolveplus(sd: StrandDiagram, i, j,verbose):
             if sd.etangle.signs[k] == -1:
                 return [None,zero]
             else: 
-                c = c*sd.etangle.polyring['U'+str(k+1)]
+                c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
 
 
@@ -171,7 +171,7 @@ def resolveminus(sd:StrandDiagram, i, j,verbose):
             if signs[k] == 1:
                 return [None,zero]
             else:
-                c = c*sd.etangle.polyring['U'+str(k+1)]
+                c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
     elif t == ETangle.Type.UNDER:
         checkrange = range(max(j+(j>=pos),strands[j]),min(i,strands[i]+(strands[i]>=pos)))
@@ -182,29 +182,29 @@ def resolveminus(sd:StrandDiagram, i, j,verbose):
                 if signs[k] == 1:
                     return [None,zero]
                 else:
-                    c = c*sd.etangle.polyring['U'+str(k+1)]
+                    c = c*sd.etangle.polyring['U'+str(k)]
             if k == pos:
                 if strands[j] < k:
                     if signs[k] == 1:
                         return [None,zero]
                     else: 
-                        c = c*sd.etangle.polyring['U' + str(k-1+1)]
+                        c = c*sd.etangle.polyring['U' + str(k-1)]
             if k == pos-1:
                 if strands[i] > pos:
                     if signs[k] == 1:
                         return [None,zero]
                     else:
-                        c = c*sd.etangle.polyring['U'+str(k+1+1)]
+                        c = c*sd.etangle.polyring['U'+str(k+1)]
         return [out,c]
     elif t == ETangle.Type.CAP:
-        checkrange = range(max(j+(j>=pos),strands[j]),min(i+(i>=pos),strands[i]))
+        checkrange = range(max(j,strands[j]+(strands[j]>=pos)),min(i,strands[i]+(strands[i]>=pos)))
         if verbose:
             print(i,j,list(checkrange))
         for k in checkrange:
             if signs[k] == 1:
                 return [None,zero]
             else:
-                c = c*sd.etangle.polyring['U'+str(k+1)]
+                c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
     elif t == ETangle.Type.CUP:
         checkrange = range(max(j - (j>=pos),strands[j]),min(i-(i>=pos),strands[i]))
@@ -216,12 +216,12 @@ def resolveminus(sd:StrandDiagram, i, j,verbose):
                 if signs[k+2] == 1:
                     return [None,zero]
                 else: 
-                    c = c*sd.etangle.polyring['U'+str(k+2+1)]
+                    c = c*sd.etangle.polyring['U'+str(k+2)]
             else:
                 if signs[k] == 1:
                     return [None,zero]
                 else:
-                    c = c*sd.etangle.polyring['U'+str(k+1)]
+                    c = c*sd.etangle.polyring['U'+str(k)]
         return [out,c]
 
 

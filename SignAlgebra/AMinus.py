@@ -15,7 +15,7 @@ class AMinus:
 
     # construct the polynomial ring based on the number of positives
     def initpolyring(self):
-        return Z2PolynomialRing(['U%s' % p for p in range(1, len(self.ss) + 1)])
+        return Z2PolynomialRing(['U%s' % p for p in range(0, len(self.ss))])
 
     def zero(self):
         return AMinusElement(self, {})
