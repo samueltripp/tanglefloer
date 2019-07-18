@@ -63,7 +63,6 @@ def dminus(sd: StrandDiagram):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]<strands[key1]:
-                print(key1,key2)
                 res = resolveminus(sd,key1,key2)
                 if res[1] != zero and res[0] in out.keys():
                     out[res[0]] = res[1]+out[res[0]]
@@ -187,7 +186,6 @@ def resolveminus(sd:StrandDiagram, i, j):
         return [out,c]
     elif t == ETangle.Type.CAP:
         checkrange = range(max(j+(j>=pos),strands[j]),min(i+(i>=pos),strands[i]))
-        print(list(checkrange))
         for k in checkrange:
             if signs[k] == 1:
                 return [None,zero]
