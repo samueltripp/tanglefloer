@@ -9,8 +9,10 @@ from SignAlgebra.AMinus import *
 class StrandDiagram:
     def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
         self.etangle = etangle
+        assert validdictionaries(etangle,left_strands,right_strands)
         self.left_strands = frozendict(left_strands)
         self.right_strands = frozendict(right_strands)
+
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self):
@@ -32,3 +34,13 @@ class StrandDiagram:
 
     def __hash__(self):
         return hash(self.etangle) + hash(self.left_strands) + hash(self.right_strands)
+
+
+def validdictionaries(et:ETangle, ls:Dict, rs:Dict):
+    for key in ls.keys():
+        if key not in et.left_points():
+            return False
+    for val in rs.values():
+        if val not in et.right_points():
+            return False
+    return set(ls.values()).union(set(rs.keys())) == set(et.middle_points())
