@@ -47,12 +47,48 @@ def dplus(sd: StrandDiagram,verbose=False):
     for key1 in keys:
         for key2 in keys:
             if key2 < key1 and strands[key2]>strands[key1]:
-                res = resolveplus(sd,key1,key2,verbose)
-                if res[1] != zero and res[0] in out.keys():
-                    out[res[0]] = res[1]+out[res[0]]
-                elif res[1] != zero:
-                    out[res[0]] = res[1]
+                res = resolveminus(firstswap(sd,key1,key2),key1,key2,verbose)
+                if res[1] != zero:
+                    newsd = secondswap(sd,key1,key2)
+                    if newsd in out.keys():
+                        out[newsd] = res[1]+out[res[0]]
+                    else: out[newsd] = res[1]
     return out
+
+def firstswap(sd:StrandDiagram,i,j):
+    return mirrorswap(sd,i,j,1)
+
+def secondswap(sd:StrandDiagram,i,j):
+    return mirrorswap(sd,i,j,2)
+
+def mirrorswap(sd:StrandDiagram,i,j,count):
+    t = sd.etangle.type
+    if t == ETangle.Type.CAP:
+        newt = ETangle.Type.CUP
+    elif t == ETangle.Type.CUP:
+        newt = ETangle.Type.CAP
+    elif t == ETangle.Type.OVER:
+        newt = ETangle.Type.UNDER
+    elif t == ETangle.Type.UNDER:
+        newt = ETangle.Type.OVER
+    newsigns = tuple([-1*i for i in sd.etangle.signs])
+    newright = {}
+    for s,t in sd.left_strands.items():
+        newright[t]=s
+    newleft = {}
+    for s,t in sd.right_strands.items():
+        newleft[t]=s
+
+    if count == 1:
+        newleft[sd.right_strands[j]] = i
+        newleft[sd.right_strands[i]] = j
+    if count == 2:
+        temp = newright[i]
+        newright[i] = newright[j]
+        newright[j] = temp
+        
+    return StrandDiagram(ETangle(newt,newsigns,sd.etangle.position),newleft,newright)
+
 
 def dminus(sd: StrandDiagram,verbose = False):
     strands = sd.left_strands
