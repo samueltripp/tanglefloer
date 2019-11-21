@@ -34,6 +34,31 @@ class Bimodule:
             self.left_idempotent = left_idempotent
             self.right_idempotent = right_idempotent
 
+    class Element:
+        # d - {StrandDiagram: Z2Polynomial}
+        def __init__(self, d=None):
+            if d is None:
+                d = {}
+            self.d = {}
+            for sd, c in d.items():
+                if c != sd.etangle.polyring.zero():
+                    self.d[sd] = c
+
+        def __add__(self, other: Bimodule.Element) -> Bimodule.Element:
+            out_d = dict(self.d)
+            for sd in other.d:
+                if sd in self.d:
+                    out_d[sd] = self.d[sd] + other.d[sd]
+                else:
+                    out_d[sd] = other.d[sd]
+            return Bimodule.Element(out_d)
+
+        def __eq__(self, other: Bimodule.Element) -> bool:
+            return self.d == other.d
+
+        def __repr__(self) -> str:
+            return str(self.d)
+
     class Edge:
         def __init__(self, source_diagram, target_diagram, c: Z2Polynomial, left: Tuple, right: Tuple):
             self.source_diagram = source_diagram

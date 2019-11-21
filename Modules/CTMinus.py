@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List
 from Tangles.Tangle import *
 from Modules.Bimodule import *
+from Modules.Bimodule import Bimodule
 from Tangles.Functions import *
 from Modules.StrandDiagram import *
 
@@ -11,18 +12,18 @@ def type_da(etangle: ETangle) -> TypeDA:
                        for left_strands, right_strands in
                        enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
     maps = sum((delta1_1(x) for x in strand_diagrams), []) + \
-        [delta1_2(x, a) for x in strand_diagrams
-         for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
+           [delta1_2(x, a) for x in strand_diagrams
+            for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
 
     return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
 
 
 def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
     out = []
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dplus(x).items()]
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dminus(x).items()]
-    # out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dmixed(x).items()]
-    out += [deltal(x)]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dplus(x).d.items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dminus(x).d.items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dmixed(x).d.items()]
+    out += [delta_ell(x)]
     return out
 
 
@@ -35,229 +36,156 @@ def m2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
     pass  # TODO
 
 
-def deltal(x: StrandDiagram) -> Bimodule.Edge:
+def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
     pass  # TODO
 
 
-def dplus(sd: StrandDiagram,verbose=False):
-    strands = sd.right_strands
-    keys = strands.keys()
-    zero = sd.etangle.polyring.zero()
-    out = {}
-    for key1 in keys:
-        for key2 in keys:
-            if key2 < key1 and strands[key2]>strands[key1]:
-                res = resolveminus(firstswap(sd,key1,key2),key1,key2,verbose)
-                if res[1] != zero:
-                    newsd = secondswap(sd,key1,key2)
-                    if newsd in out.keys():
-                        out[newsd] = res[1]+out[res[0]]
-                    else: out[newsd] = res[1]
+def dplus(sd: StrandDiagram) -> Bimodule.Element:
+    out = Bimodule.Element()
+    for p1 in sd.left_strands.keys():
+        for p2 in sd.left_strands.keys():
+            # if the black strands cross
+            if p1 > p2 and sd.left_strands[p1] < sd.left_strands[p2]:
+                # smooth the crossing and add it to the output
+                out += smooth_left_crossing(sd, p1, p2)
     return out
 
-def firstswap(sd:StrandDiagram,i,j):
-    return mirrorswap(sd,i,j,1)
 
-def secondswap(sd:StrandDiagram,i,j):
-    return mirrorswap(sd,i,j,2)
+def smooth_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
+    c = sd.etangle.polyring.one()
+    q1 = sd.left_strands[p1]
+    q2 = sd.left_strands[p2]
+    s = sd.etangle.position
+    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, p1, p2), sd.right_strands)
 
-def mirrorswap(sd:StrandDiagram,i,j,count):
-    t = sd.etangle.type
-    if t == ETangle.Type.CAP:
-        newt = ETangle.Type.CUP
-    elif t == ETangle.Type.CUP:
-        newt = ETangle.Type.CAP
-    elif t == ETangle.Type.OVER:
-        newt = ETangle.Type.UNDER
-    elif t == ETangle.Type.UNDER:
-        newt = ETangle.Type.OVER
-    newsigns = tuple([-1*i for i in sd.etangle.signs])
-    newright = {}
-    for s,t in sd.left_strands.items():
-        newright[t]=s
-    newleft = {}
-    for s,t in sd.right_strands.items():
-        newleft[t]=s
+    # first, check for black-black double-crossings
+    for p3 in range(p2+1, p1):
+        if p3 in sd.left_strands:
+            q3 = sd.left_strands[p3]
+            if q1 < q3 < q2:
+                return Bimodule.Element()
 
-    if count == 1:
-        newleft[sd.right_strands[j]] = i
-        newleft[sd.right_strands[i]] = j
-    if count == 2:
-        temp = newright[i]
-        newright[i] = newright[j]
-        newright[j] = temp
-        
-    return StrandDiagram(ETangle(newt,newsigns,sd.etangle.position),newleft,newright)
+    # next, check for black-orange double-crossings
+    orange_strands_double_crossed = []
+
+    # for each orange strand, we want to check if it double-crosses either of the black strands
+    for orange_strand in range(1, len(sd.etangle.signs)):
+        left_y_pos = sd.etangle.left_strand_y_pos(orange_strand)
+        if left_y_pos is None:
+            continue
+        middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
+        times_crossed_p1 = 0
+        times_crossed_p2 = 0
+
+        # count how many times this orange strand crosses the p1 -> q2 black strand
+        if (p1 < left_y_pos) ^ (min(p1, q2) < left_y_pos):
+            times_crossed_p1 += 1
+        if (min(p1, q2) < left_y_pos) ^ (q2 < left_y_pos):
+            times_crossed_p1 += 1
+        if (q2 < left_y_pos) ^ (q2 < middle_y_pos):
+            times_crossed_p1 += 1
+
+        # count how many times this orange strand crosses the p2 -> q1 black strand
+        if (p2 < left_y_pos) ^ (min(p1, q2) < left_y_pos):
+            times_crossed_p2 += 1
+        if (min(p1, q2) < left_y_pos) ^ (q1 < left_y_pos):
+            times_crossed_p2 += 1
+        if (q1 < left_y_pos) ^ (q1 < middle_y_pos):
+            times_crossed_p2 += 1
+
+        # if either black strand is double-crossed, add this orange strand to the list
+        if times_crossed_p1 > 1 or times_crossed_p2 > 1:
+            orange_strands_double_crossed += [orange_strand]
+
+    # turn the list of orange strands into a coefficient
+    for orange_strand in orange_strands_double_crossed:
+        if sd.etangle.middle_signs()[orange_strand] == 1:
+            c *= sd.etangle.polyring['U' + str(orange_strand)]
+        else:
+            return Bimodule.Element()
+
+    return Bimodule.Element({sd_out: c})
 
 
-def dminus(sd: StrandDiagram,verbose = False):
-    strands = sd.left_strands
-    keys = strands.keys()
-    out = {}
-    zero = sd.etangle.polyring.zero()
-    for key1 in keys:
-        for key2 in keys:
-            if key2 < key1 and strands[key2]<strands[key1]:
-                res = resolveminus(sd,key1,key2,verbose)
-                if res[1] != zero and res[0] in out.keys():
-                    out[res[0]] = res[1]+out[res[0]]
-                elif res[1] != zero:
-                    out[res[0]] = res[1]
+def dminus(sd: StrandDiagram) -> Bimodule.Element:
+    out = Bimodule.Element()
+    for p1 in sd.right_strands.keys():
+        for p2 in sd.right_strands.keys():
+            # if the black strands don't cross
+            if p1 > p2 and sd.right_strands[p1] > sd.right_strands[p2]:
+                # introduce a crossing and add it to the output
+                out += introduce_right_crossing(sd, p1, p2)
     return out
 
-def resolveplus(sd: StrandDiagram, i, j,verbose):
-    zero = sd.etangle.polyring.zero()
-    strands = sd.right_strands
-    t = sd.etangle.type
 
-    # if double crossing black, return none
-    for s in strands.keys() & set(range(j,i)):
-        if strands[i]<strands[s]<strands[j]:
-            return [None,zero]
-
-    # output
-    left_strands = dict(sd.left_strands)
-    right_strands = dict(sd.right_strands)
-    right_strands[j] = strands[i]
-    right_strands[i] = strands[j]
-    out = StrandDiagram(sd.etangle, left_strands, right_strands)
-
-    # calculate coefficient from orange correctly
-    pos = sd.etangle.position
+def introduce_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
     c = sd.etangle.polyring.one()
+    q1 = sd.right_strands[p1]
+    q2 = sd.right_strands[p2]
+    s = sd.etangle.position
+    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, p1, p2))
 
-    if t == ETangle.Type.UNDER:
-        checkrange = range(max(strands[i],j),min(i,strands[j]))
-        if verbose:
-            print(i,j,list(checkrange))
-        signs = sd.etangle.right_signs()
-        for k in checkrange:
-            if signs[k] == -1:
-                return [None,zero]
-            else:
-                c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
-    elif t == ETangle.Type.OVER:
-        checkrange = range(max(strands[i],j+j>=pos),min(i,strands[j]+strands[j]>=pos))
-        if verbose:
-            print(i,j,list(checkrange))
-        signs = sd.etangle.left_signs()
-        for k in checkrange:
-            if signs[k] == -1:
-                return [None,0]
-            else:
-                c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
-    elif t == ETangle.Type.CAP:
-        checkrange = range(max(j - j>=pos,strands[i]), min(i-i>=pos,strands[j]))
-        if verbose:
-            print(i,j,list(checkrange))
-        signs = sd.etangle.left_signs()
-        for k in checkrange:
-            if k>=pos - 1:
-                if signs[k+2] == -1:
-                    return [None,zero]
-                else: c=c*sd.etangle.polyring['U'+str(k+2)]
-            else: 
-                if signs[k] == -1:
-                    return [None,zero]
-                else: c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
-    elif t == ETangle.Type.CUP:
-        signs = sd.etangle.right_signs()
-        checkrange = range(max(strands[i],j+j>=pos),min(i+i>=pos,strands[j]))
-        if verbose:
-            print(i,j,list(checkrange))
-        for k in checkrange: 
-            if sd.etangle.signs[k] == -1:
-                return [None,zero]
-            else: 
-                c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
+    # first, check for black-black double-crossings
+    for p3 in range(p2+1, p1):
+        if p3 in sd.right_strands:
+            q3 = sd.right_strands[p3]
+            if q2 < q3 < q1:
+                return Bimodule.Element()
+
+    # next, check for black-orange double-crossings
+    orange_strands_double_crossed = []
+
+    # for each orange strand, we want to check if it double-crosses either of the black strands
+    for orange_strand in range(1, len(sd.etangle.signs)):
+        right_y_pos = sd.etangle.right_strand_y_pos(orange_strand)
+        if right_y_pos is None:
+            continue
+        middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
+        times_crossed_p1 = 0
+        times_crossed_p2 = 0
+
+        # count how many times this orange strand crosses the p1 -> q2 black strand
+        if (p1 < middle_y_pos) ^ (min(p2, q1) < middle_y_pos):
+            times_crossed_p1 += 1
+        if (min(p2, q1) < middle_y_pos) ^ (q1 < middle_y_pos):
+            times_crossed_p1 += 1
+        if (q1 < middle_y_pos) ^ (q1 < right_y_pos):
+            times_crossed_p1 += 1
+
+        # count how many times this orange strand crosses the p2 -> q1 black strand
+        if (p2 < middle_y_pos) ^ (min(p2, q1) < middle_y_pos):
+            times_crossed_p2 += 1
+        if (min(p2, q1) < middle_y_pos) ^ (q2 < middle_y_pos):
+            times_crossed_p2 += 1
+        if (q2 < middle_y_pos) ^ (q2 < right_y_pos):
+            times_crossed_p2 += 1
+
+        # if either black strand is double-crossed, add this orange strand to the list
+        if times_crossed_p1 > 1 or times_crossed_p2 > 1:
+            orange_strands_double_crossed += [orange_strand]
+
+    # turn the list of orange strands into a coefficient
+    for orange_strand in orange_strands_double_crossed:
+        if sd.etangle.middle_signs()[orange_strand] == -1:
+            c *= sd.etangle.polyring['U' + str(orange_strand)]
+        else:
+            return Bimodule.Element()
+
+    return Bimodule.Element({sd_out: c})
 
 
-def resolveminus(sd:StrandDiagram, i, j,verbose):
-    zero = sd.etangle.polyring.zero()
-    strands = sd.left_strands
-    signs = sd.etangle.left_signs()
+# swap the values associated to the given keys
+def swap_values(d: Dict, k1, k2) -> Dict:
+    d_out = dict(d)
+    v1 = d[k1]
+    v2 = d[k2]
+    d_out[k1] = v2
+    d_out[k2] = v1
+    return d_out
 
-    #check if we need to double cross black to introduce crossing
-    for s in strands.keys() & set(range(j,i)):
-        if strands[j]<strands[s]<strands[i]:
-            return [None,zero]
 
-    #output
-    left_strands = dict(sd.left_strands)
-    right_strands = dict(sd.right_strands)
-    left_strands[j] = strands[i]
-    left_strands[i] = strands[j]
-    out = StrandDiagram(sd.etangle, left_strands, right_strands)
-
-    # calculate coefficient from orange
-    pos = sd.etangle.position
-    c = sd.etangle.polyring.one()
-    t = sd.etangle.etype
-
-    if t == ETangle.Type.OVER:
-        checkrange = range(max(j,strands[j]),min(i,strands[i]))
-        if verbose:
-            print(i,j,list(checkrange))
-        for k in checkrange:
-            if signs[k] == 1:
-                return [None,zero]
-            else:
-                c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
-    elif t == ETangle.Type.UNDER:
-        checkrange = range(max(j+(j>=pos),strands[j]),min(i,strands[i]+(strands[i]>=pos)))
-        if verbose:
-            print(i,j,list(checkrange))
-        for k in checkrange:
-            if k not in [pos-1,pos]:
-                if signs[k] == 1:
-                    return [None,zero]
-                else:
-                    c = c*sd.etangle.polyring['U'+str(k)]
-            if k == pos:
-                if strands[j] < k:
-                    if signs[k] == 1:
-                        return [None,zero]
-                    else: 
-                        c = c*sd.etangle.polyring['U' + str(k-1)]
-            if k == pos-1:
-                if strands[i] > pos:
-                    if signs[k] == 1:
-                        return [None,zero]
-                    else:
-                        c = c*sd.etangle.polyring['U'+str(k+1)]
-        return [out,c]
-    elif t == ETangle.Type.CAP:
-        checkrange = range(max(j,strands[j]+(strands[j]>=pos)),min(i,strands[i]+(strands[i]>=pos)))
-        if verbose:
-            print(i,j,list(checkrange))
-        for k in checkrange:
-            if signs[k] == 1:
-                return [None,zero]
-            else:
-                c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
-    elif t == ETangle.Type.CUP:
-        checkrange = range(max(j - (j>=pos),strands[j]),min(i-(i>=pos),strands[i]))
-        if verbose:
-            print(i,j,list(checkrange))
-        signs = sd.etangle.right_signs()
-        for k in checkrange:
-            if k>=pos - 1:
-                if signs[k+2] == 1:
-                    return [None,zero]
-                else: 
-                    c = c*sd.etangle.polyring['U'+str(k+2)]
-            else:
-                if signs[k] == 1:
-                    return [None,zero]
-                else:
-                    c = c*sd.etangle.polyring['U'+str(k)]
-        return [out,c]
+def dmixed(sd: StrandDiagram) -> Bimodule.Element:
+    return Bimodule.Element()  # TODO
 
 
 # points - a list of sets of points

@@ -32,7 +32,7 @@ class Z2Polynomial:
         self.ring = ring
         self.terms = frozenset(terms)
 
-    def degree(self):
+    def degree(self) -> int:
         if len(self.terms) == 0:
             return 0
         else:
@@ -46,7 +46,7 @@ class Z2Polynomial:
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
 
     @multimethod
-    def __mul__(self, other):
+    def __mul__(self, other) -> Z2Polynomial:
         return other.__rmul__(self)
 
     @multimethod
@@ -60,13 +60,13 @@ class Z2Polynomial:
         return out
 
     @multimethod
-    def __eq__(self, other: Z2Polynomial):
+    def __eq__(self, other: Z2Polynomial) -> bool:
         return self.terms == other.terms
 
     def __hash__(self):
         return hash(self.terms)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = ''
         for term in self.terms:
             out += str(term) + ' + '
@@ -80,22 +80,22 @@ class Z2Monomial:
         self.ring = ring
         self.powers = powers
 
-    def degree(self):
+    def degree(self) -> int:
         return sum(self.powers)
 
-    def to_polynomial(self):
+    def to_polynomial(self) -> Z2Polynomial:
         return Z2Polynomial(self.ring, {self})
 
     def __mul__(self, other: Z2Monomial) -> Z2Monomial:
         return Z2Monomial(self.ring, tuple(map(add, self.powers, other.powers)))
 
-    def __eq__(self, other: Z2Monomial):
+    def __eq__(self, other: Z2Monomial) -> bool:
         return self.ring == other.ring and self.powers == other.powers
 
     def __hash__(self):
         return hash(self.ring) + hash(self.powers)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = ''
         for (var, power) in enumerate(self.powers):
             if power == 1:

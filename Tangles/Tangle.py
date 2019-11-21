@@ -1,5 +1,7 @@
 from __future__ import annotations
 from enum import *
+from typing import Optional, List
+
 from SignAlgebra.Z2PolynomialRing import *
 from SignAlgebra.AMinus import *
 import numpy
@@ -59,105 +61,114 @@ class ETangle(Tangle):
     # etype - one of OVER, UNDER, CUP, or CAP
     # signs - a tuple {-1,1}* representing the signs of the left edge of the tangle,
     #         unless etype is CUP, in which case it represents the signs on the right edge
-    # position - nat n, where the cup/cap/crossing is between places n-1 and n
+    #         signs[0] is None to enforce 1-indexing
+    # position - nat n, where the cup/cap/crossing is between strand indices n and n+1
     # over/under represents what the bottom strand does; under on the left, over on the right
+    # CONVENTION: strand indices are 1-indexed, starting from the bottom
     def __init__(self, etype: ETangle.Type, signs, position):
         for sign in signs:
             assert sign in (-1, 1), "{} is not a valid sign.".format(sign)
-        assert 0 < position < len(signs), "{} is not a valid position.".format(position)
+        assert 1 <= position < len(signs)+1, "{} is not a valid position.".format(position)
 
         if etype in (ETangle.Type.CUP, ETangle.Type.CAP):
             assert signs[position - 1] == -signs[position], "Signs are not compatible with {}.".format(etype)
 
         self.etype = etype
-        self.signs = signs
+        self.signs = (None,) + signs
         self.position = position
 
         super().__init__((self,))
 
     # returns the sign sequence corresponding to the left edge of this tangle
-    def left_signs(self):
+    def left_signs(self) -> Tuple:
         if self.etype == ETangle.Type.CUP:
-            return self.signs[:self.position - 1] + self.signs[self.position + 1:]
+            return self.signs[:self.position] + self.signs[self.position + 2:]
         else:
             return self.signs
+
+    # returns the sign sequence corresponding to the middle of this tangle
+    def middle_signs(self) -> Tuple:
+        if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP):
+            return self.left_signs()
+        else:
+            return self.right_signs()
 
     # returns the sign sequence corresponding to the right edge of this tangle
-    def right_signs(self):
+    def right_signs(self) -> Tuple:
         if self.etype == ETangle.Type.CAP:
-            return self.signs[:self.position - 1] + self.signs[self.position + 1:]
+            return self.signs[:self.position] + self.signs[self.position + 2:]
         elif self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
-            return self.signs[:self.position - 1] + \
-                   (self.signs[self.position], self.signs[self.position - 1]) + \
-                   self.signs[self.position + 1:]
+            return self.signs[:self.position] + \
+                   (self.signs[self.position + 1], self.signs[self.position]) + \
+                   self.signs[self.position + 2:]
         else:
             return self.signs
 
+    # given a strand index, returns the y-position of that strand on the left
+    def left_strand_y_pos(self, strand_index: int) -> Optional[float]:
+        if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP):
+            return strand_index - 1/2
+        elif self.etype == ETangle.Type.UNDER:
+            if strand_index == self.position:
+                return self.position + 1/2
+            elif strand_index == self.position + 1:
+                return self.position - 1/2
+            else:
+                return strand_index - 1/2
+        else:
+            if strand_index < self.position:
+                return strand_index - 1/2
+            elif strand_index > self.position + 1:
+                return strand_index - 5/2
+            else:
+                return None
+
+    # given a strand index, returns the y-position of that strand in the middle
+    def middle_strand_y_pos(self, strand_index: int) -> float:
+        if self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
+            return strand_index - 1/2
+        else:
+            if strand_index in (self.position, self.position + 1):
+                return self.position
+            else:
+                return strand_index - 1/2
+
+    # given a strand index, returns the y-position of that strand on the right
+    def right_strand_y_pos(self, strand_index: int) -> Optional[float]:
+        if self.etype in (ETangle.Type.UNDER, ETangle.Type.CUP):
+            return strand_index - 1 / 2
+        elif self.etype == ETangle.Type.OVER:
+            if strand_index == self.position:
+                return self.position + 1 / 2
+            elif strand_index == self.position + 1:
+                return self.position - 1 / 2
+            else:
+                return strand_index - 1 / 2
+        else:
+            if strand_index < self.position:
+                return strand_index - 1 / 2
+            elif strand_index > self.position + 1:
+                return strand_index - 5 / 2
+            else:
+                return None
+
     # returns the set of points corresponding to the left side of this tangle
-    def left_points(self):
+    def left_points(self) -> List:
         if self.etype == ETangle.Type.CUP:
-            return list(range(len(self.signs) - 1))
-        return list(range(len(self.signs) + 1))
+            return list(range(len(self.signs) - 2))
+        return list(range(len(self.signs)))
 
     # returns the set of points corresponding to the middle of this tangle
-    def middle_points(self):
+    def middle_points(self) -> List:
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
-            return list(range(len(self.signs)))
-        return list(range(len(self.signs) + 1))
+            return list(range(self.position)) + list(range(self.position + 1, len(self.signs)))
+        return list(range(len(self.signs)))
 
     # returns the set of points corresponding to the right side of this tangle
-    def right_points(self):
+    def right_points(self) -> List:
         if self.etype == ETangle.Type.CAP:
-            return list(range(len(self.signs) - 1))
-        return list(range(len(self.signs) + 1))
-
-    # returns the mapping {left_point: middle_point}
-    def left_to_middle(self) -> Dict:
-        num_left_points = len(self.left_points())
-        if self.etype == ETangle.Type.OVER:
-            out = {p: p for p in range(num_left_points)}
-            return out
-        elif self.etype == ETangle.Type.UNDER:
-            out = {p: p for p in range(num_left_points)}
-            out[self.position - 1] = self.position
-            out[self.position] = self.position - 1
-            return out
-        elif self.etype == ETangle.Type.CUP:
-            out = {}
-            for p in range(self.position - 1):
-                out[p] = p
-            for p in range(self.position, num_left_points):
-                out[p] = p + 2
-            return out
-        elif self.etype == ETangle.Type.CAP:
-            out = {p: p for p in range(num_left_points)}
-            del out[self.position - 1]
-            del out[self.position]
-            return out
-
-    # returns the mapping {right_point: middle_point}
-    def right_to_middle(self) -> Dict:
-        num_right_points = len(self.right_points())
-        if self.etype == ETangle.Type.UNDER:
-            out = {p: p for p in range(num_right_points)}
-            return out
-        elif self.etype == ETangle.Type.OVER:
-            out = {p: p for p in range(num_right_points)}
-            out[self.position - 1] = self.position
-            out[self.position] = self.position - 1
-            return out
-        elif self.etype == ETangle.Type.CAP:
-            out = {}
-            for p in range(self.position - 1):
-                out[p] = p
-            for p in range(self.position, num_right_points):
-                out[p] = p + 2
-            return out
-        elif self.etype == ETangle.Type.CUP:
-            out = {p: p for p in range(num_right_points)}
-            del out[self.position - 1]
-            del out[self.position]
-            return out
+            return list(range(len(self.signs) - 2))
+        return list(range(len(self.signs)))
 
     def __repr__(self):
         return str((self.etype, self.signs, self.position))
