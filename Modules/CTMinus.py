@@ -42,26 +42,26 @@ def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
 
 def dplus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
-    for p1 in sd.left_strands.keys():
-        for p2 in sd.left_strands.keys():
+    for p1 in sd.right_strands.keys():
+        for p2 in sd.right_strands.keys():
             # if the black strands cross
-            if p1 > p2 and sd.left_strands[p1] < sd.left_strands[p2]:
+            if p1 > p2 and sd.right_strands[p1] < sd.right_strands[p2]:
                 # smooth the crossing and add it to the output
-                out += smooth_left_crossing(sd, p1, p2)
+                out += smooth_right_crossing(sd, p1, p2)
     return out
 
 
-def smooth_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
+def smooth_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
     c = sd.etangle.polyring.one()
-    q1 = sd.left_strands[p1]
-    q2 = sd.left_strands[p2]
+    q1 = sd.right_strands[p1]
+    q2 = sd.right_strands[p2]
     s = sd.etangle.position
-    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, p1, p2), sd.right_strands)
+    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, p1, p2))
 
     # first, check for black-black double-crossings
     for p3 in range(p2+1, p1):
-        if p3 in sd.left_strands:
-            q3 = sd.left_strands[p3]
+        if p3 in sd.right_strands:
+            q3 = sd.right_strands[p3]
             if q1 < q3 < q2:
                 return Bimodule.Element()
 
@@ -70,27 +70,27 @@ def smooth_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Elemen
 
     # for each orange strand, we want to check if it double-crosses either of the black strands
     for orange_strand in range(1, len(sd.etangle.signs)):
-        left_y_pos = sd.etangle.left_strand_y_pos(orange_strand)
-        if left_y_pos is None:
+        right_y_pos = sd.etangle.right_strand_y_pos(orange_strand)
+        if right_y_pos is None:
             continue
         middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
         times_crossed_p1 = 0
         times_crossed_p2 = 0
 
         # count how many times this orange strand crosses the p1 -> q2 black strand
-        if (p1 < left_y_pos) ^ (min(p1, q2) < left_y_pos):
+        if (p1 < middle_y_pos) ^ (min(p1, q2) < middle_y_pos):
             times_crossed_p1 += 1
-        if (min(p1, q2) < left_y_pos) ^ (q2 < left_y_pos):
+        if (min(p1, q2) < middle_y_pos) ^ (q2 < middle_y_pos):
             times_crossed_p1 += 1
-        if (q2 < left_y_pos) ^ (q2 < middle_y_pos):
+        if (q2 < middle_y_pos) ^ (q2 < right_y_pos):
             times_crossed_p1 += 1
 
         # count how many times this orange strand crosses the p2 -> q1 black strand
-        if (p2 < left_y_pos) ^ (min(p1, q2) < left_y_pos):
+        if (p2 < middle_y_pos) ^ (min(p1, q2) < middle_y_pos):
             times_crossed_p2 += 1
-        if (min(p1, q2) < left_y_pos) ^ (q1 < left_y_pos):
+        if (min(p1, q2) < middle_y_pos) ^ (q1 < middle_y_pos):
             times_crossed_p2 += 1
-        if (q1 < left_y_pos) ^ (q1 < middle_y_pos):
+        if (q1 < middle_y_pos) ^ (q1 < right_y_pos):
             times_crossed_p2 += 1
 
         # if either black strand is double-crossed, add this orange strand to the list
@@ -109,26 +109,26 @@ def smooth_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Elemen
 
 def dminus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
-    for p1 in sd.right_strands.keys():
-        for p2 in sd.right_strands.keys():
+    for p1 in sd.left_strands.keys():
+        for p2 in sd.left_strands.keys():
             # if the black strands don't cross
-            if p1 > p2 and sd.right_strands[p1] > sd.right_strands[p2]:
+            if p1 > p2 and sd.left_strands[p1] > sd.left_strands[p2]:
                 # introduce a crossing and add it to the output
-                out += introduce_right_crossing(sd, p1, p2)
+                out += introduce_left_crossing(sd, p1, p2)
     return out
 
 
-def introduce_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
+def introduce_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
     c = sd.etangle.polyring.one()
-    q1 = sd.right_strands[p1]
-    q2 = sd.right_strands[p2]
+    q1 = sd.left_strands[p1]
+    q2 = sd.left_strands[p2]
     s = sd.etangle.position
-    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, p1, p2))
+    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, p1, p2), sd.right_strands)
 
     # first, check for black-black double-crossings
     for p3 in range(p2+1, p1):
-        if p3 in sd.right_strands:
-            q3 = sd.right_strands[p3]
+        if p3 in sd.left_strands:
+            q3 = sd.left_strands[p3]
             if q2 < q3 < q1:
                 return Bimodule.Element()
 
@@ -137,27 +137,27 @@ def introduce_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.El
 
     # for each orange strand, we want to check if it double-crosses either of the black strands
     for orange_strand in range(1, len(sd.etangle.signs)):
-        right_y_pos = sd.etangle.right_strand_y_pos(orange_strand)
-        if right_y_pos is None:
+        left_y_pos = sd.etangle.left_strand_y_pos(orange_strand)
+        if left_y_pos is None:
             continue
         middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
         times_crossed_p1 = 0
         times_crossed_p2 = 0
 
         # count how many times this orange strand crosses the p1 -> q2 black strand
-        if (p1 < middle_y_pos) ^ (min(p2, q1) < middle_y_pos):
+        if (p1 < left_y_pos) ^ (min(p2, q1) < left_y_pos):
             times_crossed_p1 += 1
-        if (min(p2, q1) < middle_y_pos) ^ (q1 < middle_y_pos):
+        if (min(p2, q1) < left_y_pos) ^ (q1 < left_y_pos):
             times_crossed_p1 += 1
-        if (q1 < middle_y_pos) ^ (q1 < right_y_pos):
+        if (q1 < left_y_pos) ^ (q1 < middle_y_pos):
             times_crossed_p1 += 1
 
         # count how many times this orange strand crosses the p2 -> q1 black strand
-        if (p2 < middle_y_pos) ^ (min(p2, q1) < middle_y_pos):
+        if (p2 < left_y_pos) ^ (min(p2, q1) < left_y_pos):
             times_crossed_p2 += 1
-        if (min(p2, q1) < middle_y_pos) ^ (q2 < middle_y_pos):
+        if (min(p2, q1) < left_y_pos) ^ (q2 < left_y_pos):
             times_crossed_p2 += 1
-        if (q2 < middle_y_pos) ^ (q2 < right_y_pos):
+        if (q2 < left_y_pos) ^ (q2 < middle_y_pos):
             times_crossed_p2 += 1
 
         # if either black strand is double-crossed, add this orange strand to the list
