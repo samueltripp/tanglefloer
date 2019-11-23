@@ -105,7 +105,7 @@ class ETangle(Tangle):
             return self.signs
 
     # given a strand index, returns the y-position of that strand on the left
-    def left_strand_y_pos(self, strand_index: int) -> Optional[float]:
+    def left_y_pos(self, strand_index: int) -> Optional[float]:
         if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP):
             return strand_index - 1/2
         elif self.etype == ETangle.Type.UNDER:
@@ -124,7 +124,7 @@ class ETangle(Tangle):
                 return None
 
     # given a strand index, returns the y-position of that strand in the middle
-    def middle_strand_y_pos(self, strand_index: int) -> float:
+    def middle_y_pos(self, strand_index: int) -> float:
         if self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
             return strand_index - 1/2
         else:
@@ -134,7 +134,7 @@ class ETangle(Tangle):
                 return strand_index - 1/2
 
     # given a strand index, returns the y-position of that strand on the right
-    def right_strand_y_pos(self, strand_index: int) -> Optional[float]:
+    def right_y_pos(self, strand_index: int) -> Optional[float]:
         if self.etype in (ETangle.Type.UNDER, ETangle.Type.CUP):
             return strand_index - 1 / 2
         elif self.etype == ETangle.Type.OVER:
@@ -151,6 +151,12 @@ class ETangle(Tangle):
                 return strand_index - 5 / 2
             else:
                 return None
+
+    def left_strand_straight(self, strand_index: int) -> bool:
+        return self.left_y_pos(strand_index) == self.middle_y_pos(strand_index)
+
+    def right_strand_straight(self, strand_index: int) -> bool:
+        return self.right_y_pos(strand_index) == self.middle_y_pos(strand_index)
 
     # returns the set of points corresponding to the left side of this tangle
     def left_points(self) -> List:

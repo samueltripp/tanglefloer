@@ -11,7 +11,9 @@ class StrandDiagram:
         self.etangle = etangle
         assert validdictionaries(etangle, left_strands, right_strands)
         self.left_strands = frozendict(left_strands)
+        self.left_strands_inverse = frozendict(invert_injection(left_strands))
         self.right_strands = frozendict(right_strands)
+        self.right_strands_inverse = frozendict(invert_injection(right_strands))
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self):
@@ -22,6 +24,12 @@ class StrandDiagram:
     # the idempotent e^A_R                                                                                                                                
     def right_idempotent(self) -> AMinusElement:
         return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
+
+    def left_y_pos(self, black_strand: int):
+        return self.left_strands_inverse[black_strand]
+
+    def right_y_pos(self, black_strand: int):
+        return self.right_strands[black_strand]
 
     def __repr__(self):
         return str((self.etangle, self.left_strands, self.right_strands))

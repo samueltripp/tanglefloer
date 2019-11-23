@@ -12,7 +12,7 @@ def type_da(etangle: ETangle) -> TypeDA:
                        for left_strands, right_strands in
                        enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
     maps = sum((delta1_1(x) for x in strand_diagrams), []) + \
-           [delta1_2(x, a) for x in strand_diagrams
+        [delta1_2(x, a) for x in strand_diagrams
             for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
 
     return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, strand_diagrams, maps)
@@ -42,65 +42,64 @@ def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
 
 def dplus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
-    for p1 in sd.right_strands.keys():
-        for p2 in sd.right_strands.keys():
+    for b1 in sd.right_strands.keys():
+        for b2 in sd.right_strands.keys():
             # if the black strands cross
-            if p1 > p2 and sd.right_strands[p1] < sd.right_strands[p2]:
+            if b1 > b2 and sd.right_y_pos(b1) < sd.right_y_pos(b2):
                 # smooth the crossing and add it to the output
-                out += smooth_right_crossing(sd, p1, p2)
+                out += smooth_right_crossing(sd, b1, b2)
     return out
 
 
-def smooth_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
+def smooth_right_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     c = sd.etangle.polyring.one()
-    q1 = sd.right_strands[p1]
-    q2 = sd.right_strands[p2]
-    s = sd.etangle.position
-    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, p1, p2))
+    a1 = sd.right_y_pos(b1)
+    a2 = sd.right_y_pos(b2)
+    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, b1, b2))
 
     # first, check for black-black double-crossings
-    for p3 in range(p2+1, p1):
-        if p3 in sd.right_strands:
-            q3 = sd.right_strands[p3]
-            if q1 < q3 < q2:
+    for b3 in range(b2 + 1, b1):
+        if b3 in sd.right_strands:
+            a3 = sd.right_strands[b3]
+            if a1 < a3 < a2:
                 return Bimodule.Element()
 
     # next, check for black-orange double-crossings
     orange_strands_double_crossed = []
 
     # for each orange strand, we want to check if it double-crosses either of the black strands
-    for orange_strand in range(1, len(sd.etangle.signs)):
-        right_y_pos = sd.etangle.right_strand_y_pos(orange_strand)
+    for orange in range(1, len(sd.etangle.signs)):
+        right_y_pos = sd.etangle.right_y_pos(orange)
         if right_y_pos is None:
             continue
-        middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
+        middle_y_pos = sd.etangle.middle_y_pos(orange)
         times_crossed_p1 = 0
         times_crossed_p2 = 0
 
         # count how many times this orange strand crosses the p1 -> q2 black strand
-        if (p1 < middle_y_pos) ^ (min(p1, q2) < middle_y_pos):
+        if (b1 < middle_y_pos) ^ (min(b1, a2) < middle_y_pos):
             times_crossed_p1 += 1
-        if (min(p1, q2) < middle_y_pos) ^ (q2 < middle_y_pos):
+        if (min(b1, a2) < middle_y_pos) ^ (a2 < middle_y_pos):
             times_crossed_p1 += 1
-        if (q2 < middle_y_pos) ^ (q2 < right_y_pos):
+        if (a2 < middle_y_pos) ^ (a2 < right_y_pos):
             times_crossed_p1 += 1
 
         # count how many times this orange strand crosses the p2 -> q1 black strand
-        if (p2 < middle_y_pos) ^ (min(p1, q2) < middle_y_pos):
+        if (b2 < middle_y_pos) ^ (min(b1, a2) < middle_y_pos):
             times_crossed_p2 += 1
-        if (min(p1, q2) < middle_y_pos) ^ (q1 < middle_y_pos):
+        if (min(b1, a2) < middle_y_pos) ^ (a1 < middle_y_pos):
             times_crossed_p2 += 1
-        if (q1 < middle_y_pos) ^ (q1 < right_y_pos):
+        if (a1 < middle_y_pos) ^ (a1 < right_y_pos):
             times_crossed_p2 += 1
 
         # if either black strand is double-crossed, add this orange strand to the list
         if times_crossed_p1 > 1 or times_crossed_p2 > 1:
-            orange_strands_double_crossed += [orange_strand]
+            orange_strands_double_crossed += [orange]
 
     # turn the list of orange strands into a coefficient
-    for orange_strand in orange_strands_double_crossed:
-        if sd.etangle.middle_signs()[orange_strand] == 1:
-            c *= sd.etangle.polyring['U' + str(orange_strand)]
+    for orange in orange_strands_double_crossed:
+        if sd.etangle.middle_signs()[orange] == 1:
+            c *= sd.etangle.polyring['U' + str(orange)]
         else:
             return Bimodule.Element()
 
@@ -109,65 +108,64 @@ def smooth_right_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Eleme
 
 def dminus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
-    for p1 in sd.left_strands.keys():
-        for p2 in sd.left_strands.keys():
+    for b1 in sd.left_strands.values():
+        for b2 in sd.left_strands.values():
             # if the black strands don't cross
-            if p1 > p2 and sd.left_strands[p1] > sd.left_strands[p2]:
+            if b1 > b2 and sd.left_y_pos(b1) > sd.left_y_pos(b2):
                 # introduce a crossing and add it to the output
-                out += introduce_left_crossing(sd, p1, p2)
+                out += introduce_left_crossing(sd, b1, b2)
     return out
 
 
-def introduce_left_crossing(sd: StrandDiagram, p1: int, p2: int) -> Bimodule.Element:
+def introduce_left_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     c = sd.etangle.polyring.one()
-    q1 = sd.left_strands[p1]
-    q2 = sd.left_strands[p2]
-    s = sd.etangle.position
-    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, p1, p2), sd.right_strands)
+    a1 = sd.left_y_pos(b1)
+    a2 = sd.left_y_pos(b2)
+    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, a1, a2), sd.right_strands)
 
     # first, check for black-black double-crossings
-    for p3 in range(p2+1, p1):
+    for p3 in range(a2 + 1, a1):
         if p3 in sd.left_strands:
             q3 = sd.left_strands[p3]
-            if q2 < q3 < q1:
+            if b2 < q3 < b1:
                 return Bimodule.Element()
 
     # next, check for black-orange double-crossings
     orange_strands_double_crossed = []
 
     # for each orange strand, we want to check if it double-crosses either of the black strands
-    for orange_strand in range(1, len(sd.etangle.signs)):
-        left_y_pos = sd.etangle.left_strand_y_pos(orange_strand)
+    for orange in range(1, len(sd.etangle.signs)):
+        left_y_pos = sd.etangle.left_y_pos(orange)
         if left_y_pos is None:
             continue
-        middle_y_pos = sd.etangle.middle_strand_y_pos(orange_strand)
+        middle_y_pos = sd.etangle.middle_y_pos(orange)
         times_crossed_p1 = 0
         times_crossed_p2 = 0
 
         # count how many times this orange strand crosses the p1 -> q2 black strand
-        if (p1 < left_y_pos) ^ (min(p2, q1) < left_y_pos):
+        if (a1 < left_y_pos) ^ (min(a1, b1) < left_y_pos):
             times_crossed_p1 += 1
-        if (min(p2, q1) < left_y_pos) ^ (q1 < left_y_pos):
+        if (min(a1, b1) < left_y_pos) ^ (b1 < left_y_pos):
             times_crossed_p1 += 1
-        if (q1 < left_y_pos) ^ (q1 < middle_y_pos):
+        if (b1 < left_y_pos) ^ (b1 < middle_y_pos):
             times_crossed_p1 += 1
 
         # count how many times this orange strand crosses the p2 -> q1 black strand
-        if (p2 < left_y_pos) ^ (min(p2, q1) < left_y_pos):
+        if (a2 < left_y_pos) ^ (min(a1, b1) < left_y_pos):
             times_crossed_p2 += 1
-        if (min(p2, q1) < left_y_pos) ^ (q2 < left_y_pos):
+        if (min(a1, b1) < left_y_pos) ^ (b2 < left_y_pos):
             times_crossed_p2 += 1
-        if (q2 < left_y_pos) ^ (q2 < middle_y_pos):
+        if (b2 < left_y_pos) ^ (b2 < middle_y_pos):
             times_crossed_p2 += 1
 
         # if either black strand is double-crossed, add this orange strand to the list
         if times_crossed_p1 > 1 or times_crossed_p2 > 1:
-            orange_strands_double_crossed += [orange_strand]
+            orange_strands_double_crossed += [orange]
 
     # turn the list of orange strands into a coefficient
-    for orange_strand in orange_strands_double_crossed:
-        if sd.etangle.middle_signs()[orange_strand] == -1:
-            c *= sd.etangle.polyring['U' + str(orange_strand)]
+    for orange in orange_strands_double_crossed:
+        if sd.etangle.middle_signs()[orange] == -1:
+            c *= sd.etangle.polyring['U' + str(orange)]
         else:
             return Bimodule.Element()
 
@@ -185,7 +183,173 @@ def swap_values(d: Dict, k1, k2) -> Dict:
 
 
 def dmixed(sd: StrandDiagram) -> Bimodule.Element:
-    return Bimodule.Element()  # TODO
+    out = Bimodule.Element()
+
+    for b1 in sd.right_strands.keys():
+        for b2 in sd.right_strands.keys():
+            # if two black strands don't cross on the right
+            if b1 > b2 and sd.right_y_pos(b1) > sd.right_y_pos(b2):
+                out += dmixed_case1(sd, b1, b2)
+
+    for b1 in sd.left_strands.values():
+        for b2 in sd.left_strands.values():
+            # if two black strands cross on the left
+            if b1 > b2 and sd.left_y_pos(b1) < sd.left_y_pos(b2):
+                out += dmixed_case2(sd, b1, b2)
+
+    for b1 in sd.left_strands.values():
+        for b2 in sd.right_strands.keys():
+            if b1 > b2:
+                out += dmixed_case3(sd, b1, b2)
+
+    for b1 in sd.right_strands.keys():
+        for b2 in sd.left_strands.values():
+            if b1 > b2:
+                out += dmixed_case4(sd, b1, b2)
+
+    return out
+
+
+def dmixed_case1(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
+    c = sd.etangle.polyring.one()
+    a1 = sd.right_strands[b1]
+    a2 = sd.right_strands[b2]
+    sd_out = StrandDiagram(sd.etangle, sd.left_strands, swap_values(sd.right_strands, b1, b2))
+
+    for b3 in sd.left_strands.values():
+        if b2 < b3 < b1:
+            return Bimodule.Element()
+
+    for b3 in sd.right_strands.keys():
+        a3 = sd.right_strands[b3]
+        if (b3 < b1 and a3 > a1) or (b3 > b2 and a3 < a2):
+            return Bimodule.Element()
+
+    for orange in range(1, len(sd.etangle.signs)):
+        if b2 < sd.etangle.middle_y_pos(orange) < b1:
+            if sd.etangle.middle_signs()[orange] == 1:
+                if sd.etangle.left_strand_straight(orange):
+                    return Bimodule.Element()
+                elif sd.etangle.right_y_pos(orange) > a1:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.right_y_pos(orange) < a2:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+            else:
+                if sd.etangle.left_strand_straight(orange):
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.right_y_pos(orange) > a1:
+                    return Bimodule.Element()
+                elif sd.etangle.right_y_pos(orange) < a2:
+                    return Bimodule.Element()
+
+    return Bimodule.Element({sd_out: c})
+
+
+def dmixed_case2(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
+    c = sd.etangle.polyring.one()
+    a1 = sd.left_y_pos(b1)
+    a2 = sd.left_y_pos(b2)
+    sd_out = StrandDiagram(sd.etangle, swap_values(sd.left_strands, a1, a2), sd.right_strands)
+
+    for b3 in sd.right_strands.keys():
+        if b2 < b3 < b1:
+            return Bimodule.Element()
+
+    for b3 in sd.left_strands.values():
+        a3 = sd.left_y_pos(b3)
+        if b2 < b3 < b1 and (a3 > a2 or a3 < a1):
+            return Bimodule.Element()
+
+    for orange in range(1, len(sd.etangle.signs)):
+        if b2 < sd.etangle.middle_y_pos(orange) < b1:
+            if sd.etangle.middle_signs()[orange] == 1:
+                if sd.etangle.right_strand_straight(orange):
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.left_y_pos(orange) > a2:
+                    return Bimodule.Element()
+                elif sd.etangle.left_y_pos(orange) < a1:
+                    return Bimodule.Element()
+            else:
+                if sd.etangle.right_strand_straight(orange):
+                    return Bimodule.Element()
+                elif sd.etangle.left_y_pos(orange) > a2:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.left_y_pos(orange) < a1:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+
+    return Bimodule.Element({sd_out: c})
+
+
+def dmixed_case3(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
+    c = sd.etangle.polyring.one()
+    a1 = sd.left_y_pos(b1)
+    a2 = sd.right_y_pos(b2)
+    new_left_strands = dict(sd.left_strands)
+    new_left_strands[a1] = b2
+    new_right_strands = dict(sd.right_strands)
+    new_right_strands[b1] = a2
+    sd_out = StrandDiagram(sd.etangle, new_left_strands, new_right_strands)
+
+    for b3 in sd.left_strands.values():
+        a3 = sd.left_y_pos(b3)
+        if b2 < b3 < b1 and a3 < a1:
+            return Bimodule.Element()
+
+    for b3 in sd.right_strands.keys():
+        a3 = sd.right_y_pos(b3)
+        if b2 < b3 < b1 and a3 < a2:
+            return Bimodule.Element()
+
+    for orange in range(1, len(sd.etangle.signs)):
+        if b2 < sd.etangle.middle_y_pos(orange) < b1:
+            if sd.etangle.middle_signs()[orange] == 1:
+                if sd.etangle.left_y_pos(orange) < a1:
+                    return Bimodule.Element()
+                elif sd.etangle.right_y_pos(orange) < a2:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+            else:
+                if sd.etangle.left_y_pos(orange) < a1:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.right_y_pos(orange) < a2:
+                    return Bimodule.Element()
+
+    return Bimodule.Element({sd_out: c})
+
+
+def dmixed_case4(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
+    c = sd.etangle.polyring.one()
+    a1 = sd.right_y_pos(b1)
+    a2 = sd.left_y_pos(b2)
+    new_left_strands = dict(sd.left_strands)
+    new_left_strands[a2] = b1
+    new_right_strands = dict(sd.right_strands)
+    new_right_strands[b2] = a1
+    sd_out = StrandDiagram(sd.etangle, new_left_strands, new_right_strands)
+
+    for b3 in sd.left_strands.values():
+        a3 = sd.left_y_pos(b3)
+        if b2 < b3 < b1 and a3 > a2:
+            return Bimodule.Element()
+
+    for b3 in sd.right_strands.keys():
+        a3 = sd.right_y_pos(b3)
+        if b2 < b3 < b1 and a3 > a1:
+            return Bimodule.Element()
+
+    for orange in range(1, len(sd.etangle.signs)):
+        if b2 < sd.etangle.middle_y_pos(orange) < b1:
+            if sd.etangle.middle_signs()[orange] == 1:
+                if sd.etangle.left_y_pos(orange) > a2:
+                    return Bimodule.Element()
+                elif sd.etangle.right_y_pos(orange) > a1:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+            else:
+                if sd.etangle.left_y_pos(orange) > a2:
+                    c *= sd.etangle.polyring['U' + str(orange)]
+                elif sd.etangle.right_y_pos(orange) > a1:
+                    return Bimodule.Element()
+
+    return Bimodule.Element({sd_out: c})
 
 
 # points - a list of sets of points
