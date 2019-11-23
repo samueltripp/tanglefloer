@@ -32,14 +32,6 @@ def delta1_2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
     return Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), (a,))
 
 
-def m2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
-    pass  # TODO
-
-
-def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
-    pass  # TODO
-
-
 def dplus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
     for b1 in sd.right_strands.keys():
@@ -49,6 +41,53 @@ def dplus(sd: StrandDiagram) -> Bimodule.Element:
                 # smooth the crossing and add it to the output
                 out += smooth_right_crossing(sd, b1, b2)
     return out
+
+
+def dminus(sd: StrandDiagram) -> Bimodule.Element:
+    out = Bimodule.Element()
+    for b1 in sd.left_strands.values():
+        for b2 in sd.left_strands.values():
+            # if the black strands don't cross
+            if b1 > b2 and sd.left_y_pos(b1) > sd.left_y_pos(b2):
+                # introduce a crossing and add it to the output
+                out += introduce_left_crossing(sd, b1, b2)
+    return out
+
+
+def dmixed(sd: StrandDiagram) -> Bimodule.Element:
+    out = Bimodule.Element()
+
+    for b1 in sd.right_strands.keys():
+        for b2 in sd.right_strands.keys():
+            # if two black strands don't cross on the right
+            if b1 > b2 and sd.right_y_pos(b1) > sd.right_y_pos(b2):
+                out += dmixed_case1(sd, b1, b2)
+
+    for b1 in sd.left_strands.values():
+        for b2 in sd.left_strands.values():
+            # if two black strands cross on the left
+            if b1 > b2 and sd.left_y_pos(b1) < sd.left_y_pos(b2):
+                out += dmixed_case2(sd, b1, b2)
+
+    for b1 in sd.left_strands.values():
+        for b2 in sd.right_strands.keys():
+            if b1 > b2:
+                out += dmixed_case3(sd, b1, b2)
+
+    for b1 in sd.right_strands.keys():
+        for b2 in sd.left_strands.values():
+            if b1 > b2:
+                out += dmixed_case4(sd, b1, b2)
+
+    return out
+
+
+def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
+    pass  # TODO
+
+
+def m2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
+    pass  # TODO
 
 
 def smooth_right_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
@@ -104,17 +143,6 @@ def smooth_right_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Eleme
             return Bimodule.Element()
 
     return Bimodule.Element({sd_out: c})
-
-
-def dminus(sd: StrandDiagram) -> Bimodule.Element:
-    out = Bimodule.Element()
-    for b1 in sd.left_strands.values():
-        for b2 in sd.left_strands.values():
-            # if the black strands don't cross
-            if b1 > b2 and sd.left_y_pos(b1) > sd.left_y_pos(b2):
-                # introduce a crossing and add it to the output
-                out += introduce_left_crossing(sd, b1, b2)
-    return out
 
 
 def introduce_left_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
@@ -180,34 +208,6 @@ def swap_values(d: Dict, k1, k2) -> Dict:
     d_out[k1] = v2
     d_out[k2] = v1
     return d_out
-
-
-def dmixed(sd: StrandDiagram) -> Bimodule.Element:
-    out = Bimodule.Element()
-
-    for b1 in sd.right_strands.keys():
-        for b2 in sd.right_strands.keys():
-            # if two black strands don't cross on the right
-            if b1 > b2 and sd.right_y_pos(b1) > sd.right_y_pos(b2):
-                out += dmixed_case1(sd, b1, b2)
-
-    for b1 in sd.left_strands.values():
-        for b2 in sd.left_strands.values():
-            # if two black strands cross on the left
-            if b1 > b2 and sd.left_y_pos(b1) < sd.left_y_pos(b2):
-                out += dmixed_case2(sd, b1, b2)
-
-    for b1 in sd.left_strands.values():
-        for b2 in sd.right_strands.keys():
-            if b1 > b2:
-                out += dmixed_case3(sd, b1, b2)
-
-    for b1 in sd.right_strands.keys():
-        for b2 in sd.left_strands.values():
-            if b1 > b2:
-                out += dmixed_case4(sd, b1, b2)
-
-    return out
 
 
 def dmixed_case1(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
