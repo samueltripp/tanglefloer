@@ -138,7 +138,7 @@ def smooth_right_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Eleme
     # turn the list of orange strands into a coefficient
     for orange in orange_strands_double_crossed:
         if sd.etangle.middle_signs()[orange] == 1:
-            c *= sd.etangle.polyring['U' + str(orange)]
+            c *= sd.etangle.strand_index_to_variable(orange)
         else:
             return Bimodule.Element()
 
@@ -193,7 +193,7 @@ def introduce_left_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Ele
     # turn the list of orange strands into a coefficient
     for orange in orange_strands_double_crossed:
         if sd.etangle.middle_signs()[orange] == -1:
-            c *= sd.etangle.polyring['U' + str(orange)]
+            c *= sd.etangle.strand_index_to_variable(orange)
         else:
             return Bimodule.Element()
 
@@ -231,12 +231,12 @@ def dmixed_case1(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
                 if sd.etangle.left_strand_straight(orange) or True:  # ???
                     return Bimodule.Element()
                 elif sd.etangle.right_y_pos(orange) > a1:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.right_y_pos(orange) < a2:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
             else:
                 if sd.etangle.left_strand_straight(orange) or True:  # ???
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.right_y_pos(orange) > a1:
                     return Bimodule.Element()
                 elif sd.etangle.right_y_pos(orange) < a2:
@@ -264,7 +264,7 @@ def dmixed_case2(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
         if b2 < sd.etangle.middle_y_pos(orange) < b1:
             if sd.etangle.middle_signs()[orange] == 1:
                 if sd.etangle.right_strand_straight(orange) or True:  # ???
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.left_y_pos(orange) > a2:
                     return Bimodule.Element()
                 elif sd.etangle.left_y_pos(orange) < a1:
@@ -273,9 +273,9 @@ def dmixed_case2(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
                 if sd.etangle.right_strand_straight(orange) or True:  # ???
                     return Bimodule.Element()
                 elif sd.etangle.left_y_pos(orange) > a2:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.left_y_pos(orange) < a1:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
 
     return Bimodule.Element({sd_out: c})
 
@@ -307,10 +307,10 @@ def dmixed_case3(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
                 if sd.etangle.left_y_pos(orange) < a1:
                     return Bimodule.Element()
                 elif sd.etangle.right_y_pos(orange) < a2:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
             else:
                 if sd.etangle.left_y_pos(orange) < a1:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.right_y_pos(orange) < a2:
                     return Bimodule.Element()
 
@@ -344,10 +344,10 @@ def dmixed_case4(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
                 if sd.etangle.left_y_pos(orange) > a2:
                     return Bimodule.Element()
                 elif sd.etangle.right_y_pos(orange) > a1:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
             else:
                 if sd.etangle.left_y_pos(orange) > a2:
-                    c *= sd.etangle.polyring['U' + str(orange)]
+                    c *= sd.etangle.strand_index_to_variable(orange)
                 elif sd.etangle.right_y_pos(orange) > a1:
                     return Bimodule.Element()
 

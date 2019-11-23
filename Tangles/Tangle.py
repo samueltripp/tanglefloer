@@ -152,6 +152,12 @@ class ETangle(Tangle):
             else:
                 return None
 
+    def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
+        if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP) and strand_index > self.position:
+            return self.polyring['U' + str(strand_index - 1)]
+        else:
+            return self.polyring['U' + str(strand_index)]
+
     def left_strand_straight(self, strand_index: int) -> bool:
         return self.left_y_pos(strand_index) == self.middle_y_pos(strand_index)
 

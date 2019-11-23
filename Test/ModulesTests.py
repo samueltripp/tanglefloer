@@ -44,11 +44,11 @@ class TestCTMinus(unittest.TestCase):
         cap1 = ETangle(ETangle.Type.CAP, (1, 1, -1, 1), 2)
         sd_cap1_1 = StrandDiagram(cap1, {0: 0, 1: 1}, {4: 1, 3: 2})
         sd_cap1_1_out = Bimodule.Element(
-            {StrandDiagram(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}): cap1.polyring['U4']}
+            {StrandDiagram(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}): cap1.polyring['U3']}
         )
         sd_cap1_2 = StrandDiagram(cap1, {3: 3, 1: 1}, {4: 0, 0: 2})
         sd_cap1_2_out = Bimodule.Element(
-            {StrandDiagram(cap1, {3: 3, 1: 1}, {4: 2, 0: 0}): cap1.polyring['U1'] * cap1.polyring['U4']}
+            {StrandDiagram(cap1, {3: 3, 1: 1}, {4: 2, 0: 0}): cap1.polyring['U1'] * cap1.polyring['U3']}
         )
 
         self.assertEqual(sd_under1_1_out, dplus(sd_under1_1))

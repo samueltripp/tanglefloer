@@ -183,7 +183,7 @@ class AMinusElement:
         return out
 
     @multimethod
-    def __mul__(self, other: AMinusElement):
+    def __mul__(self, other: AMinusElement) -> AMinusElement:
         out = self.algebra.zero()
         for (gen1, coefficient1) in self.coefficients.items():
             for (gen2, coefficient2) in other.coefficients.items():

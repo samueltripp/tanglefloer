@@ -46,8 +46,8 @@ class Z2Polynomial:
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
 
     @multimethod
-    def __mul__(self, other) -> Z2Polynomial:
-        return other.__rmul__(self)
+    def __mul__(self, other):
+        other.__rmul__(self)
 
     @multimethod
     def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
