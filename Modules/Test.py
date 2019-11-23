@@ -93,9 +93,8 @@ class TestCTMinus(unittest.TestCase):
              StrandDiagram(over3, {1: 2, 2: 1, 3: 3}, {0: 1, 4: 2}): over3.polyring.one()}
         )
 
-        print(dmixed_case2(sd_over3_1, 2, 1))
-
         self.assertEqual(sd_over3_1_out, dmixed(sd_over3_1))
+
 
 if __name__ == '__main__':
     unittest.main()

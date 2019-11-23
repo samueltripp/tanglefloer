@@ -228,14 +228,14 @@ def dmixed_case1(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     for orange in range(1, len(sd.etangle.signs)):
         if b2 < sd.etangle.middle_y_pos(orange) < b1:
             if sd.etangle.middle_signs()[orange] == 1:
-                if sd.etangle.left_strand_straight(orange):
+                if sd.etangle.left_strand_straight(orange) or True:  # ???
                     return Bimodule.Element()
                 elif sd.etangle.right_y_pos(orange) > a1:
                     c *= sd.etangle.polyring['U' + str(orange)]
                 elif sd.etangle.right_y_pos(orange) < a2:
                     c *= sd.etangle.polyring['U' + str(orange)]
             else:
-                if sd.etangle.left_strand_straight(orange):
+                if sd.etangle.left_strand_straight(orange) or True:  # ???
                     c *= sd.etangle.polyring['U' + str(orange)]
                 elif sd.etangle.right_y_pos(orange) > a1:
                     return Bimodule.Element()
@@ -263,14 +263,14 @@ def dmixed_case2(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     for orange in range(1, len(sd.etangle.signs)):
         if b2 < sd.etangle.middle_y_pos(orange) < b1:
             if sd.etangle.middle_signs()[orange] == 1:
-                if sd.etangle.right_strand_straight(orange):
+                if sd.etangle.right_strand_straight(orange) or True:  # ???
                     c *= sd.etangle.polyring['U' + str(orange)]
                 elif sd.etangle.left_y_pos(orange) > a2:
                     return Bimodule.Element()
                 elif sd.etangle.left_y_pos(orange) < a1:
                     return Bimodule.Element()
             else:
-                if sd.etangle.right_strand_straight(orange):
+                if sd.etangle.right_strand_straight(orange) or True:  # ???
                     return Bimodule.Element()
                 elif sd.etangle.left_y_pos(orange) > a2:
                     c *= sd.etangle.polyring['U' + str(orange)]
@@ -287,6 +287,7 @@ def dmixed_case3(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     new_left_strands = dict(sd.left_strands)
     new_left_strands[a1] = b2
     new_right_strands = dict(sd.right_strands)
+    del new_right_strands[b2]
     new_right_strands[b1] = a2
     sd_out = StrandDiagram(sd.etangle, new_left_strands, new_right_strands)
 
@@ -323,6 +324,7 @@ def dmixed_case4(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:
     new_left_strands = dict(sd.left_strands)
     new_left_strands[a2] = b1
     new_right_strands = dict(sd.right_strands)
+    del new_right_strands[b1]
     new_right_strands[b2] = a1
     sd_out = StrandDiagram(sd.etangle, new_left_strands, new_right_strands)
 
