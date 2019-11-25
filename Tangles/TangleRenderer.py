@@ -19,7 +19,7 @@ class TangleRenderer:
         for i in range(etangle.position - 1):
             for x in range(8):
                 a[x, 2 * i] = '-'
-            a[3, 2 * i] = '>' if etangle.signs[i] == 1 else '<'
+            a[3, 2 * i] = '>' if etangle.signs[i+1] == 1 else '<'
         if etangle.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
             if etangle.etype == ETangle.Type.CUP:
                 a[4:, 2 * etangle.position - 2:2 * etangle.position + 1] = TangleRenderer._CUP
@@ -43,7 +43,7 @@ class TangleRenderer:
             for i in range(etangle.position + 1, len(etangle.signs) - 1):
                 for x in range(8):
                     a[x, 2 * i] = '-'
-                a[3, 2 * i] = '>' if etangle.signs[i] == 1 else '<'
+                a[3, 2 * i] = '>' if etangle.signs[i+1] == 1 else '<'
             if etangle.etype == ETangle.Type.OVER:
                 a[:, 2 * etangle.position - 2:2 * etangle.position + 1] = TangleRenderer._OVER
             else:
