@@ -20,8 +20,8 @@ class Tangle:
 
         height = max(len(etangle.signs) for etangle in etangles)
         self.polyring = Z2PolynomialRing(['U%s' % p for p in range(0, height)])
-        self.left_algebra = AMinus(self.left_signs(), self.polyring)
-        self.right_algebra = AMinus(self.right_signs(), self.polyring)
+        self.left_algebra = AMinus(self.left_signs())
+        self.right_algebra = AMinus(self.right_signs())
 
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self):

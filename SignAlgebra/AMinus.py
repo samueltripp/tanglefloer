@@ -6,15 +6,11 @@ from typing import Iterable
 
 
 class AMinus:
-    def __init__(self, sign_sequence, polyring: Z2PolynomialRing = None):
+    def __init__(self, sign_sequence):
         # store the overarching sign sequence, the list of positive indices, and the polynomial ring
         self.ss = sign_sequence
         self.positives = list(i for i in range(len(sign_sequence)) if sign_sequence[i] == 1)
-        self.polyring = polyring or self.initpolyring()
-
-    # construct the polynomial ring based on the number of positives
-    def initpolyring(self):
-        return Z2PolynomialRing(['U%s' % p for p in range(0, len(self.ss))])
+        self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
 
     def zero(self):
         return AMinusElement(self, {})
@@ -33,130 +29,6 @@ class AMinus:
     # returns the idempotent with the given points occupied
     def idempotent(self, points):
         return self.gen({p: p for p in points})
-
-    @multimethod
-    def diff(self, gen: AMinusGen) -> AMinusElement:
-        return self.gen_diff(gen)
-
-    @multimethod
-    def diff(self, elt: AMinusElement) -> AMinusElement:
-        # sum the differentials of all the strand diagrams
-        out = self.zero()
-        for gen, coefficient in elt.coefficients.items():
-            out += coefficient * self.gen_diff(gen)
-        return out
-
-    def gen_mult(self, gen1, gen2):
-        strands1 = gen1.strands
-        strands2 = gen2.strands
-        # check if the ends don't match
-        if set(strands1.values()) != strands2.keys():
-            return self.zero()
-
-        # check if black strands double cross
-        for key1 in strands1.keys():
-            for key2 in strands1.keys():
-                if (strands2[strands1[key1]] > strands2[strands1[key2]] and strands1[key1] < strands1[key2]) \
-                        or (strands2[strands1[key1]] < strands2[strands1[key2]] and strands1[key1] > strands1[key2]):
-                    return self.zero()
-
-        # count double crossed orange strands
-        c = self.polyring.one()
-        for key in strands1.keys():
-            if strands1[key] > key:
-                checkrange = range(max(key, strands2[strands1[key]]), strands1[key])
-            else:
-                checkrange = range(strands1[key], min(key, strands2[strands1[key]]))
-
-            for i in checkrange:
-                if i not in self.positives:
-                    return self.zero()
-                else:
-                    c *= self.polyring['U' + str(i + 1)]
-
-        # construct the new generator
-        strands = {}
-        for key in strands1.keys():
-            strands[key] = strands2[strands1[key]]
-
-        return c * AMinusGen(self, strands)
-
-    def gen_diff(self, gen: AMinusGen) -> AMinusElement:
-        # find all strands that cross, and resolve them
-        out = self.zero()
-        for s1, t1 in gen.strands.items():
-            for s2, t2 in gen.strands.items():
-                if s2 < s1 and t2 > t1:
-                    out += AMinusElement(self, self.resolve(gen, s1, s2))
-        return out
-
-    def resolve(self, gen: AMinusGen, i, j):
-        # check if black strands double cross
-        for s in gen.strands.keys() & set(range(j, i)):
-            if gen.strands[i] < gen.strands[s] < gen.strands[j]:
-                return {}
-
-        # construct the output generator
-        out = AMinusGen(self, dict(gen.strands))
-        out.strands[i] = gen.strands[j]
-        out.strands[j] = gen.strands[i]
-
-        # calculate the appropriate coefficient
-        checkrange = range(max(gen.strands[i], j), min(i, gen.strands[j]))
-        c = self.polyring.one()
-        for i in checkrange:
-            if i not in self.positives:
-                return {}
-            else:
-                c = c * self.polyring['U' + str(i + 1)]
-
-        return {out: c}
-
-    def twoalexander(self, elt: AMinusElement):
-        firstkey = set(elt.coefficients.keys()).pop()
-        twoalex = self.twoalex_gen(firstkey, elt.coefficients[firstkey])
-        for key in elt.coefficients.keys():
-            if self.twoalex_gen(key, elt.coefficients[key]) != twoalex:
-                raise Exception('non-homogeneous element')
-        return twoalex
-
-    def twoalex_gen(self, gen: AMinusGen, coeff):
-        strands = dict(gen.strands)
-        twoalex = -2 * coeff.degree()
-        for key in strands.keys():
-            if key < strands[key]:
-                checkrange = range(key, strands[key])
-            else:
-                checkrange = range(strands[key], key)
-            for k in checkrange:
-                twoalex = twoalex + (-1) * self.ss[k]
-
-        return twoalex
-
-    def maslov(self, elt: AMinusElement):
-        firstkey = set(elt.coefficients.keys()).pop()
-        maslov = self.maslov_gen(firstkey, elt.coefficients[firstkey])
-        for key in elt.coefficients.keys():
-            if self.maslov_gen(key, elt.coefficients[key]) != maslov:
-                raise Exception('non-homogeneous element')
-        return maslov
-
-    def maslov_gen(self, gen, coeff):
-        strands = gen.strands
-        maslov = -2 * coeff.degree()
-        for key in strands.keys():
-            for keyb in strands.keys():
-                if keyb < key and strands[keyb] > strands[key]:
-                    maslov = maslov + 1
-            if key < strands[key]:
-                checkrange = range(key, strands[key])
-            else:
-                checkrange = range(strands[key], key)
-            for k in checkrange:
-                if k in self.positives:
-                    maslov = maslov - 1
-
-        return maslov
 
 
 class AMinusElement:
@@ -194,6 +66,29 @@ class AMinusElement:
     def __rmul__(self, other: Z2Polynomial) -> AMinusElement:
         return self * other
 
+    def diff(self) -> AMinusElement:
+        # sum the differentials of all the strand diagrams
+        out = self.algebra.zero()
+        for gen, coefficient in self.coefficients.items():
+            out += coefficient * gen.diff()
+        return out
+
+    def two_alexander(self):
+        firstkey = set(self.coefficients.keys()).pop()
+        out = firstkey.two_alexander(self.coefficients[firstkey])
+        for key in self.coefficients.keys():
+            if key.two_alexander(self.coefficients[key]) != out:
+                raise Exception('non-homogeneous element')
+        return out
+
+    def maslov(self):
+        firstkey = set(self.coefficients.keys()).pop()
+        out = firstkey.maslov(self.coefficients[firstkey])
+        for key in self.coefficients.keys():
+            if key.maslov(self.coefficients[key]) != out:
+                raise Exception('non-homogeneous element')
+        return out
+
     def __eq__(self, other: AMinusElement):
         return self.algebra == other.algebra and self.coefficients == other.coefficients
 
@@ -218,10 +113,103 @@ class AMinusGen:
 
     @multimethod
     def __mul__(self, other: AMinusGen) -> AMinusElement:
-        return self.algebra.gen_mult(self, other)
+        strands1 = self.strands
+        strands2 = other.strands
+        # check if the ends don't match
+        if set(strands1.values()) != strands2.keys():
+            return self.algebra.zero()
+
+        # check if black strands double cross
+        for key1 in strands1.keys():
+            for key2 in strands1.keys():
+                if (strands2[strands1[key1]] > strands2[strands1[key2]] and strands1[key1] < strands1[key2]) \
+                        or (strands2[strands1[key1]] < strands2[strands1[key2]] and strands1[key1] > strands1[key2]):
+                    return self.algebra.zero()
+
+        # count double crossed orange strands
+        c = self.algebra.polyring.one()
+        for key in strands1.keys():
+            if strands1[key] > key:
+                checkrange = range(max(key, strands2[strands1[key]]), strands1[key])
+            else:
+                checkrange = range(strands1[key], min(key, strands2[strands1[key]]))
+
+            for i in checkrange:
+                if i not in self.algebra.positives:
+                    return self.algebra.zero()
+                else:
+                    c *= self.algebra.polyring['U' + str(i)]
+
+        # construct the new generator
+        strands = {}
+        for key in strands1.keys():
+            strands[key] = strands2[strands1[key]]
+
+        return c * AMinusGen(self.algebra, strands)
 
     def __rmul__(self, other: Z2Polynomial):
         return self * other
+
+    def diff(self) -> AMinusElement:
+        # find all strands that cross, and resolve them
+        out = self.algebra.zero()
+        for s1, t1 in self.strands.items():
+            for s2, t2 in self.strands.items():
+                if s2 < s1 and t2 > t1:
+                    out += AMinusElement(self.algebra, self.smooth_crossing(s1, s2))
+        return out
+
+    def smooth_crossing(self, i, j):
+        # check if black strands double cross
+        for s in self.strands.keys() & set(range(j, i)):
+            if self.strands[i] < self.strands[s] < self.strands[j]:
+                return {}
+
+        # construct the output generator
+        out = AMinusGen(self.algebra, dict(self.strands))
+        out.strands[i] = self.strands[j]
+        out.strands[j] = self.strands[i]
+
+        # calculate the appropriate coefficient
+        checkrange = range(max(self.strands[i], j), min(i, self.strands[j]))
+        c = self.algebra.polyring.one()
+        for i in checkrange:
+            if i not in self.algebra.positives:
+                return {}
+            else:
+                c = c * self.algebra.polyring['U' + str(i)]
+
+        return {out: c}
+
+    def two_alexander(self, coeff):
+        strands = dict(self.strands)
+        out = -2 * coeff.degree()
+        for key in strands.keys():
+            if key < strands[key]:
+                checkrange = range(key, strands[key])
+            else:
+                checkrange = range(strands[key], key)
+            for k in checkrange:
+                out = out + (-1) * self.algebra.ss[k]
+
+        return out
+
+    def maslov(self, coeff):
+        strands = self.strands
+        out = -2 * coeff.degree()
+        for key in strands.keys():
+            for keyb in strands.keys():
+                if keyb < key and strands[keyb] > strands[key]:
+                    out += 1
+            if key < strands[key]:
+                checkrange = range(key, strands[key])
+            else:
+                checkrange = range(strands[key], key)
+            for k in checkrange:
+                if k in self.algebra.positives:
+                    out -= 1
+
+        return out
 
     def __eq__(self, other):
         return self.algebra == other.algebra and self.strands == other.strands

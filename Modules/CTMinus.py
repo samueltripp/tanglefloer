@@ -20,9 +20,9 @@ def type_da(etangle: ETangle) -> TypeDA:
 
 def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
     out = []
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dplus(x).d.items()]
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dminus(x).d.items()]
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in dmixed(x).d.items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_plus(x).d.items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_minus(x).d.items()]
+    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_mixed(x).d.items()]
     out += [delta_ell(x)]
     return out
 
@@ -32,7 +32,7 @@ def delta1_2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
     return Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), (a,))
 
 
-def dplus(sd: StrandDiagram) -> Bimodule.Element:
+def d_plus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
     for b1 in sd.right_strands.keys():
         for b2 in sd.right_strands.keys():
@@ -43,7 +43,7 @@ def dplus(sd: StrandDiagram) -> Bimodule.Element:
     return out
 
 
-def dminus(sd: StrandDiagram) -> Bimodule.Element:
+def d_minus(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
     for b1 in sd.left_strands.values():
         for b2 in sd.left_strands.values():
@@ -54,7 +54,7 @@ def dminus(sd: StrandDiagram) -> Bimodule.Element:
     return out
 
 
-def dmixed(sd: StrandDiagram) -> Bimodule.Element:
+def d_mixed(sd: StrandDiagram) -> Bimodule.Element:
     out = Bimodule.Element()
 
     for b1 in sd.right_strands.keys():
