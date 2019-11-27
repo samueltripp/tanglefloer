@@ -1,7 +1,8 @@
 from __future__ import annotations
 from networkx import MultiDiGraph
 from typing import Iterable, Any
-from SignAlgebra.AMinus import *
+from Modules import StrandDiagram
+from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
 import itertools as it
 
@@ -29,7 +30,7 @@ class Bimodule:
                          for sd in generators], maps)
 
     class Generator:
-        def __init__(self, key, left_idempotent: AMinusElement, right_idempotent: AMinusElement):
+        def __init__(self, key, left_idempotent: AMinus.Element, right_idempotent: AMinus.Element):
             self.key = key
             self.left_idempotent = left_idempotent
             self.right_idempotent = right_idempotent
@@ -52,6 +53,12 @@ class Bimodule:
                 else:
                     out_d[sd] = other.d[sd]
             return Bimodule.Element(out_d)
+
+        def __rmul__(self, other: Z2Polynomial):
+            d_out = dict(self.d)
+            for k in d_out:
+                d_out[k] = other * d_out[k]
+            return Bimodule.Element(d_out)
 
         def __eq__(self, other: Bimodule.Element) -> bool:
             return self.d == other.d

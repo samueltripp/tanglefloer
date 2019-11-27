@@ -1,22 +1,43 @@
 from __future__ import annotations
 from operator import add
+
+from frozendict import frozendict
 from multimethod import multimethod
-from typing import Set, Dict, FrozenSet, Tuple, overload, Union
+from typing import Set, FrozenSet, Tuple, Dict, Iterable
 
 
 class Z2PolynomialRing:
-    def __init__(self, variables):
-        self.variables = tuple(variables)
+    def __init__(self, variables: Iterable):
+        self.variables = set(variables)
 
     def zero(self) -> Z2Polynomial:
         return Z2Polynomial(self, set())
 
     def one(self) -> Z2Polynomial:
-        return Z2Polynomial(self, {Z2Monomial(self, tuple([0 for j in range(len(self.variables))]))})
+        return Z2Polynomial(self, {Z2Monomial(self, {})})
 
     def __getitem__(self, item) -> Z2Polynomial:
-        i = self.variables.index(item)
-        return Z2Monomial(self, tuple([1 if i == j else 0 for j in range(len(self.variables))])).to_polynomial()
+        assert item in self.variables
+        return Z2Monomial(self, {item: 1}).to_polynomial()
+
+    # represents a map between polynomial rings that sends some variables to other variables
+    # very limited in scope
+    class Map:
+        # mapping: {source_variable_index: target_variable_index}
+        def __init__(self, source: Z2PolynomialRing, target: Z2PolynomialRing, mapping: Dict):
+            self.source = source
+            self.target = target
+            self.mapping = mapping
+
+        def apply(self, x: Z2Polynomial):
+            assert x.ring == self.source
+
+            y = self.target.zero()
+
+            for x_term in x.terms:
+                y += Z2Monomial(self.target, {self.mapping[var]: power for var, power in x_term.powers}).to_polynomial()
+
+            return y
 
 
 # knows addition
@@ -43,6 +64,8 @@ class Z2Polynomial:
                 return degrees.pop()
 
     def __add__(self, other: Z2Polynomial) -> Z2Polynomial:
+        assert self.ring == other.ring
+
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
 
     @multimethod
@@ -51,6 +74,8 @@ class Z2Polynomial:
 
     @multimethod
     def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
+        assert self.ring == other.ring
+
         out = self.ring.zero()
 
         for term1 in self.terms:
@@ -76,18 +101,19 @@ class Z2Polynomial:
 # knows multiplication, equality
 # passes adding back to Z2Polynomial
 class Z2Monomial:
-    def __init__(self, ring, powers: Tuple):
+    def __init__(self, ring, powers: Dict):
         self.ring = ring
-        self.powers = powers
+        self.powers = frozendict(powers)
 
     def degree(self) -> int:
-        return sum(self.powers)
+        return sum(self.powers.values())
 
     def to_polynomial(self) -> Z2Polynomial:
         return Z2Polynomial(self.ring, {self})
 
     def __mul__(self, other: Z2Monomial) -> Z2Monomial:
-        return Z2Monomial(self.ring, tuple(map(add, self.powers, other.powers)))
+        return Z2Monomial(self.ring, {var: self.powers.get(var, 0) + other.powers.get(var, 0)
+                                      for var in self.powers.keys() | other.powers.keys()})
 
     def __eq__(self, other: Z2Monomial) -> bool:
         return self.ring == other.ring and self.powers == other.powers
@@ -97,9 +123,9 @@ class Z2Monomial:
 
     def __repr__(self) -> str:
         out = ''
-        for (var, power) in enumerate(self.powers):
+        for var, power in self.powers.items():
             if power == 1:
-                out += self.ring.variables[var] + '.'
+                out += str(var) + '.'
             elif power > 1:
-                out += self.ring.variables[var] + '^' + str(power) + '.'
+                out += str(var) + '^' + str(power) + '.'
         return out[:-1] or str(1)

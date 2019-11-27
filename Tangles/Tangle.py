@@ -1,10 +1,7 @@
 from __future__ import annotations
 from enum import *
 from typing import Optional, List
-
-from SignAlgebra.Z2PolynomialRing import *
 from SignAlgebra.AMinus import *
-import numpy
 
 
 # a tangle
@@ -152,11 +149,14 @@ class ETangle(Tangle):
             else:
                 return None
 
-    def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
+    def strand_index_to_variable_name(self, strand_index: int) -> str:
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP) and strand_index > self.position:
-            return self.polyring['U' + str(strand_index - 1)]
+            return 'U' + str(strand_index - 1)
         else:
-            return self.polyring['U' + str(strand_index)]
+            return 'U' + str(strand_index)
+
+    def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
+        return self.polyring[self.strand_index_to_variable_name(strand_index)]
 
     def left_strand_straight(self, strand_index: int) -> bool:
         return self.left_y_pos(strand_index) == self.middle_y_pos(strand_index)
@@ -181,6 +181,12 @@ class ETangle(Tangle):
         if self.etype == ETangle.Type.CAP:
             return list(range(len(self.signs) - 2))
         return list(range(len(self.signs)))
+
+    def from_right_algebra(self, algebra: AMinus, c: Z2Polynomial):
+        mapping = Z2PolynomialRing.Map(algebra.polyring, self.polyring,
+                                       {'U'+str(p): 'U'+str(self.strand_index_to_variable_name(p))
+                                        for p in algebra.positives})
+        return mapping.apply(c)
 
     def __repr__(self):
         return str((self.etype, self.signs, self.position))

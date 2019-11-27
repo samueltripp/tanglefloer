@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Dict
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Modules.Bimodule import Bimodule
@@ -27,9 +27,11 @@ def delta1_1(x: StrandDiagram) -> List[Bimodule.Edge]:
     return out
 
 
-def delta1_2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
-    e = m2(x, a)
-    return Bimodule.Edge(x, e.target_diagram, e.c, (x.left_idempotent(),), (a,))
+def delta1_2(x: StrandDiagram, a: AMinus.Element) -> Bimodule.Edge:
+    b = m2(x, a)
+    sd = b.d.keys().pop()
+    c = b.d.values().pop()
+    return Bimodule.Edge(x, sd, c, (x.left_idempotent(),), (a,))
 
 
 def d_plus(sd: StrandDiagram) -> Bimodule.Element:
@@ -86,8 +88,68 @@ def delta_ell(x: StrandDiagram) -> Bimodule.Edge:
     pass  # TODO
 
 
-def m2(x: StrandDiagram, a: AMinusElement) -> Bimodule.Edge:
-    pass  # TODO
+@multimethod
+def m2(x: StrandDiagram, a: AMinus.Element) -> Bimodule.Element:
+    out = Bimodule.Element()
+    for gen, coefficient in a.coefficients.items():
+        out += x.etangle.from_right_algebra(gen.algebra, coefficient) * m2(x, gen)
+    return out
+
+
+@multimethod
+def m2(x: StrandDiagram, a: AMinus.Gen) -> Bimodule.Element:
+    # if the sign sequences do not match, return 0
+    if x.etangle.right_signs()[1:] != a.algebra.ss:
+        return Bimodule.Element()
+
+    # if the strands cannot be merged, return 0
+    if set(x.right_strands.values()) != set(a.strands.keys()):
+        return Bimodule.Element()
+
+    c = x.etangle.polyring.one()
+
+    # if two black strands double-cross, return 0
+    for p1 in x.right_strands.keys():
+        q1 = x.right_strands[p1]
+        r1 = a.strands[q1]
+        for p2 in x.right_strands.keys():
+            q2 = x.right_strands[p2]
+            r2 = a.strands[q2]
+            if p1 > p2 and q1 < q2 and r1 > r2:
+                return Bimodule.Element()
+
+    # if a black strand double-crosses an orange strand, modify the coefficient or return 0
+    for p in x.right_strands.keys():
+        q = x.right_strands[p]
+        r = a.strands[q]
+        for orange in range(1, len(x.etangle.signs)):
+            right_y_pos = x.etangle.right_y_pos(orange)
+            if right_y_pos is None:
+                continue
+            middle_y_pos = x.etangle.middle_y_pos(orange)
+            times_crossed_p = 0
+
+            # count how many times this orange strand crosses the p1 -> q2 black strand
+            if (p < middle_y_pos) ^ (q < middle_y_pos):
+                times_crossed_p += 1
+            if (q < middle_y_pos) ^ (r < middle_y_pos):
+                times_crossed_p += 1
+            if (r < middle_y_pos) ^ (r < right_y_pos):
+                times_crossed_p += 1
+
+            if times_crossed_p > 1:
+                if x.etangle.middle_signs()[orange] == 1:
+                    c *= x.etangle.strand_index_to_variable(orange)
+                else:
+                    return Bimodule.Element()
+
+    new_right_strands = {}
+    for p in x.right_strands.keys():
+        q = x.right_strands[p]
+        r = a.strands[q]
+        new_right_strands[p] = r
+    sd_out = StrandDiagram(x.etangle, x.left_strands, new_right_strands)
+    return Bimodule.Element({sd_out: c})
 
 
 def smooth_right_crossing(sd: StrandDiagram, b1: int, b2: int) -> Bimodule.Element:

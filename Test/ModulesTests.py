@@ -95,6 +95,24 @@ class TestCTMinus(unittest.TestCase):
 
         self.assertEqual(sd_over3_1_out, d_mixed(sd_over3_1))
 
+    def test_m2(self):
+        # Figure 10 from "An introduction..."
+        cap2 = ETangle(ETangle.Type.CAP, (1, -1, -1), 1)
+        sd_cap2_1 = StrandDiagram(cap2, {0: 0, 1: 3}, {2: 0})
+        sd_cap2_1_out = Bimodule.Element(
+            {StrandDiagram(cap2, {0: 0, 1: 3}, {2: 1}): cap2.polyring.one()}
+        )
+        algebra = AMinus((-1,))
+        elt = algebra.gen({0: 1})
+
+        a = sd_cap2_1_out
+        b = m2(sd_cap2_1, elt)
+
+        print(list(a.d.values())[0].ring == cap2.polyring)
+        print(list(b.d.values())[0].ring == cap2.polyring)
+
+        self.assertEqual(sd_cap2_1_out, m2(sd_cap2_1, elt))
+
 
 if __name__ == '__main__':
     unittest.main()
