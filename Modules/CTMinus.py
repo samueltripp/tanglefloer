@@ -38,23 +38,24 @@ def delta1_2(x: ETangleStrands, a: AMinus.Element) -> Bimodule.Edge:
 
 def d_plus(x: ETangleStrands) -> Bimodule.Element:
     out = Bimodule.Element()
-    for b1 in x.right_strands.keys():
-        for b2 in x.right_strands.keys():
-            # if the black strands cross
-            if b1 < b2 and x.right_y_pos(b1) > x.right_y_pos(b2):
-                # smooth the crossing and add it to the output
-                out += smooth_right_crossing(x, b1, b2)
+    for black1, black2 in itertools.combinations(x.right_strands.keys(), 2):
+        b1 = min(black1, black2)
+        b2 = max(black1, black2)
+        if x.right_y_pos(b1) > x.right_y_pos(b2):
+            # smooth the crossing and add it to the output
+            out += smooth_right_crossing(x, b1, b2)
     return out
 
 
 def d_minus(x: ETangleStrands) -> Bimodule.Element:
     out = Bimodule.Element()
-    for b1 in x.left_strands.values():
-        for b2 in x.left_strands.values():
-            # if the black strands don't cross
-            if b1 > b2 and x.left_y_pos(b1) > x.left_y_pos(b2):
-                # introduce a crossing and add it to the output
-                out += introduce_left_crossing(x, b1, b2)
+    for black1, black2 in itertools.combinations(x.left_strands.values(), 2):
+        b1 = min(black1, black2)
+        b2 = max(black1, black2)
+        # if the black strands don't cross
+        if x.left_y_pos(b1) < x.left_y_pos(b2):
+            # introduce a crossing and add it to the output
+            out += introduce_left_crossing(x, b1, b2)
     return out
 
 
@@ -149,9 +150,9 @@ def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Eleme
     black_strands = {}
     for black in x.right_strands.keys():
         if black == b1:
-            black_strands[b1] = (b1, min(a1, b2), a2)
+            black_strands[b1] = (b1, min(a1, b2) - .25, a2)
         elif black == b2:
-            black_strands[b2] = (b2, min(a1, b2), a1)
+            black_strands[b2] = (b2, min(a1, b2) + .25, a1)
         else:
             black_strands[black] = (black, black, x.right_y_pos(black))
 
@@ -183,9 +184,9 @@ def introduce_left_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Ele
     black_strands = {}
     for black in x.left_strands.values():
         if black == b1:
-            black_strands[b1] = (a1, min(a1, b1), b1)
+            black_strands[b1] = (a1, min(a2, b2) - .25, b1)
         elif black == b2:
-            black_strands[b2] = (a2, min(a1, b1), b2)
+            black_strands[b2] = (a2, min(a2, b2) + .25, b2)
         else:
             black_strands[black] = (x.left_y_pos(black), black, black)
 
