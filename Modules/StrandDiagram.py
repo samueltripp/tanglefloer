@@ -1,53 +1,100 @@
 from __future__ import annotations
-from Modules.CTMinus import *
-from frozendict import *
-from Tangles.Tangle import *
-from SignAlgebra.AMinus import *
+from typing import Dict, Tuple, Optional
+import itertools
+from SignAlgebra.Z2PolynomialRing import Z2Polynomial
 
 
-# represents a pair of partial bijections overlaid on an elementary tangle
 class StrandDiagram:
-    def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
-        self.etangle = etangle
-        assert validdictionaries(etangle, left_strands, right_strands)
-        self.left_strands = frozendict(left_strands)
-        self.left_strands_inverse = frozendict(invert_injection(left_strands))
-        self.right_strands = frozendict(right_strands)
-        self.right_strands_inverse = frozendict(invert_injection(right_strands))
+    # orange_strands: {strand_index: (left_pos, middle_pos, right_pos)}
+    # orange_signs: {strand_index: int}
+    # black_strands {strand_index: (left_pos, middle_pos, right_pos)}
+    def __init__(self, orange_strands: Dict, orange_signs: Dict, black_strands: Dict):
+        self.orange_strands = orange_strands
+        self.orange_signs = orange_signs
+        self.black_strands = black_strands
 
-    # the idempotent e^D_L                                                                                                                                
-    def left_idempotent(self):
-        occupied = self.left_strands.keys()
-        total = set(range(len(self.etangle.left_algebra.ss)))
-        return self.etangle.left_algebra.idempotent(list(total - occupied))
+    def orange_left_pos(self, orange_index: int):
+        return self.orange_strands[orange_index][0]
 
-    # the idempotent e^A_R                                                                                                                                
-    def right_idempotent(self) -> AMinusElement:
-        return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
+    def orange_middle_pos(self, orange_index: int):
+        return self.orange_strands[orange_index][1]
 
-    def left_y_pos(self, black_strand: int):
-        return self.left_strands_inverse[black_strand]
+    def orange_right_pos(self, orange_index: int):
+        return self.orange_strands[orange_index][2]
 
-    def right_y_pos(self, black_strand: int):
-        return self.right_strands[black_strand]
+    def black_left_pos(self, orange_index: int):
+        return self.black_strands[orange_index][0]
 
-    def __repr__(self):
-        return str((self.etangle, self.left_strands, self.right_strands))
+    def black_middle_pos(self, orange_index: int):
+        return self.black_strands[orange_index][1]
 
-    def __eq__(self, other: StrandDiagram):
-        return self.etangle == other.etangle and \
-               self.left_strands == other.left_strands and \
-               self.right_strands == other.right_strands
+    def black_right_pos(self, orange_index: int):
+        return self.black_strands[orange_index][2]
 
-    def __hash__(self):
-        return hash(self.etangle) + hash(self.left_strands) + hash(self.right_strands)
+    # simplify this diagram using the relations from Figure 6 in "An introduction..."
+    # output dictionary is {orange_strand_index: power of corresponding variable}
+    def figure_6_relations(self) -> Optional[Dict]:
+        powers = {}
+        for b1, b2 in itertools.combinations(self.black_strands.keys(), 2):
+            if self.black_double_crosses_black(b1, b2):
+                return None
+
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            for black in self.black_strands:
+                if self.orange_double_crosses_black(orange, black):
+                    if self.orange_signs[orange] == 1:
+                        powers[orange] += 1
+                    else:
+                        return None
+
+        return powers
+
+    def figure_7_relations(self) -> Optional[Dict]:
+        powers = {}
+        for b1, b2 in itertools.combinations(self.black_strands.keys(), 2):
+            if self.black_double_crosses_black(b1, b2):
+                return None
+
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            for black in self.black_strands:
+                if self.orange_double_crosses_black(orange, black):
+                    if self.orange_signs[orange] == -1:
+                        powers[orange] += 1
+                    else:
+                        return None
+
+        return powers
+
+    def black_double_crosses_black(self, b1: int, b2: int) -> bool:
+        p1 = self.black_left_pos(b1)
+        q1 = self.black_middle_pos(b1)
+        r1 = self.black_right_pos(b1)
+        p2 = self.black_left_pos(b2)
+        q2 = self.black_middle_pos(b2)
+        r2 = self.black_right_pos(b2)
+        return p1 < p2 and q1 > q2 and r1 < r2
+
+    def orange_double_crosses_black(self, orange: int, black: int) -> int:
+        p1 = self.orange_left_pos(orange)
+        q1 = self.orange_middle_pos(orange)
+        r1 = self.orange_right_pos(orange)
+        p2 = self.black_left_pos(black)
+        q2 = self.black_middle_pos(black)
+        r2 = self.black_right_pos(black)
+
+        times_crossed = 0
+        if (p1 < p2) ^ (p1 < q2):
+            times_crossed += 1
+        if (p1 < q2) ^ (p1 < r2):
+            times_crossed += 1
+        if (p1 < r2) ^ (q1 < r2):
+            times_crossed += 1
+        if (q1 < r2) ^ (r1 < r2):
+            times_crossed += 1
+
+        return times_crossed > 1
 
 
-def validdictionaries(et: ETangle, ls: Dict, rs: Dict):
-    for key in ls.keys():
-        if key not in et.left_points():
-            return False
-    for val in rs.values():
-        if val not in et.right_points():
-            return False
-    return set(ls.values()).union(set(rs.keys())) == set(et.middle_points())
+

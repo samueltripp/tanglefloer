@@ -1,7 +1,7 @@
 from __future__ import annotations
 from networkx import MultiDiGraph
 from typing import Iterable, Any
-from Modules import StrandDiagram
+from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
 import itertools as it
@@ -24,7 +24,7 @@ class Bimodule:
 
     @classmethod
     def from_strand_diagrams(cls, left_algebra: AMinus, right_algebra: AMinus,
-                             generators: Iterable[StrandDiagram], maps: Iterable[Bimodule.Edge]):
+                             generators: Iterable[ETangleStrands], maps: Iterable[Bimodule.Edge]):
         return Bimodule(left_algebra, right_algebra,
                         [Bimodule.Generator(sd, sd.left_idempotent(), sd.right_idempotent())
                          for sd in generators], maps)
@@ -80,6 +80,7 @@ class TypeDA(Bimodule):
                  generators: Iterable[Bimodule.Generator], maps: Iterable[Bimodule.Edge]):
         super().__init__(left_algebra, right_algebra, generators, maps)
 
+    # TODO: this won't work because of polynomial ring mismatch
     def tensor(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra == other.left_algebra
 

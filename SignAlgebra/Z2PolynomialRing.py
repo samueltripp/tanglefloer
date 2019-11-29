@@ -84,6 +84,12 @@ class Z2Polynomial:
 
         return out
 
+    def __pow__(self, power: int) -> Z2Polynomial:
+        out = self.ring.one()
+        for _ in range(power):
+            out *= self
+        return out
+
     @multimethod
     def __eq__(self, other: Z2Polynomial) -> bool:
         return self.terms == other.terms
