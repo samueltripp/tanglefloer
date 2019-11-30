@@ -67,8 +67,145 @@ class StrandDiagram:
 
         return powers
 
-    def figure_8_relations(self) -> Optional[Tuple[Dict, StrandDiagram]]:
-        pass  # TODO
+    def figure_8_case_1b(self, b1: int, b2: int) -> Optional[Dict]:
+        a1 = self.black_right_pos(b1)
+        a2 = self.black_right_pos(b2)
+
+        for b3 in self.black_strands:
+            if not b1 < b3 < b2:
+                return None
+            a3 = self.black_right_pos(b3)
+            if a3 is None:
+                return None
+            if a3 < a1 or a3 > a2:
+                return None
+
+        powers = {}
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_signs[orange] == 1:
+                    if self.orange_left_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
+                        return None
+                    if self.orange_right_pos(orange) > a2:
+                        powers[orange] += 1
+                    if self.orange_right_pos(orange) < a1:
+                        powers[orange] += 1
+                else:
+                    if self.orange_left_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
+                        powers[orange] += 1
+                    if self.orange_right_pos(orange) > a2:
+                        return None
+                    if self.orange_right_pos(orange) < a1:
+                        return None
+
+        return powers
+
+    def figure_8_case_2b(self, b1: int, b2: int) -> Optional[Dict]:
+        a1 = self.black_left_pos(b1)
+        a2 = self.black_left_pos(b2)
+
+        for b3 in self.black_strands:
+            if not b1 < b3 < b2:
+                continue
+            a3 = self.black_left_pos(b3)
+            if a3 is None:
+                return None
+            if a3 < a2 or a3 > a1:
+                return None
+
+        powers = {}
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_signs[orange] == 1:
+                    if self.orange_right_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
+                        powers[orange] += 1
+                    if self.orange_left_pos(orange) > a1:
+                        return None
+                    if self.orange_left_pos(orange) < a2:
+                        return None
+                else:
+                    if self.orange_right_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
+                        return None
+                    if self.orange_left_pos(orange) > a1:
+                        powers[orange] += 1
+                    if self.orange_left_pos(orange) < a2:
+                        powers[orange] += 1
+
+        return powers
+
+    def figure_8_case_3b(self, b1: int, b2: int) -> Optional[Dict]:
+        a1 = self.black_right_pos(b1)
+        a2 = self.black_left_pos(b2)
+
+        for b3 in self.black_strands:
+            if not b1 < b3 < b2:
+                continue
+            a3 = self.black_left_pos(b3)
+            if a3:
+                if a3 < a2:
+                    return None
+            else:
+                a3 = self.black_right_pos(b3)
+                if a3 < a1:
+                    return None
+
+        powers = {}
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_signs[orange] == 1:
+                    if self.orange_left_pos(orange) < a2:
+                        return None
+                    if self.orange_right_pos(orange) < a1:
+                        powers[orange] += 1
+                else:
+                    if self.orange_left_pos(orange) < a2:
+                        powers[orange] += 1
+                    if self.orange_right_pos(orange) < a1:
+                        return None
+
+        return powers
+
+    def figure_8_case_4b(self, b1: int, b2: int) -> Optional[Dict]:
+        a1 = self.black_left_pos(b1)
+        a2 = self.black_right_pos(b2)
+
+        for b3 in self.black_strands:
+            if not b1 < b3 < b2:
+                continue
+            a3 = self.black_left_pos(b3)
+            if a3:
+                if a3 > a1:
+                    return None
+            else:
+                a3 = self.black_right_pos(b3)
+                if a3 > a2:
+                    return None
+
+        powers = {}
+        for orange in self.orange_strands:
+            powers[orange] = 0
+            if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_signs[orange] == 1:
+                    if self.orange_left_pos(orange) > a1:
+                        return None
+                    if self.orange_right_pos(orange) > a2:
+                        powers[orange] += 1
+                else:
+                    if self.orange_left_pos(orange) > a1:
+                        powers[orange] += 1
+                    if self.orange_right_pos(orange) > a2:
+                        return None
+
+        return powers
+
+    def black_crosses_black(self, b1: int, b2: int) -> bool:
+        return self.black_times_crossed_black(b1, b2) > 0
+
+    def orange_crosses_black(self, orange: int, black: int) -> bool:
+        return self.orange_times_crossed_black(orange, black) > 0
 
     def black_double_crosses_black(self, b1: int, b2: int) -> bool:
         return self.black_times_crossed_black(b1, b2) > 1

@@ -80,7 +80,6 @@ class TestCTMinus(unittest.TestCase):
         )
 
         self.assertEqual(sd_under1_1_out, d_minus(sd_under1_1))
-        print(d_minus(sd_over3_1))
         self.assertEqual(sd_over3_1_out, d_minus(sd_over3_1))
 
     def test_d_mixed(self):

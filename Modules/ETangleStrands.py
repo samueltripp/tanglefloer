@@ -31,6 +31,22 @@ class ETangleStrands:
     def right_y_pos(self, black_strand: int):
         return self.right_strands[black_strand]
 
+    def to_strand_diagram(self):
+        orange_strands = {}
+        orange_signs = {}
+        for orange in range(1, len(self.etangle.signs)):
+            orange_strands[orange] = (
+                self.etangle.left_y_pos(orange), self.etangle.middle_y_pos(orange), self.etangle.right_y_pos(orange)
+            )
+            orange_signs[orange] = self.etangle.middle_signs()[orange]
+        black_strands = {}
+        for black in self.left_strands.values():
+            black_strands[black] = (self.left_y_pos(black), black, None)
+        for black in self.right_strands.keys():
+            black_strands[black] = (None, black, self.right_y_pos(black))
+
+        return StrandDiagram(orange_strands, orange_signs, black_strands)
+
     def __repr__(self):
         return str((self.etangle, self.left_strands, self.right_strands))
 
