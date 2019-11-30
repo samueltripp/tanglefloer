@@ -74,6 +74,16 @@ class Bimodule:
             self.left = left
             self.right = right
 
+        def __repr__(self) -> str:
+            return str(self.__dict__)
+
+        def __eq__(self, other: Bimodule.Edge) -> bool:
+            return self.source_diagram == other.source_diagram and \
+                   self.target_diagram == other.target_diagram and \
+                   self.c == other.c and \
+                   self.left == other.left and \
+                   self.right == other.right
+
 
 class TypeDA(Bimodule):
     def __init__(self, left_algebra: AMinus, right_algebra: AMinus,

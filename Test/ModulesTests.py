@@ -107,6 +107,59 @@ class TestCTMinus(unittest.TestCase):
 
         self.assertEqual(sd_cap2_1_out, m2(sd_cap2_1, elt))
 
+    def test_delta_ell_case_1(self):
+        over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
+        x = ETangleStrands(over1, {0: 2}, {0: 0, 1: 1})
+        a1 = 1
+        a2 = 2
+        y = x
+        out = Bimodule.Edge(
+            x, y, over1.polyring['U2'], (over1.left_algebra.gen({1: 2, 2: 1}),), tuple()
+        )
+        self.assertEqual(out, delta_ell_case_1(x, a1, a2))
+
+    def test_delta_ell_case_2(self):
+        over1 = ETangle(ETangle.Type.OVER, (1, 1), 1)
+        x = ETangleStrands(over1, {0: 1, 1: 0}, {2: 2})
+        a1 = 0
+        a2 = 1
+        y = ETangleStrands(over1, {0: 0, 1: 1}, {2: 2})
+        out = Bimodule.Edge(
+            x, y, over1.polyring['U1'], (over1.left_algebra.gen({2: 2}),), tuple()
+        )
+        self.assertEqual(out, delta_ell_case_2(x, a1, a2))
+
+    def test_delta_ell_case_3(self):
+        over1 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
+        x = ETangleStrands(over1, {1: 1, 2: 2}, {0: 0})
+        a1 = 0
+        a2 = 1
+        y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
+        out = Bimodule.Edge(
+            x, y, over1.polyring['U1'], (over1.left_algebra.gen({0: 1}),), tuple()
+        )
+        self.assertEqual(out, delta_ell_case_3(x, a1, a2))
+
+    def test_delta_ell_case_4(self):
+        over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
+        x = ETangleStrands(over1, {0: 1, 1: 0}, {2: 2})
+        a1 = 0
+        a2 = 2
+        y = ETangleStrands(over1, {2: 1, 1: 0}, {2: 2})
+        out = Bimodule.Edge(
+            x, y, over1.polyring['U2'], (over1.left_algebra.gen({2: 0}),), tuple()
+        )
+        self.assertEqual(out, delta_ell_case_4(x, a1, a2))
+
+    def test_delta_ell(self):
+        over1 = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
+        x = ETangleStrands(over1, {1: 0, 2: 1}, {3: 0, 2: 2})
+        y = ETangleStrands(over1, {0: 0, 2: 1}, {3: 0, 2: 2})
+        c = over1.polyring.one()
+        elt = over1.left_algebra.gen({0: 1, 3: 3})
+        out = [Bimodule.Edge(x, y, c, (elt,), tuple())]
+        self.assertEqual(out, delta_ell(x))
+
 
 if __name__ == '__main__':
     unittest.main()

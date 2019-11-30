@@ -1,6 +1,7 @@
 from __future__ import annotations
 from Modules.CTMinus import *
 from frozendict import *
+from Modules.StrandDiagram import StrandDiagram
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *
 
@@ -17,9 +18,12 @@ class ETangleStrands:
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self) -> AMinus.Element:
+        return self.etangle.left_algebra.idempotent(self.left_idempotent_strands().keys())
+
+    def left_idempotent_strands(self) -> Dict:
         occupied = self.left_strands.keys()
         total = set(range(len(self.etangle.left_algebra.ss)))
-        return self.etangle.left_algebra.idempotent(list(total - occupied))
+        return {strand: strand for strand in total - occupied}
 
     # the idempotent e^A_R                                                                                                                                
     def right_idempotent(self) -> AMinus.Element:
@@ -45,6 +49,23 @@ class ETangleStrands:
         for black in self.right_strands.keys():
             black_strands[black] = (None, black, self.right_y_pos(black))
 
+        return StrandDiagram(orange_strands, orange_signs, black_strands)
+
+    def left_idempotent_strand_diagram(self):
+        orange_strands = {}
+        orange_signs = {}
+        for orange in range(1, len(self.etangle.signs)):
+            if self.etangle.left_y_pos(orange):
+                orange_strands[orange] = (
+                    self.etangle.left_y_pos(orange), self.etangle.left_y_pos(orange), self.etangle.middle_y_pos(orange)
+                )
+            orange_signs[orange] = self.etangle.left_signs()[orange]
+        black_strands = {}
+        for black in self.etangle.left_points():
+            if black in self.left_strands.keys():
+                black_strands[black] = (None, black, self.left_strands[black])
+            else:
+                black_strands[black] = (black, black, None)
         return StrandDiagram(orange_strands, orange_signs, black_strands)
 
     def __repr__(self):

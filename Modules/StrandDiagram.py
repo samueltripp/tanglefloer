@@ -13,6 +13,13 @@ class StrandDiagram:
         self.orange_signs = orange_signs
         self.black_strands = black_strands
 
+    def reflect(self):
+        return StrandDiagram(
+            {orange: tuple(pos[::-1]) for orange, pos in self.orange_strands.items()},
+            {orange: sign for orange, sign in self.orange_signs.items()},
+            {black: tuple(pos[::-1]) for black, pos in self.black_strands.items()}
+        )
+
     def orange_left_pos(self, orange_index: int):
         return self.orange_strands[orange_index][0]
 
@@ -73,7 +80,7 @@ class StrandDiagram:
 
         for b3 in self.black_strands:
             if not b1 < b3 < b2:
-                return None
+                continue
             a3 = self.black_right_pos(b3)
             if a3 is None:
                 return None
@@ -143,7 +150,7 @@ class StrandDiagram:
             if not b1 < b3 < b2:
                 continue
             a3 = self.black_left_pos(b3)
-            if a3:
+            if a3 is not None:
                 if a3 < a2:
                     return None
             else:
@@ -176,7 +183,7 @@ class StrandDiagram:
             if not b1 < b3 < b2:
                 continue
             a3 = self.black_left_pos(b3)
-            if a3:
+            if a3 is not None:
                 if a3 > a1:
                     return None
             else:
@@ -200,6 +207,18 @@ class StrandDiagram:
                         return None
 
         return powers
+
+    def figure_8_case_1a(self, b1: int, b2: int) -> Optional[Dict]:
+        return self.reflect().figure_8_case_1b(b1, b2)
+
+    def figure_8_case_2a(self, b1: int, b2: int) -> Optional[Dict]:
+        return self.reflect().figure_8_case_2b(b1, b2)
+
+    def figure_8_case_3a(self, b1: int, b2: int) -> Optional[Dict]:
+        return self.reflect().figure_8_case_3b(b1, b2)
+
+    def figure_8_case_4a(self, b1: int, b2: int) -> Optional[Dict]:
+        return self.reflect().figure_8_case_4b(b1, b2)
 
     def black_crosses_black(self, b1: int, b2: int) -> bool:
         return self.black_times_crossed_black(b1, b2) > 0

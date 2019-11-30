@@ -25,7 +25,7 @@ def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:
     out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_plus(x).d.items()]
     out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_minus(x).d.items()]
     out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_mixed(x).d.items()]
-    out += [delta_ell(x)]
+    out += delta_ell(x)
     return out
 
 
@@ -66,29 +66,61 @@ def d_mixed(x: ETangleStrands) -> Bimodule.Element:
         for b2 in x.right_strands.keys():
             # if two black strands don't cross on the right
             if b1 < b2 and x.right_y_pos(b1) < x.right_y_pos(b2):
-                out += dmixed_case1(x, b1, b2)
+                out += d_mixed_case_1(x, b1, b2)
 
     for b1 in x.left_strands.values():
         for b2 in x.left_strands.values():
             # if two black strands cross on the left
             if b1 < b2 and x.left_y_pos(b1) > x.left_y_pos(b2):
-                out += dmixed_case2(x, b1, b2)
+                out += d_mixed_case_2(x, b1, b2)
 
     for b1 in x.right_strands.keys():
         for b2 in x.left_strands.values():
             if b1 < b2:
-                out += dmixed_case3(x, b1, b2)
+                out += d_mixed_case_3(x, b1, b2)
 
     for b1 in x.left_strands.values():
         for b2 in x.right_strands.keys():
             if b1 < b2:
-                out += dmixed_case4(x, b1, b2)
+                out += d_mixed_case_4(x, b1, b2)
 
     return out
 
 
-def delta_ell(x: ETangleStrands) -> Bimodule.Edge:
-    pass  # TODO: rewrite code to make this easier
+def delta_ell(x: ETangleStrands) -> List[Bimodule.Edge]:
+    out = []
+
+    unoccupied = set(x.etangle.left_points()) - set(x.left_strands.keys())
+
+    for a1 in unoccupied:
+        for a2 in unoccupied:
+            if a1 < a2:
+                e = delta_ell_case_1(x, a1, a2)
+                if e:
+                    out += [e]
+
+    for a1 in x.left_strands.keys():
+        for a2 in x.left_strands.keys():
+            if a1 < a2 and x.left_strands[a1] > x.left_strands[a2]:
+                e = delta_ell_case_2(x, a1, a2)
+                if e:
+                    out += [e]
+
+    for a1 in unoccupied:
+        for a2 in x.left_strands.keys():
+            if a1 < a2:
+                e = delta_ell_case_3(x, a1, a2)
+                if e:
+                    out += [e]
+
+    for a1 in x.left_strands.keys():
+        for a2 in unoccupied:
+            if a1 < a2:
+                e = delta_ell_case_4(x, a1, a2)
+                if e:
+                    out += [e]
+
+    return out
 
 
 @multimethod
@@ -213,7 +245,7 @@ def swap_values(d: Dict, k1, k2) -> Dict:
     return d_out
 
 
-def dmixed_case1(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_1(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_1b(b1, b2)
     if powers is None:
@@ -224,7 +256,7 @@ def dmixed_case1(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     return Bimodule.Element({sd_out: c})
 
 
-def dmixed_case2(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_2(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_2b(b1, b2)
     if powers is None:
@@ -237,7 +269,7 @@ def dmixed_case2(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     return Bimodule.Element({sd_out: c})
 
 
-def dmixed_case3(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_3(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_3b(b1, b2)
     if powers is None:
@@ -255,7 +287,7 @@ def dmixed_case3(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     return Bimodule.Element({sd_out: c})
 
 
-def dmixed_case4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_4b(b1, b2)
     if powers is None:
@@ -271,6 +303,71 @@ def dmixed_case4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     new_right_strands[b1] = a2
     sd_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
     return Bimodule.Element({sd_out: c})
+
+
+def delta_ell_case_1(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+    c = x.etangle.polyring.one()
+    powers = x.left_idempotent_strand_diagram().figure_8_case_1a(a1, a2)
+    if powers is None:
+        return None
+    for orange, power in powers.items():
+        c *= x.etangle.strand_index_to_variable(orange) ** power
+    b1 = a1
+    b2 = a2
+    idempotent_strands = x.left_idempotent_strands()
+    elt_strands = swap_values(idempotent_strands, b1, b2)
+    elt = x.etangle.left_algebra.gen(elt_strands)
+    return Bimodule.Edge(x, x, c, (elt,), tuple())
+
+
+def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+    c = x.etangle.polyring.one()
+    powers = x.left_idempotent_strand_diagram().figure_8_case_2a(a1, a2)
+    if powers is None:
+        return None
+    for orange, power in powers.items():
+        c *= x.etangle.strand_index_to_variable(orange) ** power
+    elt = x.left_idempotent()
+    y = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
+    return Bimodule.Edge(x, y, c, (elt,), tuple())
+
+
+def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+    c = x.etangle.polyring.one()
+    powers = x.left_idempotent_strand_diagram().figure_8_case_3a(a1, a2)
+    if powers is None:
+        return None
+    for orange, power in powers.items():
+        c *= x.etangle.strand_index_to_variable(orange) ** power
+    b1 = a1
+    b2 = x.left_strands[a2]
+    elt_strands = x.left_idempotent_strands()
+    elt_strands[b1] = a2
+    new_left_strands = dict(x.left_strands)
+    del new_left_strands[a2]
+    new_left_strands[a1] = b2
+    elt = x.etangle.left_algebra.gen(elt_strands)
+    y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
+    return Bimodule.Edge(x, y, c, (elt,), tuple())
+
+
+def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+    c = x.etangle.polyring.one()
+    powers = x.left_idempotent_strand_diagram().figure_8_case_4a(a1, a2)
+    if powers is None:
+        return None
+    for orange, power in powers.items():
+        c *= x.etangle.strand_index_to_variable(orange) ** power
+    b1 = x.left_strands[a1]
+    b2 = a2
+    elt_strands = x.left_idempotent_strands()
+    elt_strands[b2] = a1
+    new_left_strands = dict(x.left_strands)
+    del new_left_strands[a1]
+    new_left_strands[a2] = b1
+    elt = x.etangle.left_algebra.gen(elt_strands)
+    y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
+    return Bimodule.Edge(x, y, c, (elt,), tuple())
 
 
 # points - a list of sets of points
