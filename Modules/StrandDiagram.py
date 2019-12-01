@@ -95,17 +95,21 @@ class StrandDiagram:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
                         return None
-                    if self.orange_right_pos(orange) > a2:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) > a2:
                         powers[orange] += 1
-                    if self.orange_right_pos(orange) < a1:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) < a1:
                         powers[orange] += 1
                 else:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
                         powers[orange] += 1
-                    if self.orange_right_pos(orange) > a2:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) > a2:
                         return None
-                    if self.orange_right_pos(orange) < a1:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) < a1:
                         return None
 
         return powers
@@ -137,7 +141,8 @@ class StrandDiagram:
                             self.orange_left_pos(orange) < a2:
                         return None
                 else:
-                    if self.orange_right_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) == self.orange_middle_pos(orange) or True:  # ???
                         return None
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) > a1:
@@ -172,13 +177,15 @@ class StrandDiagram:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) < a2:
                         return None
-                    if self.orange_right_pos(orange) < a1:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) < a1:
                         powers[orange] += 1
                 else:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) < a2:
                         powers[orange] += 1
-                    if self.orange_right_pos(orange) < a1:
+                    if self.orange_right_pos(orange) is not None and \
+                            self.orange_right_pos(orange) < a1:
                         return None
 
         return powers

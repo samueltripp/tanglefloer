@@ -164,20 +164,26 @@ class TestCTMinus(unittest.TestCase):
         self.assertEqual(out, delta_ell(x))
 
     def test_type_da(self):
-        over1 = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        da = type_da(over1)
+        et = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        da = type_da(et)
 
-        matplotlib.use("Agg")
-        f = plt.figure()
+        # matplotlib.use("Agg")
+        f = plt.figure(figsize=[10, 10])
 
+        layout = nx.circular_layout(da.graph)
         nx.draw_networkx(da.graph,
-                         pos=nx.shell_layout(da.graph),
+                         pos=layout,
                          labels={v: str(dict(v.left_strands)) + str(dict(v.right_strands)) for v in da.graph.nodes},
-                         ax=f.add_subplot(111))
+                         ax=f.add_subplot(111)
+                         )
         edges = {(s, t): str(da.graph[s][t][i]['c'])
                  for s in da.graph for t in da.graph[s] for i in da.graph[s][t]}
-        nx.draw_networkx_edge_labels(da.graph, pos=nx.shell_layout(da.graph), edge_labels=edges)
-        f.savefig("output/type_da.png")
+        nx.draw_networkx_edge_labels(da.graph,
+                                     pos=layout,
+                                     edge_labels=edges
+                                     )
+        plt.show()
+        # f.savefig("output/type_da.png")
 
 
 if __name__ == '__main__':
