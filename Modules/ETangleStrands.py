@@ -72,7 +72,8 @@ class ETangleStrands:
         return str((self.etangle, self.left_strands, self.right_strands))
 
     def __eq__(self, other: ETangleStrands):
-        return self.etangle == other.etangle and \
+        return other is not None and \
+               self.etangle == other.etangle and \
                self.left_strands == other.left_strands and \
                self.right_strands == other.right_strands
 

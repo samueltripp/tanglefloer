@@ -18,7 +18,7 @@ class Bimodule:
         for gen in generators:
             self.graph.add_node(gen.key, left_idempotent=gen.left_idempotent, right_idempotent=gen.right_idempotent)
         for edge in maps:
-            if edge.c != 0:
+            if edge.c != edge.target_diagram.etangle.polyring.zero():
                 self.graph.add_edge(edge.source_diagram, edge.target_diagram,
                                     c=edge.c, left=edge.left, right=edge.right)
 
@@ -28,6 +28,9 @@ class Bimodule:
         return Bimodule(left_algebra, right_algebra,
                         [Bimodule.Generator(sd, sd.left_idempotent(), sd.right_idempotent())
                          for sd in generators], maps)
+
+    def __repr__(self) -> str:
+        return str(self.__dict__)
 
     class Generator:
         def __init__(self, key, left_idempotent: AMinus.Element, right_idempotent: AMinus.Element):

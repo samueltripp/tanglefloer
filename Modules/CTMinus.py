@@ -13,9 +13,10 @@ def type_da(etangle: ETangle) -> TypeDA:
     gens = [ETangleStrands(etangle, left_strands, right_strands)
             for left_strands, right_strands in
             enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
-    maps = sum((delta1_1(x) for x in gens), []) + \
-           [delta1_2(x, a) for x in gens
-            for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))]
+    maps = \
+        sum((delta1_1(x) for x in gens), []) + \
+        sum((delta1_2(x, a) for x in gens
+            for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))), [])
 
     return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, gens, maps)
 
@@ -29,11 +30,12 @@ def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:
     return out
 
 
-def delta1_2(x: ETangleStrands, a: AMinus.Element) -> Bimodule.Edge:
+def delta1_2(x: ETangleStrands, a: AMinus.Element) -> List[Bimodule.Edge]:
     b = m2(x, a)
-    sd = b.d.keys().pop()
-    c = b.d.values().pop()
-    return Bimodule.Edge(x, sd, c, (x.left_idempotent(),), (a,))
+    out = []
+    for y, c in b.d.items():
+        out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), (a,))]
+    return out
 
 
 def d_plus(x: ETangleStrands) -> Bimodule.Element:

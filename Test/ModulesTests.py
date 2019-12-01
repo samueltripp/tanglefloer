@@ -1,5 +1,8 @@
 from Tangles.Tangle import *
 from Modules.CTMinus import *
+import networkx as nx
+import matplotlib
+import matplotlib.pyplot as plt
 
 import unittest
 
@@ -159,6 +162,22 @@ class TestCTMinus(unittest.TestCase):
         elt = over1.left_algebra.gen({0: 1, 3: 3})
         out = [Bimodule.Edge(x, y, c, (elt,), tuple())]
         self.assertEqual(out, delta_ell(x))
+
+    def test_type_da(self):
+        over1 = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        da = type_da(over1)
+
+        matplotlib.use("Agg")
+        f = plt.figure()
+
+        nx.draw_networkx(da.graph,
+                         pos=nx.shell_layout(da.graph),
+                         labels={v: str(dict(v.left_strands)) + str(dict(v.right_strands)) for v in da.graph.nodes},
+                         ax=f.add_subplot(111))
+        edges = {(s, t): str(da.graph[s][t][i]['c'])
+                 for s in da.graph for t in da.graph[s] for i in da.graph[s][t]}
+        nx.draw_networkx_edge_labels(da.graph, pos=nx.shell_layout(da.graph), edge_labels=edges)
+        f.savefig("output/type_da.png")
 
 
 if __name__ == '__main__':
