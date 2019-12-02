@@ -1,9 +1,4 @@
-from Tangles.Tangle import *
 from Modules.CTMinus import *
-import networkx as nx
-import matplotlib
-import matplotlib.pyplot as plt
-
 import unittest
 
 
@@ -166,24 +161,8 @@ class TestCTMinus(unittest.TestCase):
     def test_type_da(self):
         et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
-
-        # matplotlib.use("Agg")
-        f = plt.figure(figsize=[10, 10])
-
-        layout = nx.circular_layout(da.graph)
-        nx.draw_networkx(da.graph,
-                         pos=layout,
-                         labels={v: str(dict(v.left_strands)) + str(dict(v.right_strands)) for v in da.graph.nodes},
-                         ax=f.add_subplot(111)
-                         )
-        edges = {(s, t): str(da.graph[s][t][i]['c'])
-                 for s in da.graph for t in da.graph[s] for i in da.graph[s][t]}
-        nx.draw_networkx_edge_labels(da.graph,
-                                     pos=layout,
-                                     edge_labels=edges
-                                     )
-        plt.show()
-        # f.savefig("output/type_da.png")
+        gv = da.to_agraph()
+        gv.draw('output/test.png')
 
 
 if __name__ == '__main__':

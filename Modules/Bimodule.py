@@ -1,10 +1,12 @@
 from __future__ import annotations
 from networkx import MultiDiGraph
 from typing import Iterable, Any
+
+from pygraphviz import AGraph
+
 from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
-import itertools as it
 
 
 # Base class for Type DD, AA, DA, and AD structures
@@ -31,6 +33,18 @@ class Bimodule:
 
     def __repr__(self) -> str:
         return str(self.__dict__)
+
+    def to_agraph(self):
+        out = AGraph(size='10,10', nodesep='1')
+        for node in self.graph.nodes:
+            out.add_node(node, label=str(dict(node.left_strands)) + str(dict(node.right_strands)), shape='box')
+        for source in self.graph:
+            for target in self.graph[source]:
+                for i in self.graph[source][target]:
+                    edge = self.graph[source][target][i]
+                    out.add_edge(source, target, label=str((edge['left'], edge['c'], edge['right'])), dir='forward')
+        out.layout('dot')
+        return out
 
     class Generator:
         def __init__(self, key, left_idempotent: AMinus.Element, right_idempotent: AMinus.Element):
