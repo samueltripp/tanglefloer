@@ -185,7 +185,7 @@ class ETangle(Tangle):
     def from_right_algebra(self, algebra: AMinus, c: Z2Polynomial):
         mapping = Z2PolynomialRing.Map(algebra.polyring, self.polyring,
                                        {'U'+str(p): 'U'+str(self.strand_index_to_variable_name(p))
-                                        for p in algebra.positives})
+                                        for p in algebra.positives if p is not None})
         return mapping.apply(c)
 
     def __repr__(self):

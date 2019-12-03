@@ -13,10 +13,12 @@ def type_da(etangle: ETangle) -> TypeDA:
     gens = [ETangleStrands(etangle, left_strands, right_strands)
             for left_strands, right_strands in
             enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+    print([delta1_2(x, a) for x in gens
+           for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))])
     maps = \
         sum((delta1_1(x) for x in gens), []) + \
         sum((delta1_2(x, a) for x in gens
-            for a in etangle.right_algebra.left_gens(list(x.left_strands.keys()))), [])
+             for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))), [])
 
     return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, gens, maps)
 
@@ -136,7 +138,7 @@ def m2(x: ETangleStrands, a: AMinus.Element) -> Bimodule.Element:
 @multimethod
 def m2(x: ETangleStrands, a: AMinus.Gen) -> Bimodule.Element:
     # if the sign sequences do not match, return 0
-    if x.etangle.right_signs()[1:] != a.algebra.ss:
+    if x.etangle.right_signs() != a.algebra.ss:
         return Bimodule.Element()
 
     # if the strands cannot be merged, return 0
@@ -309,7 +311,7 @@ def d_mixed_case_4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
 
 def delta_ell_case_1(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
     c = x.etangle.polyring.one()
-    powers = x.left_idempotent_strand_diagram().figure_8_case_1a(a1, a2)
+    powers = x.idempotent_and_left_strands().figure_8_case_1a(a1, a2)
     if powers is None:
         return None
     for orange, power in powers.items():
@@ -324,7 +326,7 @@ def delta_ell_case_1(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
 
 def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
     c = x.etangle.polyring.one()
-    powers = x.left_idempotent_strand_diagram().figure_8_case_2a(a1, a2)
+    powers = x.idempotent_and_left_strands().figure_8_case_2a(a1, a2)
     if powers is None:
         return None
     for orange, power in powers.items():
@@ -336,7 +338,7 @@ def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
 
 def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
     c = x.etangle.polyring.one()
-    powers = x.left_idempotent_strand_diagram().figure_8_case_3a(a1, a2)
+    powers = x.idempotent_and_left_strands().figure_8_case_3a(a1, a2)
     if powers is None:
         return None
     for orange, power in powers.items():
@@ -355,7 +357,7 @@ def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
 
 def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
     c = x.etangle.polyring.one()
-    powers = x.left_idempotent_strand_diagram().figure_8_case_4a(a1, a2)
+    powers = x.idempotent_and_left_strands().figure_8_case_4a(a1, a2)
     if powers is None:
         return None
     for orange, power in powers.items():

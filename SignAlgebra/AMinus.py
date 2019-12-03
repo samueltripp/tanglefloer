@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from Modules.StrandDiagram import StrandDiagram
 from SignAlgebra.Z2PolynomialRing import *
 from Tangles.Functions import *
 
@@ -6,8 +8,8 @@ from Tangles.Functions import *
 class AMinus:
     def __init__(self, sign_sequence):
         # store the overarching sign sequence, the list of positive indices, and the polynomial ring
-        self.ss = sign_sequence
-        self.positives = list(i for i in range(len(sign_sequence)) if sign_sequence[i] == 1)
+        self.ss = (None,) + tuple(sign_sequence)
+        self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
         self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
 
     def zero(self):
@@ -18,11 +20,11 @@ class AMinus:
 
     # returns all generators with the given points occupied on the left
     def left_gens(self, points):
-        return [self.gen(inj) for inj in injections(points, list(range(len(self.ss) + 1)))]
+        return [self.gen(inj) for inj in injections(points, list(range(1, len(self.ss))))]
 
     # returns all generators with the given points occupied on the right
     def right_gens(self, points):
-        return [self.gen(invert_injection(inj)) for inj in injections(points, list(range(len(self.ss) + 1)))]
+        return [self.gen(invert_injection(inj)) for inj in injections(points, list(range(1, len(self.ss))))]
 
     # returns the idempotent with the given points occupied
     def idempotent(self, points):
@@ -115,28 +117,20 @@ class AMinus:
             if set(strands1.values()) != strands2.keys():
                 return self.algebra.zero()
 
-            # check if black strands double cross
-            for key1 in strands1.keys():
-                for key2 in strands1.keys():
-                    if (strands2[strands1[key1]] > strands2[strands1[key2]]
-                        and strands1[key1] < strands1[key2]) \
-                            or (strands2[strands1[key1]] < strands2[strands1[key2]]
-                                and strands1[key1] > strands1[key2]):
-                        return self.algebra.zero()
+            orange_strands = {orange: 3*(orange - 1/2,) for orange in range(1, len(self.algebra.ss))}
+            orange_signs = {orange: self.algebra.ss[orange] for orange in range(1, len(self.algebra.ss))}
+            black_strands = {self.strands[black]: (black, self.strands[black], other.strands[self.strands[black]])
+                             for black in self.strands.keys()}
 
-            # count double crossed orange strands
+            sd = StrandDiagram(orange_strands, orange_signs, black_strands)
+            powers = sd.figure_6_relations()
+            if powers is None:
+                return self.algebra.zero()
             c = self.algebra.polyring.one()
-            for key in strands1.keys():
-                if strands1[key] > key:
-                    checkrange = range(max(key, strands2[strands1[key]]), strands1[key])
-                else:
-                    checkrange = range(strands1[key], min(key, strands2[strands1[key]]))
-
-                for i in checkrange:
-                    if i not in self.algebra.positives:
-                        return self.algebra.zero()
-                    else:
-                        c *= self.algebra.polyring['U' + str(i)]
+            for orange, power in powers.items():
+                if orange in self.algebra.positives:
+                    p = self.algebra.positives.index(orange)
+                    c *= self.algebra.polyring['U'+str(p)] ** power
 
             # construct the new generator
             strands = {}
@@ -153,31 +147,39 @@ class AMinus:
             out = self.algebra.zero()
             for s1, t1 in self.strands.items():
                 for s2, t2 in self.strands.items():
-                    if s2 < s1 and t2 > t1:
-                        out += AMinus.Element(self.algebra, self.smooth_crossing(s1, s2))
+                    if s1 < s2 and t1 > t2:
+                        out += self.smooth_crossing(s1, s2)
             return out
 
-        def smooth_crossing(self, i, j):
-            # check if black strands double cross
-            for s in self.strands.keys() & set(range(j, i)):
-                if self.strands[i] < self.strands[s] < self.strands[j]:
-                    return {}
+        def smooth_crossing(self, i, j) -> AMinus.Element:
+            orange_strands = {orange: 3 * (orange - 1 / 2,) for orange in range(1, len(self.algebra.ss))}
+            orange_signs = {orange: self.algebra.ss[orange] for orange in range(1, len(self.algebra.ss))}
+            black_strands = {}
 
-            # construct the output generator
-            out = AMinus.Gen(self.algebra, dict(self.strands))
-            out.strands[i] = self.strands[j]
-            out.strands[j] = self.strands[i]
-
-            # calculate the appropriate coefficient
-            checkrange = range(max(self.strands[i], j), min(i, self.strands[j]))
-            c = self.algebra.polyring.one()
-            for i in checkrange:
-                if i not in self.algebra.positives:
-                    return {}
+            for black in self.strands.keys():
+                if black == i:
+                    black_strands[i] = (i, min(j, self.strands[i]) - .25, self.strands[j])
+                elif black == j:
+                    black_strands[j] = (j, min(j, self.strands[i]) + .25, self.strands[i])
                 else:
-                    c = c * self.algebra.polyring['U' + str(i)]
+                    black_strands[black] = (black, black, self.strands[black])
 
-            return {out: c}
+            sd = StrandDiagram(orange_strands, orange_signs, black_strands)
+            powers = sd.figure_6_relations()
+            c = self.algebra.polyring.one()
+            if powers is None:
+                return self.algebra.zero()
+            for orange, power in powers.items():
+                if orange in self.algebra.positives:
+                    p = self.algebra.positives.index(orange)
+                    c *= self.algebra.polyring['U'+str(p)] ** power
+
+            # construct the new generator
+            new_strands = dict(self.strands)
+            new_strands[i] = self.strands[j]
+            new_strands[j] = self.strands[i]
+
+            return c * self.algebra.gen(new_strands)
 
         def two_alexander(self, coeff):
             strands = dict(self.strands)
