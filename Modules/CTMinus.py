@@ -13,14 +13,12 @@ def type_da(etangle: ETangle) -> TypeDA:
     gens = [ETangleStrands(etangle, left_strands, right_strands)
             for left_strands, right_strands in
             enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
-    print([delta1_2(x, a) for x in gens
-           for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))])
     maps = \
         sum((delta1_1(x) for x in gens), []) + \
         sum((delta1_2(x, a) for x in gens
              for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))), [])
 
-    return TypeDA.from_strand_diagrams(etangle.left_algebra, etangle.right_algebra, gens, maps)
+    return TypeDA(etangle.left_algebra, etangle.right_algebra, gens, maps)
 
 
 def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:
@@ -150,7 +148,7 @@ def m2(x: ETangleStrands, a: AMinus.Gen) -> Bimodule.Element:
     for orange in range(1, len(x.etangle.signs)):
         if x.etangle.right_y_pos(orange):
             orange_strands[orange] = (
-                x.etangle.middle_y_pos(orange), x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange)
+                x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange), x.etangle.right_y_pos(orange)
             )
         orange_signs[orange] = x.etangle.middle_signs()[orange]
     black_strands = {}
@@ -180,15 +178,15 @@ def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Eleme
     for orange in range(1, len(x.etangle.signs)):
         if x.etangle.right_y_pos(orange):
             orange_strands[orange] = (
-                x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange), x.etangle.right_y_pos(orange)
+                x.etangle.middle_y_pos(orange), x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange)
             )
         orange_signs[orange] = x.etangle.middle_signs()[orange]
     black_strands = {}
     for black in x.right_strands.keys():
         if black == b1:
-            black_strands[b1] = (b1, min(a1, b2) - .25, a2)
+            black_strands[b1] = (b1, min(a1, b2) + .1, a2)
         elif black == b2:
-            black_strands[b2] = (b2, min(a1, b2) + .25, a1)
+            black_strands[b2] = (b2, min(a1, b2) + .2, a1)
         else:
             black_strands[black] = (black, black, x.right_y_pos(black))
 

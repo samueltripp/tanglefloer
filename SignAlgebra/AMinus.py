@@ -8,7 +8,7 @@ from Tangles.Functions import *
 class AMinus:
     def __init__(self, sign_sequence):
         # store the overarching sign sequence, the list of positive indices, and the polynomial ring
-        self.ss = (None,) + tuple(sign_sequence)
+        self.ss = tuple(sign_sequence) if sign_sequence[0] is None else (None,) + tuple(sign_sequence)
         self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
         self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
 
@@ -20,7 +20,7 @@ class AMinus:
 
     # returns all generators with the given points occupied on the left
     def left_gens(self, points):
-        return [self.gen(inj) for inj in injections(points, list(range(1, len(self.ss))))]
+        return [self.gen(inj) for inj in injections(points, list(range(0, len(self.ss))))]
 
     # returns all generators with the given points occupied on the right
     def right_gens(self, points):

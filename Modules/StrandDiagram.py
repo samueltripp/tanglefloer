@@ -274,13 +274,10 @@ class StrandDiagram:
     @staticmethod
     def times_crossed(p1: int, q1: int, r1: int, p2: int, q2: int, r2: int) -> int:
         out = 0
-        if (p1 < p2) ^ (p1 < q2):
+
+        if (p1 < p2) ^ (q1 < q2):
             out += 1
-        if (p1 < q2) ^ (p1 < r2):
-            out += 1
-        if (p1 < r2) ^ (q1 < r2):
-            out += 1
-        if (q1 < r2) ^ (r1 < r2):
+        if (q1 < q2) ^ (r1 < r2):
             out += 1
 
         return out

@@ -100,10 +100,21 @@ class TestCTMinus(unittest.TestCase):
         sd_cap2_1_out = Bimodule.Element(
             {ETangleStrands(cap2, {0: 0, 1: 3}, {2: 1}): cap2.polyring.one()}
         )
-        algebra = AMinus((-1,))
-        elt = algebra.gen({0: 1})
+        algebra1 = AMinus((-1,))
+        elt1 = algebra1.gen({0: 1})
+        idem = algebra1.gen({0: 0})
 
-        self.assertEqual(sd_cap2_1_out, m2(sd_cap2_1, elt))
+        self.assertEqual(sd_cap2_1_out, m2(sd_cap2_1, elt1))
+        self.assertEqual(Bimodule.Element({sd_cap2_1: cap2.polyring.one()}), m2(sd_cap2_1, idem))
+
+        cup1 = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        sd_cup1_1 = ETangleStrands(cup1, {}, {2: 1, 0: 0})
+        algebra2 = AMinus((1, -1))
+        idem2 = algebra2.gen({0: 0, 1: 1})
+        sd_cup1_2 = ETangleStrands(cup1, {}, {2: 0, 0: 1})
+
+        self.assertEqual(Bimodule.Element({sd_cup1_1: cup1.polyring.one()}), m2(sd_cup1_1, idem2))
+        self.assertEqual(Bimodule.Element({sd_cup1_2: cup1.polyring.one()}), m2(sd_cup1_2, idem2))
 
     def test_delta_ell_case_1(self):
         over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
@@ -161,8 +172,8 @@ class TestCTMinus(unittest.TestCase):
     def test_type_da(self):
         et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
-        gv = da.to_agraph()
-        gv.draw('output/test.png')
+        gv = da.to_agraph(idempotents=False)
+        gv.draw('output/test_type_da.png')
 
 
 if __name__ == '__main__':

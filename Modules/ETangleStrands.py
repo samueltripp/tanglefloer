@@ -22,7 +22,7 @@ class ETangleStrands:
 
     def left_idempotent_strands(self) -> Dict:
         occupied = self.left_strands.keys()
-        total = set(range(len(self.etangle.left_algebra.ss) - 1))
+        total = set(range(len(self.etangle.left_algebra.ss)))
         return {strand: strand for strand in total - occupied}
 
     # the idempotent e^A_R                                                                                                                                
@@ -59,7 +59,7 @@ class ETangleStrands:
                 orange_strands[orange] = (
                     self.etangle.left_y_pos(orange), self.etangle.left_y_pos(orange), self.etangle.middle_y_pos(orange)
                 )
-            orange_signs[orange] = self.etangle.left_signs()[orange]
+                orange_signs[orange] = self.etangle.middle_signs()[orange]
         black_strands = {}
         for black in self.etangle.left_points():
             if black in self.left_strands.keys():
