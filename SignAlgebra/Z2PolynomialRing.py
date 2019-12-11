@@ -20,6 +20,12 @@ class Z2PolynomialRing:
         assert item in self.variables
         return Z2Monomial(self, {item: 1}).to_polynomial()
 
+    def __eq__(self, other: Z2PolynomialRing):
+        return self.variables == other.variables
+
+    def __hash__(self):
+        return hash(frozenset(self.variables))
+
     # represents a map between polynomial rings that sends some variables to other variables
     # very limited in scope
     class Map:

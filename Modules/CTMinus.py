@@ -1,21 +1,18 @@
 from __future__ import annotations
-from typing import List, Dict
 
-from Modules.StrandDiagram import StrandDiagram
 from Tangles.Tangle import *
 from Modules.Bimodule import *
-from Modules.Bimodule import Bimodule
-from Tangles.Functions import *
 from Modules.ETangleStrands import *
 
 
 def type_da(etangle: ETangle) -> TypeDA:
-    gens = [ETangleStrands(etangle, left_strands, right_strands)
-            for left_strands, right_strands in
-            enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+    strands = [ETangleStrands(etangle, left_strands, right_strands)
+               for left_strands, right_strands in
+               enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+    gens = [x.to_generator() for x in strands]
     maps = \
-        sum((delta1_1(x) for x in gens), []) + \
-        sum((delta1_2(x, a) for x in gens
+        sum((delta1_1(x) for x in strands), []) + \
+        sum((delta1_2(x, a) for x in strands
              for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))), [])
 
     return TypeDA(etangle.left_algebra, etangle.right_algebra, gens, maps)
@@ -23,9 +20,9 @@ def type_da(etangle: ETangle) -> TypeDA:
 
 def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:
     out = []
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_plus(x).d.items()]
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_minus(x).d.items()]
-    out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), tuple()) for y, c in d_mixed(x).d.items()]
+    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_plus(x).d.items()]
+    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_minus(x).d.items()]
+    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_mixed(x).d.items()]
     out += delta_ell(x)
     return out
 
@@ -34,7 +31,7 @@ def delta1_2(x: ETangleStrands, a: AMinus.Element) -> List[Bimodule.Edge]:
     b = m2(x, a)
     out = []
     for y, c in b.d.items():
-        out += [Bimodule.Edge(x, y, c, (x.left_idempotent(),), (a,))]
+        out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), (a,))]
     return out
 
 
@@ -319,7 +316,7 @@ def delta_ell_case_1(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
     idempotent_strands = x.left_idempotent_strands()
     elt_strands = swap_values(idempotent_strands, b1, b2)
     elt = x.etangle.left_algebra.gen(elt_strands)
-    return Bimodule.Edge(x, x, c, (elt,), tuple())
+    return Bimodule.Edge(x.to_generator(), x.to_generator(), c, (elt,), tuple())
 
 
 def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
@@ -331,7 +328,7 @@ def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
         c *= x.etangle.strand_index_to_variable(orange) ** power
     elt = x.left_idempotent()
     y = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return Bimodule.Edge(x, y, c, (elt,), tuple())
+    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
 
 
 def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
@@ -350,7 +347,7 @@ def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
     new_left_strands[a1] = b2
     elt = x.etangle.left_algebra.gen(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return Bimodule.Edge(x, y, c, (elt,), tuple())
+    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
 
 
 def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
@@ -369,7 +366,7 @@ def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
     new_left_strands[a2] = b1
     elt = x.etangle.left_algebra.gen(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return Bimodule.Edge(x, y, c, (elt,), tuple())
+    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
 
 
 # points - a list of sets of points

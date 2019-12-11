@@ -1,7 +1,5 @@
 from __future__ import annotations
 from Modules.CTMinus import *
-from frozendict import *
-from Modules.StrandDiagram import StrandDiagram
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *
 
@@ -15,6 +13,10 @@ class ETangleStrands:
         self.left_strands_inverse = frozendict(invert_injection(left_strands))
         self.right_strands = frozendict(right_strands)
         self.right_strands_inverse = frozendict(invert_injection(right_strands))
+
+    def to_generator(self):
+        from Modules.Bimodule import Bimodule
+        return Bimodule.Generator(self, self.left_idempotent(), self.right_idempotent())
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self) -> AMinus.Element:
@@ -68,6 +70,9 @@ class ETangleStrands:
                 black_strands[black] = (black, black, None)
         return StrandDiagram(orange_strands, orange_signs, black_strands)
 
+    def __str__(self):
+        return dict_to_sorted_string(self.left_strands) + dict_to_sorted_string(self.right_strands)
+
     def __repr__(self):
         return str((self.etangle, self.left_strands, self.right_strands))
 
@@ -89,3 +94,12 @@ def validdictionaries(et: ETangle, ls: Dict, rs: Dict):
         if val not in et.right_points():
             return False
     return set(ls.values()).union(set(rs.keys())) == set(et.middle_points())
+
+
+def dict_to_sorted_string(d: Dict) -> str:
+    if len(d) == 0:
+        return '{}'
+    out = '{'
+    for k in sorted(d.keys()):
+        out += str(k) + ': ' + str(d[k]) + ', '
+    return out[:-2] + '}'

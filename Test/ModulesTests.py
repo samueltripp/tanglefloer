@@ -123,7 +123,7 @@ class TestCTMinus(unittest.TestCase):
         a2 = 2
         y = x
         out = Bimodule.Edge(
-            x, y, over1.polyring['U2'], (over1.left_algebra.gen({1: 2, 2: 1}),), tuple()
+            x.to_generator(), y.to_generator(), over1.polyring['U2'], (over1.left_algebra.gen({1: 2, 2: 1}),), tuple()
         )
         self.assertEqual(out, delta_ell_case_1(x, a1, a2))
 
@@ -134,7 +134,7 @@ class TestCTMinus(unittest.TestCase):
         a2 = 1
         y = ETangleStrands(over1, {0: 0, 1: 1}, {2: 2})
         out = Bimodule.Edge(
-            x, y, over1.polyring['U1'], (over1.left_algebra.gen({2: 2}),), tuple()
+            x.to_generator(), y.to_generator(), over1.polyring['U1'], (over1.left_algebra.gen({2: 2}),), tuple()
         )
         self.assertEqual(out, delta_ell_case_2(x, a1, a2))
 
@@ -145,7 +145,7 @@ class TestCTMinus(unittest.TestCase):
         a2 = 1
         y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
         out = Bimodule.Edge(
-            x, y, over1.polyring['U1'], (over1.left_algebra.gen({0: 1}),), tuple()
+            x.to_generator(), y.to_generator(), over1.polyring['U1'], (over1.left_algebra.gen({0: 1}),), tuple()
         )
         self.assertEqual(out, delta_ell_case_3(x, a1, a2))
 
@@ -156,7 +156,7 @@ class TestCTMinus(unittest.TestCase):
         a2 = 2
         y = ETangleStrands(over1, {2: 1, 1: 0}, {2: 2})
         out = Bimodule.Edge(
-            x, y, over1.polyring['U2'], (over1.left_algebra.gen({2: 0}),), tuple()
+            x.to_generator(), y.to_generator(), over1.polyring['U2'], (over1.left_algebra.gen({2: 0}),), tuple()
         )
         self.assertEqual(out, delta_ell_case_4(x, a1, a2))
 
@@ -166,14 +166,24 @@ class TestCTMinus(unittest.TestCase):
         y = ETangleStrands(over1, {0: 0, 2: 1}, {3: 0, 2: 2})
         c = over1.polyring.one()
         elt = over1.left_algebra.gen({0: 1, 3: 3})
-        out = [Bimodule.Edge(x, y, c, (elt,), tuple())]
+        out = [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())]
         self.assertEqual(out, delta_ell(x))
 
     def test_type_da(self):
         et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
         gv = da.to_agraph(idempotents=False)
-        gv.draw('output/test_type_da.png')
+        gv.draw('output/test_type_da.svg')
+
+    def test_tensor(self):
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        cap_da = type_da(cap)
+        unknot_da = cup_da.tensor(cap_da)
+        gv = unknot_da.to_agraph(idempotents=True)
+        gv.draw('output/test_tensor.svg')
+
 
 
 if __name__ == '__main__':

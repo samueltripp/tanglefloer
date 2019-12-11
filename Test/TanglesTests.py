@@ -86,6 +86,7 @@ class TestTangles(unittest.TestCase):
     def test_svg_rendering(self):
         TangleRenderer.svg('output/trefoil.svg', trefoil)
         TangleRenderer.svg('output/unknot2.svg', unknot2)
+        TangleRenderer.svg('output/cup.svg', cup, [{0: 2}, {0: 1}])
 
 
 if __name__ == '__main__':

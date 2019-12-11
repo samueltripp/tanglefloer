@@ -30,6 +30,12 @@ class AMinus:
     def idempotent(self, points):
         return self.gen({p: p for p in points})
 
+    def __eq__(self, other: AMinus) -> bool:
+        return self.ss == other.ss
+
+    def __hash__(self):
+        return hash(self.ss)
+
     class Element:
         def __init__(self, algebra, coefficients):
             self.algebra = algebra
@@ -90,6 +96,9 @@ class AMinus:
     
         def __eq__(self, other: AMinus.Element):
             return self.algebra == other.algebra and self.coefficients == other.coefficients
+
+        def __hash__(self):
+            return hash((self.algebra, frozendict(self.coefficients)))
     
         def __repr__(self):
             return str(self.coefficients)

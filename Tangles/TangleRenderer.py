@@ -128,8 +128,8 @@ class TangleRenderer:
         dwg = svgwrite.Drawing(filename=filename, debug=True)
         for path in paths:
             dwg.add(path)
-        dwg.viewbox(0, -max([len(etangle.signs) for etangle in tangle.etangles]), len(tangle.etangles) + 0.5,
-                    max([len(etangle.signs) for etangle in tangle.etangles]) + 1)
+        dwg.viewbox(0, -max([len(etangle.signs)-1 for etangle in tangle.etangles]), len(tangle.etangles),
+                    max([len(etangle.signs) for etangle in tangle.etangles]))
         dwg.save(pretty=True)
 
 
