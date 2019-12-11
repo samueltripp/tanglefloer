@@ -1,0 +1,1 @@
+ccomps -x $1 | dot | gvpack -array1 | neato -Tsvg -n2 -o `echo $1 | sed 's/\(.*\.\)dot/\1svg/'`

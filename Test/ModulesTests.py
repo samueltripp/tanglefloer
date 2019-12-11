@@ -183,7 +183,7 @@ class TestCTMinus(unittest.TestCase):
         unknot_da = cup_da.tensor(cap_da)
         gv = unknot_da.to_agraph(idempotents=True)
         gv.draw('output/test_tensor.svg')
-
+        gv.write('output/test_tensor.dot')
 
 
 if __name__ == '__main__':
