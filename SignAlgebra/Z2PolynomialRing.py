@@ -20,6 +20,17 @@ class Z2PolynomialRing:
         assert item in self.variables
         return Z2Monomial(self, {item: 1}).to_polynomial()
 
+    # returns the two maps
+    # self -> self (x) other
+    # other -> self (x) other
+    def tensor_inclusions(self, other: Z2PolynomialRing):
+        product = Z2PolynomialRing([v + 'a' for v in self.variables] + [v + 'b' for v in other.variables])
+
+        in1 = Z2PolynomialRing.Map(self, product, {v: v+'a' for v in self.variables})
+        in2 = Z2PolynomialRing.Map(other, product, {v: v+'b' for v in other.variables})
+
+        return in1, in2
+
     def __eq__(self, other: Z2PolynomialRing):
         return self.variables == other.variables
 
@@ -41,7 +52,7 @@ class Z2PolynomialRing:
             y = self.target.zero()
 
             for x_term in x.terms:
-                y += Z2Monomial(self.target, {self.mapping[var]: power for var, power in x_term.powers}).to_polynomial()
+                y += Z2Monomial(self.target, {self.mapping[var]: power for var, power in x_term.powers.items()}).to_polynomial()
 
             return y
 

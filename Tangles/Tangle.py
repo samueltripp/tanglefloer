@@ -16,7 +16,6 @@ class Tangle:
         self.etangles = tuple(etangles)
 
         height = max(len(etangle.signs) for etangle in etangles)
-        self.polyring = Z2PolynomialRing(['U%s' % p for p in range(0, height)])
         self.left_algebra = AMinus(self.left_signs())
         self.right_algebra = AMinus(self.right_signs())
 
@@ -73,6 +72,7 @@ class ETangle(Tangle):
         self.etype = etype
         self.signs = (None,) + signs
         self.position = position
+        self.polyring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()) + 1)])
 
         super().__init__((self,))
 

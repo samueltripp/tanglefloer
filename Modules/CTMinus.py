@@ -15,7 +15,7 @@ def type_da(etangle: ETangle) -> TypeDA:
         sum((delta1_2(x, a) for x in strands
              for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))), [])
 
-    return TypeDA(etangle.left_algebra, etangle.right_algebra, gens, maps)
+    return TypeDA(etangle.polyring, etangle.left_algebra, etangle.right_algebra, gens, maps)
 
 
 def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:

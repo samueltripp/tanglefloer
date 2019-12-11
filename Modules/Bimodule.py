@@ -9,8 +9,9 @@ from Modules.CTMinus import *
 
 # Base class for Type DD, AA, DA, and AD structures
 class Bimodule:
-    def __init__(self, left_algebra: AMinus, right_algebra: AMinus,
+    def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  generators: Iterable[Bimodule.Generator], maps: Iterable[Bimodule.Edge]):
+        self.ring = ring
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
 
@@ -18,7 +19,7 @@ class Bimodule:
         for gen in generators:
             self.graph.add_node(gen)
         for edge in maps:
-            if edge.c != edge.c.ring.zero():
+            if edge.c != ring.zero():
                 self.graph.add_edge(edge.source, edge.target,
                                     c=edge.c, left=edge.left, right=edge.right)
 
@@ -121,9 +122,9 @@ class Bimodule:
 
 
 class TypeDA(Bimodule):
-    def __init__(self, left_algebra: AMinus, right_algebra: AMinus,
+    def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  generators: Iterable, maps: Iterable[Bimodule.Edge]):
-        super().__init__(left_algebra, right_algebra, generators, maps)
+        super().__init__(ring, left_algebra, right_algebra, generators, maps)
 
     def tensor(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra.ss == other.left_algebra.ss
@@ -131,6 +132,8 @@ class TypeDA(Bimodule):
         generators = [Bimodule.Generator((xm, xn), xm.left_idempotent, xn.right_idempotent)
                       for xm in self.graph.nodes for xn in other.graph.nodes
                       if xm.right_idempotent == xn.left_idempotent]
+
+        in1, in2 = self.ring.tensor_inclusions(other.ring)
 
         maps = set()
         for x in generators:
@@ -152,6 +155,6 @@ class TypeDA(Bimodule):
                                 Bimodule.Edge(
                                     Bimodule.Generator((xm, xn), xm.left_idempotent, xn.right_idempotent),
                                     Bimodule.Generator((ym, yn), ym.left_idempotent, yn.right_idempotent),
-                                    delta_1['c'] * delta_n['c'], delta_1['left'], delta_n['right']))
+                                    in1.apply(delta_1['c']) * in2.apply(delta_n['c']), delta_1['left'], delta_n['right']))
 
-        return TypeDA(self.left_algebra, other.right_algebra, generators, maps)
+        return TypeDA(in1.target, self.left_algebra, other.right_algebra, generators, maps)
