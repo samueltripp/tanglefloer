@@ -177,19 +177,19 @@ class TestCTMinus(unittest.TestCase):
     def test_type_da(self):
         et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
-        gv = da.to_agraph(idempotents=False)
+        gv = da.to_agraph(idempotents=True)
         gv.draw('output/test_type_da.svg')
 
-    # def test_tensor(self):
-    #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-    #     cup_da = type_da(cup)
-    #     cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
-    #     cap_da = type_da(cap)
-    #     unknot_da = cup_da.tensor(cap_da)
-    #     gv = unknot_da.to_agraph(idempotents=True)
-    #     gv.draw('output/test_tensor.svg')
-    #     gv.write('output/test_tensor.dot')
-
+    def test_tensor(self):
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        cap_da = type_da(cap)
+        unknot_da = cup_da.tensor(cap_da)
+        gv = unknot_da.to_agraph(idempotents=True)
+        gv.draw('output/test_tensor.svg')
+        gv.write('output/test_tensor.dot')
+        
 
 if __name__ == '__main__':
     unittest.main()

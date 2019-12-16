@@ -52,9 +52,16 @@ class Z2PolynomialRing:
             y = self.target.zero()
 
             for x_term in x.terms:
-                y += Z2Monomial(self.target, {self.mapping[var]: power for var, power in x_term.powers.items()}).to_polynomial()
+                y += Z2Monomial(self.target, {self.mapping[var]: power
+                                              for var, power in x_term.powers.items()}).to_polynomial()
 
             return y
+
+        # returns the map x -> self.apply(other.apply(x))
+        def compose(self, other: Z2PolynomialRing.Map):
+            assert self.source == other.target
+            return Z2PolynomialRing.Map(other.source, self.target,
+                                        {var: self.mapping[other.mapping[var]] for var in other.mapping.keys()})
 
 
 # knows addition

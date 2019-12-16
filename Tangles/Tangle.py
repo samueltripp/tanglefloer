@@ -82,7 +82,7 @@ class ETangle(Tangle):
 
     def build_scalar_action(self, algebra: AMinus) -> Z2PolynomialRing.Map:
         return Z2PolynomialRing.Map(algebra.polyring, self.polyring,
-                                    {'U' + str(p): 'U' + str(self.strand_index_to_variable_name(p))
+                                    {'U' + str(p): self.strand_index_to_variable_name(p)
                                      for p in algebra.positives if p is not None})
 
     def build_left_scalar_action(self) -> Z2PolynomialRing.Map:

@@ -16,10 +16,10 @@ class ETangleStrands:
 
     def to_generator(self, module):
         from Modules.Bimodule import Bimodule
-        return Bimodule.TensorGenerator(module, self, tuple(), tuple())
+        return Bimodule.Generator(module, self, self.left_idempotent(), self.right_idempotent())
 
     # the idempotent e^D_L                                                                                                                                
-    def left_idempotent(self) -> AMinus.Element:
+    def left_idempotent(self) -> AMinus.Generator:
         return self.etangle.left_algebra.idempotent(self.left_idempotent_strands().keys())
 
     def left_idempotent_strands(self) -> Dict:
@@ -28,7 +28,7 @@ class ETangleStrands:
         return {strand: strand for strand in total - occupied}
 
     # the idempotent e^A_R                                                                                                                                
-    def right_idempotent(self) -> AMinus.Element:
+    def right_idempotent(self) -> AMinus.Generator:
         return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
 
     def left_y_pos(self, black_strand: int):
