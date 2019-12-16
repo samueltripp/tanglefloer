@@ -1,144 +1,134 @@
 from __future__ import annotations
 
+from Modules.Bimodule import Bimodule
 from Tangles.Tangle import *
 from Modules.Bimodule import *
 from Modules.ETangleStrands import *
 
 
 def type_da(etangle: ETangle) -> TypeDA:
+    out = TypeDA(etangle.polyring, etangle.left_algebra, etangle.right_algebra,
+                 etangle.left_scalar_action, etangle.right_scalar_action)
+
     strands = [ETangleStrands(etangle, left_strands, right_strands)
                for left_strands, right_strands in
                enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
-    gens = [x.to_generator() for x in strands]
-    maps = \
-        sum((delta1_1(x) for x in strands), []) + \
-        sum((delta1_2(x, a) for x in strands
-             for a in etangle.right_algebra.left_gens(list(x.right_strands.values()))), [])
 
-    return TypeDA(etangle.polyring, etangle.left_algebra, etangle.right_algebra, gens, maps)
+    for x in strands:
+        out.add_generator(x.to_generator(out))
 
+    for x in strands:
+        out.add_structure_map(x.to_generator(out), delta1_1(out, x))
 
-def delta1_1(x: ETangleStrands) -> List[Bimodule.Edge]:
-    out = []
-    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_plus(x).d.items()]
-    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_minus(x).d.items()]
-    out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), tuple()) for y, c in d_mixed(x).d.items()]
-    out += delta_ell(x)
+        for a in etangle.right_algebra.left_gens(list(x.right_strands.values())):
+            out.add_structure_map(x.to_generator(out) * a, delta1_2(out, x, a))
+
     return out
 
 
-def delta1_2(x: ETangleStrands, a: AMinus.Element) -> List[Bimodule.Edge]:
-    b = m2(x, a)
-    out = []
-    for y, c in b.d.items():
-        out += [Bimodule.Edge(x.to_generator(), y.to_generator(), c, (x.left_idempotent(),), (a,))]
-    return out
+def delta1_1(module: TypeDA, x: ETangleStrands) -> Bimodule.TensorElement:
+    return x.left_idempotent() * (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
 
 
-def d_plus(x: ETangleStrands) -> Bimodule.Element:
-    out = Bimodule.Element()
+def delta1_2(module: TypeDA, x: ETangleStrands, a: AMinus.Element) -> Bimodule.TensorElement:
+    return x.left_idempotent() * m2(module, x, a)
+
+
+def d_plus(module: Bimodule, x: ETangleStrands) -> Bimodule.TensorElement:
+    out = module.zero()
     for black1, black2 in itertools.combinations(x.right_strands.keys(), 2):
         b1 = min(black1, black2)
         b2 = max(black1, black2)
         if x.right_y_pos(b1) > x.right_y_pos(b2):
             # smooth the crossing and add it to the output
-            out += smooth_right_crossing(x, b1, b2)
+            out += smooth_right_crossing(module, x, b1, b2)
     return out
 
 
-def d_minus(x: ETangleStrands) -> Bimodule.Element:
-    out = Bimodule.Element()
+def d_minus(module: Bimodule, x: ETangleStrands) -> Bimodule.TensorElement:
+    out = module.zero()
     for black1, black2 in itertools.combinations(x.left_strands.values(), 2):
         b1 = min(black1, black2)
         b2 = max(black1, black2)
         # if the black strands don't cross
         if x.left_y_pos(b1) < x.left_y_pos(b2):
             # introduce a crossing and add it to the output
-            out += introduce_left_crossing(x, b1, b2)
+            out += introduce_left_crossing(module, x, b1, b2)
     return out
 
 
-def d_mixed(x: ETangleStrands) -> Bimodule.Element:
-    out = Bimodule.Element()
+def d_mixed(module: Bimodule, x: ETangleStrands) -> Bimodule.TensorElement:
+    out = module.zero()
 
     for b1 in x.right_strands.keys():
         for b2 in x.right_strands.keys():
             # if two black strands don't cross on the right
             if b1 < b2 and x.right_y_pos(b1) < x.right_y_pos(b2):
-                out += d_mixed_case_1(x, b1, b2)
+                out += d_mixed_case_1(module, x, b1, b2)
 
     for b1 in x.left_strands.values():
         for b2 in x.left_strands.values():
             # if two black strands cross on the left
             if b1 < b2 and x.left_y_pos(b1) > x.left_y_pos(b2):
-                out += d_mixed_case_2(x, b1, b2)
+                out += d_mixed_case_2(module, x, b1, b2)
 
     for b1 in x.right_strands.keys():
         for b2 in x.left_strands.values():
             if b1 < b2:
-                out += d_mixed_case_3(x, b1, b2)
+                out += d_mixed_case_3(module, x, b1, b2)
 
     for b1 in x.left_strands.values():
         for b2 in x.right_strands.keys():
             if b1 < b2:
-                out += d_mixed_case_4(x, b1, b2)
+                out += d_mixed_case_4(module, x, b1, b2)
 
     return out
 
 
-def delta_ell(x: ETangleStrands) -> List[Bimodule.Edge]:
-    out = []
-
+def delta_ell(module: Bimodule, x: ETangleStrands) -> Bimodule.TensorElement:
+    out = module.zero(1, 0)
     unoccupied = set(x.etangle.left_points()) - set(x.left_strands.keys())
 
     for a1 in unoccupied:
         for a2 in unoccupied:
             if a1 < a2:
-                e = delta_ell_case_1(x, a1, a2)
-                if e:
-                    out += [e]
+                out += delta_ell_case_1(module, x, a1, a2)
 
     for a1 in x.left_strands.keys():
         for a2 in x.left_strands.keys():
             if a1 < a2 and x.left_strands[a1] > x.left_strands[a2]:
-                e = delta_ell_case_2(x, a1, a2)
-                if e:
-                    out += [e]
+                out += delta_ell_case_2(module, x, a1, a2)
 
     for a1 in unoccupied:
         for a2 in x.left_strands.keys():
             if a1 < a2:
-                e = delta_ell_case_3(x, a1, a2)
-                if e:
-                    out += [e]
+                out += delta_ell_case_3(module, x, a1, a2)
 
     for a1 in x.left_strands.keys():
         for a2 in unoccupied:
             if a1 < a2:
-                e = delta_ell_case_4(x, a1, a2)
-                if e:
-                    out += [e]
+                out += delta_ell_case_4(module, x, a1, a2)
 
     return out
 
 
 @multimethod
-def m2(x: ETangleStrands, a: AMinus.Element) -> Bimodule.Element:
-    out = Bimodule.Element()
+def m2(module: Bimodule, x: ETangleStrands, a: AMinus.Element) -> Bimodule.TensorElement:
+    out = module.zero()
     for gen, coefficient in a.coefficients.items():
-        out += x.etangle.from_right_algebra(gen.algebra, coefficient) * m2(x, gen)
+        out += module.right_scalar_action.apply(coefficient) * m2(module, x, gen)
     return out
 
 
 @multimethod
-def m2(x: ETangleStrands, a: AMinus.Gen) -> Bimodule.Element:
+def m2(module: Bimodule, x: ETangleStrands, a: AMinus.Generator) -> Bimodule.TensorElement:
     # if the sign sequences do not match, return 0
     if x.etangle.right_signs() != a.algebra.ss:
-        return Bimodule.Element()
+        return module.zero()
 
     # if the strands cannot be merged, return 0
     if set(x.right_strands.values()) != set(a.strands.keys()):
-        return Bimodule.Element()
+        return module.zero()
 
     orange_strands = {}
     orange_signs = {}
@@ -156,17 +146,17 @@ def m2(x: ETangleStrands, a: AMinus.Gen) -> Bimodule.Element:
     sd = StrandDiagram(orange_strands, orange_signs, black_strands)
     powers = sd.figure_6_relations()
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         for _ in range(power):
             c *= x.etangle.strand_index_to_variable(orange)
 
     new_right_strands = {sd.black_left_pos(black): sd.black_right_pos(black) for black in x.right_strands.keys()}
     x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
-    return Bimodule.Element({x_out: c})
+    return c * x_out.to_generator(module)
 
 
-def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def smooth_right_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     a1 = x.right_y_pos(b1)
     a2 = x.right_y_pos(b2)
 
@@ -191,16 +181,16 @@ def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Eleme
     sd = StrandDiagram(orange_strands, orange_signs, black_strands)
     powers = sd.figure_6_relations()
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
 
     new_right_strands = swap_values(x.right_strands, b1, b2)
     x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
-    return Bimodule.Element({x_out: c})
+    return c * x_out.to_generator(module)
 
 
-def introduce_left_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def introduce_left_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     a1 = x.left_y_pos(b1)
     a2 = x.left_y_pos(b2)
 
@@ -225,13 +215,13 @@ def introduce_left_crossing(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Ele
     sd = StrandDiagram(orange_strands, orange_signs, black_strands)
     powers = sd.figure_7_relations()
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
 
     new_left_strands = swap_values(x.left_strands, a1, a2)
     x_out = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return Bimodule.Element({x_out: c})
+    return c * x_out.to_generator(module)
 
 
 # swap the values associated to the given keys
@@ -244,35 +234,35 @@ def swap_values(d: Dict, k1, k2) -> Dict:
     return d_out
 
 
-def d_mixed_case_1(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_1(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_1b(b1, b2)
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
-    sd_out = ETangleStrands(x.etangle, x.left_strands, swap_values(x.right_strands, b1, b2))
-    return Bimodule.Element({sd_out: c})
+    x_out = ETangleStrands(x.etangle, x.left_strands, swap_values(x.right_strands, b1, b2))
+    return c * x_out.to_generator(module)
 
 
-def d_mixed_case_2(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_2(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_2b(b1, b2)
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     a1 = x.left_y_pos(b1)
     a2 = x.left_y_pos(b2)
-    sd_out = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return Bimodule.Element({sd_out: c})
+    x_out = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
+    return c * x_out.to_generator(module)
 
 
-def d_mixed_case_3(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_3(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_3b(b1, b2)
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     a1 = x.right_y_pos(b1)
@@ -282,15 +272,15 @@ def d_mixed_case_3(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     new_right_strands = dict(x.right_strands)
     del new_right_strands[b1]
     new_right_strands[b2] = a1
-    sd_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
-    return Bimodule.Element({sd_out: c})
+    x_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
+    return c * x_out.to_generator(module)
 
 
-def d_mixed_case_4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
+def d_mixed_case_4(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_4b(b1, b2)
     if powers is None:
-        return Bimodule.Element()
+        return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     a1 = x.left_y_pos(b1)
@@ -300,42 +290,42 @@ def d_mixed_case_4(x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     new_right_strands = dict(x.right_strands)
     del new_right_strands[b2]
     new_right_strands[b1] = a2
-    sd_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
-    return Bimodule.Element({sd_out: c})
+    x_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
+    return c * x_out.to_generator(module)
 
 
-def delta_ell_case_1(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+def delta_ell_case_1(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_1a(a1, a2)
     if powers is None:
-        return None
+        return module.zero(1, 0)
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     b1 = a1
     b2 = a2
     idempotent_strands = x.left_idempotent_strands()
     elt_strands = swap_values(idempotent_strands, b1, b2)
-    elt = x.etangle.left_algebra.gen(elt_strands)
-    return Bimodule.Edge(x.to_generator(), x.to_generator(), c, (elt,), tuple())
+    elt = x.etangle.left_algebra.generator(elt_strands)
+    return elt * (c * x.to_generator(module))
 
 
-def delta_ell_case_2(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+def delta_ell_case_2(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_2a(a1, a2)
     if powers is None:
-        return None
+        return module.zero(1, 0)
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     elt = x.left_idempotent()
     y = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
+    return elt * (c * y.to_generator(module))
 
 
-def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+def delta_ell_case_3(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_3a(a1, a2)
     if powers is None:
-        return None
+        return module.zero(1, 0)
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     b1 = a1
@@ -345,16 +335,16 @@ def delta_ell_case_3(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
     new_left_strands = dict(x.left_strands)
     del new_left_strands[a2]
     new_left_strands[a1] = b2
-    elt = x.etangle.left_algebra.gen(elt_strands)
+    elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
+    return elt * (c * y.to_generator(module))
 
 
-def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.Edge]:
+def delta_ell_case_4(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.TensorElement:
     c = x.etangle.polyring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_4a(a1, a2)
     if powers is None:
-        return None
+        return module.zero(1, 0)
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     b1 = x.left_strands[a1]
@@ -364,9 +354,9 @@ def delta_ell_case_4(x: ETangleStrands, a1: int, a2: int) -> Optional[Bimodule.E
     new_left_strands = dict(x.left_strands)
     del new_left_strands[a1]
     new_left_strands[a2] = b1
-    elt = x.etangle.left_algebra.gen(elt_strands)
+    elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return Bimodule.Edge(x.to_generator(), y.to_generator(), c, (elt,), tuple())
+    return elt * (c * y.to_generator(module))
 
 
 # points - a list of sets of points

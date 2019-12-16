@@ -14,9 +14,9 @@ class ETangleStrands:
         self.right_strands = frozendict(right_strands)
         self.right_strands_inverse = frozendict(invert_injection(right_strands))
 
-    def to_generator(self):
+    def to_generator(self, module):
         from Modules.Bimodule import Bimodule
-        return Bimodule.Generator(self, self.left_idempotent(), self.right_idempotent())
+        return Bimodule.TensorGenerator(module, self, tuple(), tuple())
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self) -> AMinus.Element:
@@ -74,7 +74,7 @@ class ETangleStrands:
         return dict_to_sorted_string(self.left_strands) + dict_to_sorted_string(self.right_strands)
 
     def __repr__(self):
-        return str((self.etangle, self.left_strands, self.right_strands))
+        return dict_to_sorted_string(self.left_strands) + dict_to_sorted_string(self.right_strands)
 
     def __eq__(self, other: ETangleStrands):
         return other is not None and \
@@ -96,7 +96,7 @@ def validdictionaries(et: ETangle, ls: Dict, rs: Dict):
     return set(ls.values()).union(set(rs.keys())) == set(et.middle_points())
 
 
-def dict_to_sorted_string(d: Dict) -> str:
+def dict_to_sorted_string(d) -> str:
     if len(d) == 0:
         return '{}'
     out = '{'

@@ -62,6 +62,7 @@ class ETangle(Tangle):
     # over/under represents what the bottom strand does; under on the left, over on the right
     # CONVENTION: strand indices are 1-indexed, starting from the bottom
     def __init__(self, etype: ETangle.Type, signs, position):
+
         for sign in signs:
             assert sign in (-1, 1), "{} is not a valid sign.".format(sign)
         assert 1 <= position < len(signs)+1, "{} is not a valid position.".format(position)
@@ -75,6 +76,20 @@ class ETangle(Tangle):
         self.polyring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()) + 1)])
 
         super().__init__((self,))
+
+        self.left_scalar_action = self.build_left_scalar_action()
+        self.right_scalar_action = self.build_right_scalar_action()
+
+    def build_scalar_action(self, algebra: AMinus) -> Z2PolynomialRing.Map:
+        return Z2PolynomialRing.Map(algebra.polyring, self.polyring,
+                                    {'U' + str(p): 'U' + str(self.strand_index_to_variable_name(p))
+                                     for p in algebra.positives if p is not None})
+
+    def build_left_scalar_action(self) -> Z2PolynomialRing.Map:
+        return self.build_scalar_action(self.left_algebra)
+
+    def build_right_scalar_action(self) -> Z2PolynomialRing.Map:
+        return self.build_scalar_action(self.right_algebra)
 
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self) -> Tuple:
@@ -181,12 +196,6 @@ class ETangle(Tangle):
         if self.etype == ETangle.Type.CAP:
             return list(range(len(self.signs) - 2))
         return list(range(len(self.signs)))
-
-    def from_right_algebra(self, algebra: AMinus, c: Z2Polynomial):
-        mapping = Z2PolynomialRing.Map(algebra.polyring, self.polyring,
-                                       {'U'+str(p): 'U'+str(self.strand_index_to_variable_name(p))
-                                        for p in algebra.positives if p is not None})
-        return mapping.apply(c)
 
     def __repr__(self):
         return str((self.etype, self.signs, self.position))

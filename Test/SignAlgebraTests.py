@@ -12,19 +12,19 @@ class TestAMinus(unittest.TestCase):
 
         # First multiplication of single elements
         # double crosses black, should be empty product
-        elt1 = am.gen({4: 0, 3: 1})
-        elt2 = am.gen({0: 4, 1: 3})
+        elt1 = am.generator({4: 0, 3: 1})
+        elt2 = am.generator({0: 4, 1: 3})
         assert elt1 * elt2 == am.zero()
 
         # double crosses two rightward strands, should be nontrivial product
-        elt3 = am.gen({4: 0, 3: 1})
-        elt4 = am.gen({0: 0, 1: 3})
-        assert elt3 * elt4 == (U1 * U2) * am.gen({4: 0, 3: 3})
+        elt3 = am.generator({4: 0, 3: 1})
+        elt4 = am.generator({0: 0, 1: 3})
+        assert elt3 * elt4 == (U1 * U2) * am.generator({4: 0, 3: 3})
 
         # just straightforward multiplication
-        elt5 = am.gen({4: 1, 3: 2})
-        elt6 = am.gen({2: 1, 1: 0})
-        assert elt5 * elt6 == am.gen({4: 0, 3: 1})
+        elt5 = am.generator({4: 1, 3: 2})
+        elt6 = am.generator({2: 1, 1: 0})
+        assert elt5 * elt6 == am.generator({4: 0, 3: 1})
 
     def test_diff(self):
         am = AMinus([-1, 1, 1, -1])
@@ -32,8 +32,8 @@ class TestAMinus(unittest.TestCase):
         U1 = am.polyring['U1']
         U2 = am.polyring['U2']
 
-        elt = am.gen({0: 4, 1: 2, 3: 1})
-        assert elt.diff() == U1 * am.gen({0: 4, 1: 1, 3: 2}) + am.gen({0: 2, 1: 4, 3: 1})
+        elt = am.generator({0: 4, 1: 2, 3: 1})
+        assert elt.diff() == U1 * am.generator({0: 4, 1: 1, 3: 2}) + am.generator({0: 2, 1: 4, 3: 1})
 
     def test_gradings(self):
         pass  # TODO
