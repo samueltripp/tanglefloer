@@ -144,7 +144,7 @@ def m2(module: Bimodule, x: ETangleStrands, a: AMinus.Generator) -> Bimodule.Ele
 
     new_right_strands = {sd.black_left_pos(black): sd.black_right_pos(black) for black in x.right_strands.keys()}
     x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def smooth_right_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
@@ -178,7 +178,7 @@ def smooth_right_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: int)
 
     new_right_strands = swap_values(x.right_strands, b1, b2)
     x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def introduce_left_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
@@ -212,7 +212,7 @@ def introduce_left_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: in
 
     new_left_strands = swap_values(x.left_strands, a1, a2)
     x_out = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 # swap the values associated to the given keys
@@ -233,7 +233,7 @@ def d_mixed_case_1(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bim
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
     x_out = ETangleStrands(x.etangle, x.left_strands, swap_values(x.right_strands, b1, b2))
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def d_mixed_case_2(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
@@ -246,7 +246,7 @@ def d_mixed_case_2(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bim
     a1 = x.left_y_pos(b1)
     a2 = x.left_y_pos(b2)
     x_out = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def d_mixed_case_3(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
@@ -264,7 +264,7 @@ def d_mixed_case_3(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bim
     del new_right_strands[b1]
     new_right_strands[b2] = a1
     x_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def d_mixed_case_4(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
@@ -282,7 +282,7 @@ def d_mixed_case_4(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bim
     del new_right_strands[b2]
     new_right_strands[b1] = a2
     x_out = ETangleStrands(x.etangle, new_left_strands, new_right_strands)
-    return c * x_out.to_generator(module).to_element()
+    return c * x_out.to_generator(module)
 
 
 def delta_ell_case_1(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -297,7 +297,7 @@ def delta_ell_case_1(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     idempotent_strands = x.left_idempotent_strands()
     elt_strands = swap_values(idempotent_strands, b1, b2)
     elt = x.etangle.left_algebra.generator(elt_strands)
-    return elt * (c * x.to_generator(module).to_element())
+    return elt * (c * x.to_generator(module))
 
 
 def delta_ell_case_2(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -309,7 +309,7 @@ def delta_ell_case_2(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
         c *= x.etangle.strand_index_to_variable(orange) ** power
     elt = x.left_idempotent()
     y = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return elt * (c * y.to_generator(module).to_element())
+    return elt * (c * y.to_generator(module))
 
 
 def delta_ell_case_3(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -328,7 +328,7 @@ def delta_ell_case_3(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     new_left_strands[a1] = b2
     elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return elt * (c * y.to_generator(module).to_element())
+    return elt * (c * y.to_generator(module))
 
 
 def delta_ell_case_4(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -347,7 +347,7 @@ def delta_ell_case_4(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     new_left_strands[a2] = b1
     elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return elt * (c * y.to_generator(module).to_element())
+    return elt * (c * y.to_generator(module))
 
 
 # points - a list of sets of points

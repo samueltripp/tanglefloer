@@ -78,7 +78,7 @@ class Bimodule:
 
             for g1, c1 in other.coefficients.items():
                 for g2, c2 in self.coefficients.items():
-                    out += (self.module.left_scalar_action.apply(c1) * c2) * (g1 * g2).to_element()
+                    out += (self.module.left_scalar_action.apply(c1) * c2) * (g1 * g2)
 
             return out
 
@@ -91,8 +91,13 @@ class Bimodule:
 
             return out
 
+        @multimethod
         def __eq__(self, other: Bimodule.Element) -> bool:
             return self.module == other.module and self.coefficients == other.coefficients
+
+        @multimethod
+        def __eq__(self, other: Bimodule.Generator) -> bool:
+            return self == other.to_element()
 
         def __hash__(self):
             return hash((self.module, self.coefficients))
@@ -114,13 +119,21 @@ class Bimodule:
         def to_element(self) -> Bimodule.Element:
             return Bimodule.Element(self.module, len(self.left), len(self.right), {self: self.module.ring.one()})
 
+        def __add__(self, other) -> Bimodule.Element:
+            return self.to_element() + other
+
         def __mul__(self, other: AMinus.Generator) -> Bimodule.Generator:
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       self.left, self.right + (other,))
 
+        @multimethod
         def __rmul__(self, other: AMinus.Generator) -> Bimodule.Generator:
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       (other,) + self.left, self.right)
+
+        @multimethod
+        def __rmul__(self, other: Z2Polynomial) -> Bimodule.Element:
+            return other * self.to_element()
 
         def __str__(self):
             return str((self.left, self.key, self.right))
@@ -128,11 +141,16 @@ class Bimodule:
         def __repr__(self):
             return str((self.left, self.key, self.right))
 
+        @multimethod
         def __eq__(self, other: Bimodule.Generator):
             return self.module == other.module and \
                    self.key == other.key and \
                    self.left == other.left and \
                    self.right == other.right
+
+        @multimethod
+        def __eq__(self, other):
+            return self.to_element() == other
 
         def __hash__(self):
             return hash((self.module, self.key, self.left, self.right))
@@ -215,7 +233,7 @@ class TypeDA(Bimodule):
                                                        xm.left, xn.right)
                                 y = in_m.apply(cm) * in_n.apply(cn) * \
                                     Bimodule.Generator(out, (ym.key, yn.key), ym.left_idempotent, yn.right_idempotent,
-                                                       ym.left, yn.right).to_element()
+                                                       ym.left, yn.right)
                                 out.add_structure_map(x, y)
 
         return out
