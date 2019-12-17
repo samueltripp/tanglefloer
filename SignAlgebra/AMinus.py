@@ -1,23 +1,27 @@
 from __future__ import annotations
-from multimethod import *
 from typing import List
 
 from Modules.StrandDiagram import StrandDiagram
 from SignAlgebra.Z2PolynomialRing import *
-from Tangles.Functions import *
+from Functions.Functions import *
 
 
+# represents the algebra A^-(P) for some sign sequence P
 class AMinus:
     def __init__(self, sign_sequence):
-        # store the overarching sign sequence, the list of positive indices, and the polynomial ring
+        # the sign sequence
         self.ss = tuple(sign_sequence) if sign_sequence[0] is None else (None,) + tuple(sign_sequence)
+        # the list of positive indices, which are important for variable indices
         self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
+        # the polynomial ring acting on this algebra
         self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
 
+    # the zero element in A^-(P)
     def zero(self):
         return AMinus.Element(self, {})
 
-    def generator(self, strands):
+    # a convenient way to construct elements of A^-(P)
+    def generator(self, strands) -> AMinus.Generator:
         return AMinus.Generator(self, strands)
 
     # returns all generators with the given points occupied on the left
@@ -39,12 +43,14 @@ class AMinus:
     def __hash__(self):
         return hash(self.ss)
 
+    # represents an element of A^-(P)
     class Element:
         def __init__(self, algebra, coefficients):
             self.algebra = algebra
             self.coefficients = frozendict({gen: coefficient for (gen, coefficient)
                                             in coefficients.items() if coefficient != algebra.polyring.zero()})
 
+        # addition
         def __add__(self, other: AMinus.Element):
             out_coefficients = {}
             for gen in self.coefficients.keys() - other.coefficients.keys():
@@ -55,14 +61,7 @@ class AMinus:
                 out_coefficients[gen] = other.coefficients[gen]
             return AMinus.Element(self.algebra, out_coefficients)
 
-        @multimethod
-        def __mul__(self, other: Z2Polynomial) -> AMinus.Element:
-            out = self.algebra.zero()
-            for (gen, coefficient) in self.coefficients.items():
-                out += (other * coefficient) * gen
-            return out
-
-        @multimethod
+        # the algebra multiplication
         def __mul__(self, other: AMinus.Element) -> AMinus.Element:
             out = self.algebra.zero()
             for (gen1, coefficient1) in self.coefficients.items():
@@ -71,9 +70,14 @@ class AMinus:
 
             return out
 
+        # the scalar multiplication
         def __rmul__(self, other: Z2Polynomial) -> AMinus.Element:
-            return self * other
+            out = self.algebra.zero()
+            for (gen, coefficient) in self.coefficients.items():
+                out += (other * coefficient) * gen
+            return out
 
+        # the differential operation
         def diff(self) -> AMinus.Element:
             # sum the differentials of all the strand diagrams
             out = self.algebra.zero()
@@ -81,6 +85,7 @@ class AMinus:
                 out += coefficient * gen.diff()
             return out
 
+        # twice the Alexander grading of this element
         def two_alexander(self):
             firstkey = set(self.coefficients.keys()).pop()
             out = firstkey.two_alexander(self.coefficients[firstkey])
@@ -89,6 +94,7 @@ class AMinus:
                     raise Exception('non-homogeneous element')
             return out
 
+        # the Maslov grading of this element
         def maslov(self):
             firstkey = set(self.coefficients.keys()).pop()
             out = firstkey.maslov(self.coefficients[firstkey])
@@ -97,6 +103,7 @@ class AMinus:
                     raise Exception('non-homogeneous element')
             return out
 
+        # returns True if this element is an idempotent
         def is_idempotent(self):
             return self == self * self
 
@@ -118,14 +125,12 @@ class AMinus:
             self.strands = frozendict(strands)
             super().__init__(algebra, {self: algebra.polyring.one()})
 
+        # we don't know how to multiply generators by anything else
         @multimethod
         def __mul__(self, other):
             return other.__rmul__(self)
 
-        @multimethod
-        def __mul__(self, other: Z2Polynomial) -> AMinus.Element:
-            return AMinus.Element(self.algebra, {self: other})
-
+        # the algebra multiplication
         @multimethod
         def __mul__(self, other: AMinus.Generator) -> AMinus.Element:
             strands1 = self.strands
@@ -156,9 +161,11 @@ class AMinus:
 
             return c * AMinus.Generator(self.algebra, strands)
 
+        # scalar multiplication
         def __rmul__(self, other: Z2Polynomial):
-            return self * other
+            return AMinus.Element(self.algebra, {self: other})
 
+        # the differential
         def diff(self) -> AMinus.Element:
             # find all strands that cross, and resolve them
             out = self.algebra.zero()
@@ -168,6 +175,7 @@ class AMinus:
                         out += self.smooth_crossing(s1, s2)
             return out
 
+        # computes a single summand of the differential
         def smooth_crossing(self, i, j) -> AMinus.Element:
             orange_strands = {orange: 3 * (orange - 1 / 2,) for orange in range(1, len(self.algebra.ss))}
             orange_signs = {orange: self.algebra.ss[orange] for orange in range(1, len(self.algebra.ss))}
@@ -198,6 +206,7 @@ class AMinus:
 
             return c * AMinus.Generator(self.algebra, new_strands)
 
+        # twice the ALexander grading of this generator
         def two_alexander(self, coeff):
             strands = dict(self.strands)
             out = -2 * coeff.degree()
@@ -211,6 +220,7 @@ class AMinus:
 
             return out
 
+        # the Maslov grading of this generator
         def maslov(self, coeff):
             strands = self.strands
             out = -2 * coeff.degree()
@@ -241,11 +251,3 @@ class AMinus:
 
         def __repr__(self):
             return dict_to_sorted_string(self.strands)
-
-def dict_to_sorted_string(d) -> str:
-    if len(d) == 0:
-        return '{}'
-    out = '{'
-    for k in sorted(d.keys()):
-        out += str(k) + ': ' + str(d[k]) + ', '
-    return out[:-2] + '}'

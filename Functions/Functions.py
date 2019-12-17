@@ -51,3 +51,13 @@ def copy_and_remove(d, value_to_remove):
 # creates a point with flipped y-orientation
 def invert(x, y):
     return x, -y
+
+
+# an alternate __str__() for dictionaries that sorts the keys first
+def dict_to_sorted_string(d) -> str:
+    if len(d) == 0:
+        return '{}'
+    out = '{'
+    for k in sorted(d.keys()):
+        out += str(k) + ': ' + str(d[k]) + ', '
+    return out[:-2] + '}'

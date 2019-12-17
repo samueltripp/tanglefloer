@@ -3,6 +3,7 @@ from Modules.CTMinus import *
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *
 from Modules.Bimodule import *
+from Functions.Functions import *
 
 
 # represents a pair of partial bijections overlaid on an elementary tangle
@@ -95,12 +96,3 @@ def validdictionaries(et: ETangle, ls: Dict, rs: Dict):
         if val not in et.right_points():
             return False
     return set(ls.values()).union(set(rs.keys())) == set(et.middle_points())
-
-
-def dict_to_sorted_string(d) -> str:
-    if len(d) == 0:
-        return '{}'
-    out = '{'
-    for k in sorted(d.keys()):
-        out += str(k) + ': ' + str(d[k]) + ', '
-    return out[:-2] + '}'

@@ -187,16 +187,16 @@ class TypeDA(Bimodule):
         graph.layout('dot')
         return graph
 
-    # def reduce(self):
-    #     reducible_edge = self.reducible_edge()
-    #     while reducible_edge is not None:
-    #         self.reduce_edge(*reducible_edge)
-    #
-    # def reducible_edge(self) -> Optional[Tuple]:
-    #     pass
-    #
-    # def reduce_edge(self, source: Bimodule.Generator, target: Bimodule.Generator):
-    #     pass
+    def reduce(self):
+        reducible_edge = self.reducible_edge()
+        while reducible_edge is not None:
+            self.reduce_edge(*reducible_edge)
+
+    def reducible_edge(self) -> Optional[Tuple]:
+        pass
+
+    def reduce_edge(self, source: Bimodule.Generator, target: Bimodule.Generator):
+        pass
 
     def __pow__(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra.ss == other.left_algebra.ss

@@ -2,7 +2,7 @@ import numpy
 
 import svgwrite
 from Tangles.Tangle import *
-from Tangles.Functions import *
+from Functions.Functions import *
 
 
 # utility class for drawing tangles
