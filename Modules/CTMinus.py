@@ -21,17 +21,17 @@ def type_da(etangle: ETangle) -> TypeDA:
         out.add_structure_map(x.to_generator(out), delta1_1(out, x))
 
         for a in etangle.right_algebra.left_gens(list(x.right_strands.values())):
-            out.add_structure_map(x.to_generator(out) * a, delta1_2(out, x, a))
+            out.add_structure_map(x.to_generator(out) ** a, delta1_2(out, x, a))
 
     return out
 
 
 def delta1_1(module: TypeDA, x: ETangleStrands) -> Bimodule.Element:
-    return x.left_idempotent() * (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
+    return x.left_idempotent() ** (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
 
 
 def delta1_2(module: TypeDA, x: ETangleStrands, a: AMinus.Generator) -> Bimodule.Element:
-    return x.left_idempotent() * m2(module, x, a)
+    return x.left_idempotent() ** m2(module, x, a)
 
 
 def d_plus(module: Bimodule, x: ETangleStrands) -> Bimodule.Element:
@@ -297,7 +297,7 @@ def delta_ell_case_1(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     idempotent_strands = x.left_idempotent_strands()
     elt_strands = swap_values(idempotent_strands, b1, b2)
     elt = x.etangle.left_algebra.generator(elt_strands)
-    return elt * (c * x.to_generator(module))
+    return elt ** (c * x.to_generator(module))
 
 
 def delta_ell_case_2(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -309,7 +309,7 @@ def delta_ell_case_2(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
         c *= x.etangle.strand_index_to_variable(orange) ** power
     elt = x.left_idempotent()
     y = ETangleStrands(x.etangle, swap_values(x.left_strands, a1, a2), x.right_strands)
-    return elt * (c * y.to_generator(module))
+    return elt ** (c * y.to_generator(module))
 
 
 def delta_ell_case_3(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -328,7 +328,7 @@ def delta_ell_case_3(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     new_left_strands[a1] = b2
     elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return elt * (c * y.to_generator(module))
+    return elt ** (c * y.to_generator(module))
 
 
 def delta_ell_case_4(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> Bimodule.Element:
@@ -347,7 +347,7 @@ def delta_ell_case_4(module: Bimodule, x: ETangleStrands, a1: int, a2: int) -> B
     new_left_strands[a2] = b1
     elt = x.etangle.left_algebra.generator(elt_strands)
     y = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return elt * (c * y.to_generator(module))
+    return elt ** (c * y.to_generator(module))
 
 
 # points - a list of sets of points

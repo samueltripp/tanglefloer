@@ -2,6 +2,7 @@ from __future__ import annotations
 from Modules.CTMinus import *
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *
+from Modules.Bimodule import *
 
 
 # represents a pair of partial bijections overlaid on an elementary tangle
@@ -19,7 +20,7 @@ class ETangleStrands:
         return Bimodule.Generator(module, self, self.left_idempotent(), self.right_idempotent())
 
     # the idempotent e^D_L                                                                                                                                
-    def left_idempotent(self) -> AMinus.Element:
+    def left_idempotent(self) -> AMinus.Generator:
         return self.etangle.left_algebra.idempotent(self.left_idempotent_strands().keys())
 
     def left_idempotent_strands(self) -> Dict:
@@ -28,7 +29,7 @@ class ETangleStrands:
         return {strand: strand for strand in total - occupied}
 
     # the idempotent e^A_R                                                                                                                                
-    def right_idempotent(self) -> AMinus.Element:
+    def right_idempotent(self) -> AMinus.Generator:
         return self.etangle.right_algebra.idempotent(list(self.right_strands.values()))
 
     def left_y_pos(self, black_strand: int):

@@ -131,7 +131,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 1
         a2 = 2
         y = x
-        out = over1.left_algebra.generator({1: 2, 2: 1}) * (over1.polyring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({1: 2, 2: 1}) ** (over1.polyring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_1(over1_module, x, a1, a2))
 
     def test_delta_ell_case_2(self):
@@ -141,7 +141,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 0, 1: 1}, {2: 2})
-        out = over1.left_algebra.generator({2: 2}) * (over1.polyring['U1'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({2: 2}) ** (over1.polyring['U1'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_2(over1_module, x, a1, a2))
 
     def test_delta_ell_case_3(self):
@@ -151,7 +151,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
-        out = over1.left_algebra.generator({0: 1}) * (over1.polyring['U1'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({0: 1}) ** (over1.polyring['U1'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_3(over1_module, x, a1, a2))
 
     def test_delta_ell_case_4(self):
@@ -161,7 +161,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 2
         y = ETangleStrands(over1, {2: 1, 1: 0}, {2: 2})
-        out = over1.left_algebra.generator({2: 0}) * (over1.polyring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({2: 0}) ** (over1.polyring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_4(over1_module, x, a1, a2))
 
     def test_delta_ell(self):
@@ -171,7 +171,7 @@ class TestCTMinus(unittest.TestCase):
         y = ETangleStrands(over1, {0: 0, 2: 1}, {3: 0, 2: 2})
         c = over1.polyring.one()
         elt = over1.left_algebra.generator({0: 1, 3: 3})
-        out = elt * (c * y.to_generator(over1_module))
+        out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
     def test_type_da(self):
@@ -185,7 +185,7 @@ class TestCTMinus(unittest.TestCase):
         cup_da = type_da(cup)
         cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
         cap_da = type_da(cap)
-        unknot_da = cup_da.tensor(cap_da)
+        unknot_da = cup_da ** cap_da
         gv = unknot_da.to_agraph(idempotents=True)
         gv.draw('output/test_tensor.svg')
         gv.write('output/test_tensor.dot')

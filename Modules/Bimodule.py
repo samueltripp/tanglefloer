@@ -65,29 +65,27 @@ class Bimodule:
                     new_coefficients[g] = other.coefficients[g]
             return Bimodule.Element(self.module, self.i, self.j, new_coefficients)
 
-        @multimethod
         def __rmul__(self, other: Z2Polynomial) -> Bimodule.Element:
             new_coefficients = dict(self.coefficients)
             for g in new_coefficients:
                 new_coefficients[g] = other * new_coefficients[g]
             return Bimodule.Element(self.module, self.i, self.j, new_coefficients)
 
-        @multimethod
-        def __rmul__(self, other: AMinus.Element) -> Bimodule.Element:
+        def __rpow__(self, other: AMinus.Element) -> Bimodule.Element:
             out = self.module.zero(self.i + 1, self.j)
 
             for g1, c1 in other.coefficients.items():
                 for g2, c2 in self.coefficients.items():
-                    out += (self.module.left_scalar_action.apply(c1) * c2) * (g1 * g2)
+                    out += (self.module.left_scalar_action.apply(c1) * c2) * (g1 ** g2)
 
             return out
 
-        def __mul__(self, other: AMinus.Element) -> Bimodule.Element:
+        def __pow__(self, other: AMinus.Element) -> Bimodule.Element:
             out = self.module.zero(self.i, self.j + 1)
 
             for g1, c1 in self.coefficients.items():
                 for g2, c2 in other.coefficients.items():
-                    out += (c1 * self.module.right_scalar_action.apply(c2)) * (g1 * g2)
+                    out += (c1 * self.module.right_scalar_action.apply(c2)) * (g1 ** g2)
 
             return out
 
@@ -122,16 +120,14 @@ class Bimodule:
         def __add__(self, other) -> Bimodule.Element:
             return self.to_element() + other
 
-        def __mul__(self, other: AMinus.Generator) -> Bimodule.Generator:
+        def __pow__(self, other: AMinus.Generator) -> Bimodule.Generator:
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       self.left, self.right + (other,))
 
-        @multimethod
-        def __rmul__(self, other: AMinus.Generator) -> Bimodule.Generator:
+        def __rpow__(self, other: AMinus.Generator) -> Bimodule.Generator:
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       (other,) + self.left, self.right)
 
-        @multimethod
         def __rmul__(self, other: Z2Polynomial) -> Bimodule.Element:
             return other * self.to_element()
 
@@ -202,7 +198,7 @@ class TypeDA(Bimodule):
     # def reduce_edge(self, source: Bimodule.Generator, target: Bimodule.Generator):
     #     pass
 
-    def tensor(self, other: TypeDA) -> TypeDA:
+    def __pow__(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra.ss == other.left_algebra.ss
 
         in_m, in_n = self.ring.tensor_inclusions(other.ring)
