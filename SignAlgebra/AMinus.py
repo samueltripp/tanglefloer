@@ -125,6 +125,14 @@ class AMinus:
             self.strands = frozendict(strands)
             super().__init__(algebra, {self: algebra.polyring.one()})
 
+        # the left idempotent of this element
+        def left_idempotent(self) -> AMinus.Generator:
+            return self.algebra.idempotent(self.strands.keys())
+
+        # the right idempotent of this element
+        def right_idempotent(self) -> AMinus.Generator:
+            return self.algebra.idempotent(self.strands.values())
+
         # we don't know how to multiply generators by anything else
         @multimethod
         def __mul__(self, other):
