@@ -62,6 +62,7 @@ class AMinus:
             return AMinus.Element(self.algebra, out_coefficients)
 
         # the algebra multiplication
+        @multimethod
         def __mul__(self, other: AMinus.Element) -> AMinus.Element:
             out = self.algebra.zero()
             for (gen1, coefficient1) in self.coefficients.items():
@@ -69,6 +70,10 @@ class AMinus:
                     out += (coefficient1 * coefficient2) * (gen1 * gen2)
 
             return out
+
+        @multimethod
+        def __mul__(self, other: AMinus.Generator) -> AMinus.Element:
+            return self * other.to_element()
 
         # the scalar multiplication
         def __rmul__(self, other: Z2Polynomial) -> AMinus.Element:
@@ -107,8 +112,13 @@ class AMinus:
         def is_idempotent(self):
             return self == self * self
 
+        @multimethod
         def __eq__(self, other: AMinus.Element):
             return self.algebra == other.algebra and self.coefficients == other.coefficients
+
+        @multimethod
+        def __eq__(self, other: AMinus.Generator):
+            return self == other.to_element()
 
         def __hash__(self):
             return hash((self.algebra, frozendict(self.coefficients)))
@@ -125,6 +135,9 @@ class AMinus:
             self.strands = frozendict(strands)
             super().__init__(algebra, {self: algebra.polyring.one()})
 
+        def to_element(self) -> AMinus.Element:
+            return AMinus.Element(self.algebra, {self: self.algebra.polyring.one()})
+
         # the left idempotent of this element
         def left_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.keys())
@@ -132,11 +145,6 @@ class AMinus:
         # the right idempotent of this element
         def right_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.values())
-
-        # we don't know how to multiply generators by anything else
-        @multimethod
-        def __mul__(self, other):
-            return other.__rmul__(self)
 
         # the algebra multiplication
         @multimethod
@@ -169,9 +177,27 @@ class AMinus:
 
             return c * AMinus.Generator(self.algebra, strands)
 
+        @multimethod
+        def __mul__(self, other: AMinus.Element):
+            return self.to_element() * other
+
+        # we don't know how to multiply generators by anything else
+        @multimethod
+        def __mul__(self, other):
+            return other.__rmul__(self)
+
         # scalar multiplication
-        def __rmul__(self, other: Z2Polynomial):
+        @multimethod
+        def __rmul__(self, other: Z2Polynomial) -> AMinus.Element:
             return AMinus.Element(self.algebra, {self: other})
+
+        @multimethod
+        def __rmul__(self, other: AMinus.Element) -> AMinus.Element:
+            return other * self.to_element()
+
+        @multimethod
+        def __rmul__(self, other):
+            raise NotImplementedError()
 
         # the differential
         def diff(self) -> AMinus.Element:

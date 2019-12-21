@@ -177,18 +177,32 @@ class TestCTMinus(unittest.TestCase):
     def test_type_da(self):
         et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
-        gv = da.to_agraph(idempotents=False)
-        gv.draw('output/test_type_da.svg')
+        da.to_agraph(idempotents=False).draw('output/test_type_da.svg')
 
     def test_tensor(self):
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         cup_da = type_da(cup)
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        cup_da.to_agraph(idempotents=False).draw('output/test_cup.svg')
+        cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
         cap_da = type_da(cap)
+        cap_da.to_agraph(idempotents=False).draw('output/test_cap.svg')
         unknot_da = cup_da ** cap_da
-        gv = unknot_da.to_agraph(idempotents=True)
-        gv.draw('output/test_tensor.svg')
-        gv.write('output/test_tensor.dot')
+        unknot_da.to_agraph(idempotents=True).draw('output/test_unknot.svg')
+
+    def test_reduced(self):
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        cup_da_reduced = cup_da.reduced()
+        cup_da_reduced.to_agraph(idempotents=False).draw('output/test_cup_reduced.svg')
+        cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        cap_da = type_da(cap)
+        cap_da_reduced = cap_da.reduced()
+        cap_da_reduced.to_agraph(idempotents=False).draw('output/test_cap_reduced.svg')
+        unknot_da_partial = cup_da_reduced ** cap_da_reduced
+        unknot_da_partial.to_agraph(idempotents=False).draw('output/test_unknot_partial.svg')
+        unknot_da_partial_reduced = unknot_da_partial.reduced()
+        unknot_da_partial_reduced.to_agraph(idempotents=False).draw('output/test_unknot_partial_reduced.svg')
+
 
 
 if __name__ == '__main__':
