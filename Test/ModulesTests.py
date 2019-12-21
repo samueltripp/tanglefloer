@@ -175,7 +175,7 @@ class TestCTMinus(unittest.TestCase):
         self.assertEqual(out, delta_ell(over1_module, x))
 
     def test_type_da(self):
-        et = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        et = ETangle(ETangle.Type.CUP, (1, -1), 1)
         da = type_da(et)
         gv = da.to_agraph(idempotents=False)
         gv.draw('output/test_type_da.svg')

@@ -1,5 +1,10 @@
 from __future__ import annotations
+
+from collections import defaultdict
+from functools import lru_cache
+
 from networkx import MultiDiGraph
+import networkx as nx
 from typing import Iterable, Any
 from pygraphviz import AGraph
 from Modules import ETangleStrands
@@ -13,26 +18,16 @@ from SignAlgebra.Z2PolynomialRing import *
 # Base class for Type DD, AA, DA, and AD structures
 class Bimodule:
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
-                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
-                 generators=None, structure_maps=None):
+                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map):
         self.ring = ring
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
         self.left_scalar_action = left_scalar_action
         self.right_scalar_action = right_scalar_action
-        self.generators = generators or set()  # {Bimodule.Generator}
-        self.structure_maps = structure_maps or {}  # {(int, int): {Bimodule.TensorGenerator: Bimodule.TensorElement}}
+        self.graph = MultiDiGraph()
 
     def __repr__(self) -> str:
         return str(self.__dict__)
-
-    # add the given generator to this module
-    def add_generator(self, generator: Bimodule.Generator) -> None:
-        self.generators.add(generator)
-
-    # add the structure map (input |-> output) to this module
-    def add_structure_map(self, input: Bimodule.Generator, output: Bimodule.Element) -> None:
-        pass
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
     def zero(self, i=0, j=0) -> Bimodule.Element:
@@ -128,6 +123,11 @@ class Bimodule:
         def to_element(self) -> Bimodule.Element:
             return Bimodule.Element(self.module, len(self.left), len(self.right), {self: self.module.ring.one()})
 
+        # returns m
+        def get_module_generator(self):
+            return Bimodule.Generator(self.module, self.key,
+                                      self.left_idempotent, self.right_idempotent, tuple(), tuple())
+
         def leftmost_idempotent(self) -> AMinus.Generator:
             if len(self.left) == 0:
                 return self.left_idempotent
@@ -145,16 +145,32 @@ class Bimodule:
             return self.to_element() + other
 
         # tensor product
+        @multimethod
         def __pow__(self, other: AMinus.Generator) -> Bimodule.Generator:
             assert self.rightmost_idempotent() == other.left_idempotent()
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       self.left, self.right + (other,))
 
+        @multimethod
+        def __pow__(self, other) -> Bimodule.Generator:
+            out = self
+            for gen in other:
+                out = out ** gen
+            return out
+
         # tensor product
+        @multimethod
         def __rpow__(self, other: AMinus.Generator) -> Bimodule.Generator:
             assert other.right_idempotent() == self.leftmost_idempotent()
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       (other,) + self.left, self.right)
+
+        @multimethod
+        def __rpow__(self, other) -> Bimodule.Generator:
+            out = self
+            for gen in reversed(other):
+                out = gen ** out
+            return out
 
         # scalar multiplication
         def __rmul__(self, other: Z2Polynomial) -> Bimodule.Element:
@@ -184,48 +200,45 @@ class Bimodule:
 # represents a type DA bimodule
 class TypeDA(Bimodule):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
-                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
-                 generators=None, structure_maps=None):
-        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action,
-                         generators=None, structure_maps=None)
+                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map):
+        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action)
+
+    # add the given generator to this module
+    def add_generator(self, generator: Bimodule.Generator) -> None:
+        self.graph.add_node(generator)
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Bimodule.Generator, output: Bimodule.Element) -> None:
-        assert len(input.left) == output.j == 0
-        size = (output.i, len(input.right))
-        if size not in self.structure_maps:
-            self.structure_maps[size] = {}
-        if input not in self.structure_maps[size]:
-            self.structure_maps[size][input] = self.zero(output.i, 0)
-        self.structure_maps[size][input] += output
-
-    def to_nxgraph(self) -> MultiDiGraph:
-        graph = MultiDiGraph()
-        for generator in self.generators:
-            graph.add_node(generator.key)
-        for size in self.structure_maps.keys():
-            for gen_in, elt_out in self.structure_maps[size].items():
-                for gen_out, c_out in elt_out.coefficients.items():
-                    graph.add_edge(gen_in.key, gen_out.key)
-        return graph
+        assert len(input.left) == output.j == 0 and output.i == 1
+        x = input.get_module_generator()
+        right_gens = input.right
+        for gen_out, c_out in output.coefficients.items():
+            y = gen_out.get_module_generator()
+            for left_gen, c in gen_out.left[0].coefficients.items():
+                current = self.graph.get_edge_data(x, y, key=(left_gen, right_gens))
+                if current is None:
+                    self.graph.add_edge(x, y, key=(left_gen, right_gens), c=self.ring.zero())
+                    current = self.graph.get_edge_data(x, y, key=(left_gen, right_gens))
+                current['c'] += self.left_scalar_action.apply(c)
 
     # turns this bimodule into a graphviz-compatible format
     def to_agraph(self, idempotents=True) -> AGraph:
         graph = AGraph(strict=False, directed=True)
-        for generator in self.generators:
+        for generator in self.graph.nodes:
             graph.add_node(generator.key,
                            shape='box',
                            fontname='Arial')
-        for size in self.structure_maps.keys():
-            for gen_in, elt_out in self.structure_maps[size].items():
-                if not idempotents and len(gen_in.right) == 1 and gen_in.right[0].is_idempotent():
-                    continue
-                for gen_out, c_out in elt_out.coefficients.items():
-                    graph.add_edge(gen_in.key, gen_out.key,
-                                   label=str((gen_out.left, c_out, gen_in.right)),
-                                   dir='forward',
-                                   color='blue' if len(gen_in.right) > 0 else 'black',
-                                   fontname='Arial')
+        for x, y, k, d in self.graph.edges(keys=True, data=True):
+            c = d['c']
+            left = k[0]
+            right = k[1]
+            if not idempotents and len(right) == 1 and right[0].is_idempotent():
+                continue
+            graph.add_edge(x.key, y.key,
+                           label=str((left, c, right)),
+                           dir='forward',
+                           color='blue' if len(right) > 0 else 'black',
+                           fontname='Arial')
         graph.layout('dot')
         return graph
 
@@ -236,13 +249,13 @@ class TypeDA(Bimodule):
             self.reduce_edge(*reducible_edge)
 
     def reducible_edge(self) -> Optional[Tuple]:
-        pass
+        pass  # TODO
 
     def reduce_edge(self, source: Bimodule.Generator, target: Bimodule.Generator):
-        pass
+        pass  # TODO
 
     # tensor product of type DA structures
-    # TODO: iterated delta_1 necessary?
+    # assumes self is bounded, other may or may not be
     def __pow__(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra.ss == other.left_algebra.ss
 
@@ -251,30 +264,59 @@ class TypeDA(Bimodule):
         out = TypeDA(in_m.target, self.left_algebra, other.right_algebra,
                      in_m.compose(self.left_scalar_action), in_n.compose(other.right_scalar_action))
 
-        for xm in self.generators:
-            for xn in other.generators:
-                if xm.right_idempotent == xn.left_idempotent:
-                    out.add_generator(Bimodule.Generator(out, (xm.key, xn.key), xm.left_idempotent, xn.right_idempotent))
+        for x_m in self.graph.nodes:
+            for x_n in other.graph.nodes:
+                if x_m.right_idempotent == x_n.left_idempotent:
+                    out.add_generator(Bimodule.Generator(out, (x_m.key, x_n.key),
+                                                         x_m.left_idempotent, x_n.right_idempotent))
 
-        for size_m in self.structure_maps.keys():
-            for xm, yms in self.structure_maps[size_m].items():
-                for ym, cm in yms.coefficients.items():
-                    if len(ym.left) != 1:
-                        continue
-                    for size_n in other.structure_maps.keys():
-                        for xn, yns in other.structure_maps[size_n].items():
-                            if xm.right_idempotent != xn.left_idempotent:
+        for x_m in self.graph.nodes:
+            for x_n in other.graph.nodes:
+                if x_m.right_idempotent != x_n.left_idempotent:
+                    continue
+                x = Bimodule.Generator(out, (x_m.key, x_n.key), x_m.left_idempotent, x_n.right_idempotent)
+                for _, y_m, k_m, d_m in self.graph.out_edges(x_m, keys=True, data=True):
+                    for y_n in other.graph.nodes:
+                        if y_m.right_idempotent != y_n.left_idempotent:
+                            continue
+                        y = Bimodule.Generator(out, (y_m.key, y_n.key), y_m.left_idempotent, y_n.right_idempotent)
+                        left_m = k_m[0]
+                        right_m = k_m[1]
+                        c_m = d_m['c']
+                        for left_n, right_n, c_n in other.delta_n(len(right_m), x_n, y_n):
+                            if left_n != right_m:
                                 continue
-                            for yn, cn in yns.coefficients.items():
-                                if ym.right_idempotent != yn.left_idempotent:
-                                    continue
-                                if xm.right != yn.left:
-                                    continue
-                                x = Bimodule.Generator(out, (xm.key, xn.key), xm.left_idempotent, xn.right_idempotent,
-                                                       xm.left, xn.right)
-                                y = in_m.apply(cm) * in_n.apply(cn) * \
-                                    Bimodule.Generator(out, (ym.key, yn.key), ym.left_idempotent, yn.right_idempotent,
-                                                       ym.left, yn.right)
-                                out.add_structure_map(x, y)
+                            out.add_structure_map(x ** right_n, left_m ** (in_m.apply(c_m) * in_n.apply(c_n) * y))
 
         return out
+
+    # returns [(right, left, coefficient)] representing the delta_n paths from source to target
+    def delta_n(self, n, source, target) -> List[Tuple, Tuple, Z2Polynomial]:
+        if n == 0:
+            return [(tuple(), tuple(), self.ring.one())]
+        else:
+            out = []
+            for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
+                left = k[0]
+                right = k[1]
+                c = d['c']
+                out += [(right, more_left + (left,), more_c * c)
+                        for more_left, more_c in self.delta_n_helper(n - 1, source, new_target, right)]
+            return out
+
+    # returns [(left, coefficient)] representing the delta_n paths from source ** right to target
+    @lru_cache(maxsize=None)
+    def delta_n_helper(self, n, source, target, current_right) -> List[Tuple, Z2Polynomial]:
+        if n == 0:
+            return [(tuple(), self.ring.one())]
+        else:
+            out = []
+            for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
+                left = k[0]
+                right = k[1]
+                c = d['c']
+                if right != current_right:
+                    continue
+                out += [(more_left + (left,), more_c * c)
+                        for more_left, more_c in self.delta_n_helper(n - 1, source, new_target, right)]
+            return out
