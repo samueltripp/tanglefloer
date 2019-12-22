@@ -175,34 +175,35 @@ class TestCTMinus(unittest.TestCase):
         self.assertEqual(out, delta_ell(over1_module, x))
 
     def test_type_da(self):
-        et = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        da = type_da(et)
-        da.to_agraph(idempotents=False).draw('output/test_type_da.svg')
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        cup_da.to_agraph(idempotents=False).draw('output/test_cup.svg')
 
     def test_tensor(self):
         cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         cup_da = type_da(cup)
-        cup_da.to_agraph(idempotents=False).draw('output/test_cup.svg')
         cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
         cap_da = type_da(cap)
         cap_da.to_agraph(idempotents=False).draw('output/test_cap.svg')
         unknot_da = cup_da ** cap_da
-        unknot_da.to_agraph(idempotents=True).draw('output/test_unknot.svg')
+        unknot_da.to_agraph(idempotents=False).draw('output/test_unknot_t.svg')
 
     def test_reduced(self):
         cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         cup_da = type_da(cup)
-        cup_da_reduced = cup_da.reduced()
-        cup_da_reduced.to_agraph(idempotents=False).draw('output/test_cup_reduced.svg')
+        cup_da_r = cup_da.reduced()
+        cup_da_r.to_agraph(idempotents=False).draw('output/test_cup_r.svg')
         cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
         cap_da = type_da(cap)
-        cap_da_reduced = cap_da.reduced()
-        cap_da_reduced.to_agraph(idempotents=False).draw('output/test_cap_reduced.svg')
-        unknot_da_partial = cup_da_reduced ** cap_da_reduced
-        unknot_da_partial.to_agraph(idempotents=False).draw('output/test_unknot_partial.svg')
-        unknot_da_partial_reduced = unknot_da_partial.reduced()
-        unknot_da_partial_reduced.to_agraph(idempotents=False).draw('output/test_unknot_partial_reduced.svg')
-
+        cap_da_r = cap_da.reduced()
+        cap_da_r.to_agraph(idempotents=False).draw('output/test_cap_r.svg')
+        unknot_da_rt = cup_da_r ** cap_da_r
+        unknot_da_rt.to_agraph(idempotents=False).draw('output/test_unknot_rt.svg')
+        unknot_da_rtr = unknot_da_rt.reduced()
+        unknot_da_rtr.to_agraph(idempotents=False).draw('output/test_unknot_rtr.svg')
+        unknot_da = cup_da ** cap_da
+        unknot_da_tr = unknot_da.reduced()
+        unknot_da_tr.to_agraph(idempotents=True).draw('output/test_unknot_tr.svg')
 
 
 if __name__ == '__main__':

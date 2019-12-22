@@ -231,6 +231,8 @@ class TypeDA(Bimodule):
                     self.graph.add_edge(x, y, key=(left_gen, right_gens), c=self.ring.zero())
                     current = self.graph.get_edge_data(x, y, key=(left_gen, right_gens))
                 current['c'] += c_out * self.left_scalar_action.apply(c)
+                if current['c'] == self.ring.zero():
+                    self.graph.remove_edge(x, y, key=(left_gen, right_gens))
 
     # turns this bimodule into a graphviz-compatible format
     def to_agraph(self, idempotents=True) -> AGraph:
@@ -329,7 +331,10 @@ class TypeDA(Bimodule):
     # returns [left, right, coefficient)] representing the delta_n paths from source to target
     def delta_n(self, n, source, target) -> List[Tuple, Tuple, Z2Polynomial]:
         if n == 0:
-            return [(tuple(), tuple(), self.ring.one())]
+            if source == target:
+                return [(tuple(), tuple(), self.ring.one())]
+            else:
+                return []
         else:
             out = []
             for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
@@ -344,7 +349,10 @@ class TypeDA(Bimodule):
     @lru_cache(maxsize=None)
     def delta_n_helper(self, n, source, target, current_right) -> List[Tuple, Z2Polynomial]:
         if n == 0:
-            return [(tuple(), self.ring.one())]
+            if source == target:
+                return [(tuple(), self.ring.one())]
+            else:
+                return []
         else:
             out = []
             for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
