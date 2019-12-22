@@ -230,7 +230,7 @@ class TypeDA(Bimodule):
                 if current is None:
                     self.graph.add_edge(x, y, key=(left_gen, right_gens), c=self.ring.zero())
                     current = self.graph.get_edge_data(x, y, key=(left_gen, right_gens))
-                current['c'] += self.left_scalar_action.apply(c)
+                current['c'] += c_out * self.left_scalar_action.apply(c)
 
     # turns this bimodule into a graphviz-compatible format
     def to_agraph(self, idempotents=True) -> AGraph:
