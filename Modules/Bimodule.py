@@ -5,7 +5,7 @@ from functools import lru_cache
 
 from networkx import MultiDiGraph
 import networkx as nx
-from typing import Iterable, Any
+from typing import Iterable
 from pygraphviz import AGraph
 from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
@@ -19,7 +19,7 @@ from SignAlgebra.Z2PolynomialRing import *
 class Bimodule:
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
-                 graph: MultiDiGraph=None):
+                 graph: MultiDiGraph = None):
         self.ring = ring
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
@@ -157,6 +157,8 @@ class Bimodule:
         def __pow__(self, other: AMinus.Element) -> Bimodule.Element:
             return self.to_element() ** other
 
+        # tensor product
+        # assumes other is a tuple of generators or elements
         @multimethod
         def __pow__(self, other) -> Bimodule.Generator:
             out = self
@@ -171,10 +173,13 @@ class Bimodule:
             return Bimodule.Generator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                       (other,) + self.left, self.right)
 
+        # tensor product
         @multimethod
         def __rpow__(self, other: AMinus.Element) -> Bimodule.Element:
             return other ** self.to_element()
 
+        # tensor product
+        # assumes other is a tuple of generators or elements
         @multimethod
         def __rpow__(self, other) -> Bimodule.Generator:
             out = self
@@ -211,7 +216,7 @@ class Bimodule:
 class TypeDA(Bimodule):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
-                 graph: MultiDiGraph=None):
+                 graph: MultiDiGraph = None):
         super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph=graph)
 
     # add the given generator to this module
@@ -278,8 +283,6 @@ class TypeDA(Bimodule):
                                 self.left_scalar_action, self.right_scalar_action, reduced_graph)
 
         left = k[0]
-        right = k[1]
-        c = d['c']
 
         for w, _, (left_wy, right_wy), d_wy in self.graph.in_edges(y, keys=True, data=True):
             if w == x or w == y:

@@ -4,6 +4,9 @@ import itertools
 # helper functions
 
 # returns a list of all injections, modeled as dicts
+from typing import Dict
+
+
 def injections(source, target):
     if len(source) == 0:
         return [{}]
@@ -51,6 +54,16 @@ def copy_and_remove(d, value_to_remove):
 # creates a point with flipped y-orientation
 def invert(x, y):
     return x, -y
+
+
+# return a new dictionary and swap the values associated to the given keys
+def swap_values(d: Dict, k1, k2) -> Dict:
+    d_out = dict(d)
+    v1 = d[k1]
+    v2 = d[k2]
+    d_out[k1] = v2
+    d_out[k2] = v1
+    return d_out
 
 
 # an alternate __str__() for dictionaries that sorts the keys first

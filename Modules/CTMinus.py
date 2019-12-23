@@ -215,16 +215,6 @@ def introduce_left_crossing(module: Bimodule, x: ETangleStrands, b1: int, b2: in
     return c * x_out.to_generator(module)
 
 
-# swap the values associated to the given keys
-def swap_values(d: Dict, k1, k2) -> Dict:
-    d_out = dict(d)
-    v1 = d[k1]
-    v2 = d[k2]
-    d_out[k1] = v2
-    d_out[k2] = v1
-    return d_out
-
-
 def d_mixed_case_1(module: Bimodule, x: ETangleStrands, b1: int, b2: int) -> Bimodule.Element:
     c = x.etangle.polyring.one()
     powers = x.to_strand_diagram().figure_8_case_1b(b1, b2)
