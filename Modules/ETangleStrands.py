@@ -2,7 +2,7 @@ from __future__ import annotations
 from Modules.CTMinus import *
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *
-from Modules.Bimodule import *
+from Modules.Module import *
 from Functions.Functions import *
 
 
@@ -16,9 +16,9 @@ class ETangleStrands:
         self.right_strands = frozendict(right_strands)
         self.right_strands_inverse = frozendict(invert_injection(right_strands))
 
-    def to_generator(self, module) -> Bimodule.Generator:
-        from Modules.Bimodule import Bimodule
-        return Bimodule.Generator(module, self, self.left_idempotent(), self.right_idempotent())
+    def to_generator(self, module) -> Module.Generator:
+        from Modules.Module import Module
+        return Module.Generator(module, self, self.left_idempotent(), self.right_idempotent())
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self) -> AMinus.Generator:

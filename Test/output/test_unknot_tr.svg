@@ -25,7 +25,7 @@
 <title>({}{0: 1, 2: 2}, {0: 0}{2: 0})&#45;&gt;({}{0: 2, 2: 1}, {0: 0}{2: 0})</title>
 <path fill="none" stroke="#000000" d="M86.5,-86.974C86.5,-75.192 86.5,-59.561 86.5,-46.158"/>
 <polygon fill="#000000" stroke="#000000" points="90.0001,-46.003 86.5,-36.003 83.0001,-46.003 90.0001,-46.003"/>
-<text text-anchor="middle" x="154.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({0: 0}, U1a + U1b, ())</text>
+<text text-anchor="middle" x="154.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({0: 0}, U1b + U1a, ())</text>
 </g>
 <!-- ({}{0: 1, 2: 2}, {0: 2}{0: 0}) -->
 <g id="node3" class="node">
@@ -44,7 +44,7 @@
 <title>({}{0: 1, 2: 2}, {0: 2}{0: 0})&#45;&gt;({}{0: 2, 2: 1}, {0: 2}{0: 0})</title>
 <path fill="none" stroke="#000000" d="M277.5,-86.974C277.5,-75.192 277.5,-59.561 277.5,-46.158"/>
 <polygon fill="#000000" stroke="#000000" points="281.0001,-46.003 277.5,-36.003 274.0001,-46.003 281.0001,-46.003"/>
-<text text-anchor="middle" x="345.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({0: 0}, U1a + U1b, ())</text>
+<text text-anchor="middle" x="345.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({0: 0}, U1b + U1a, ())</text>
 </g>
 <!-- ({0: 0}{2: 1}, {0: 0, 2: 2}{}) -->
 <g id="node5" class="node">
@@ -69,7 +69,7 @@
 <title>({0: 2}{0: 1}, {0: 0, 2: 2}{})&#45;&gt;({0: 0}{2: 1}, {0: 0, 2: 2}{})</title>
 <path fill="none" stroke="#000000" d="M468.5,-86.974C468.5,-75.192 468.5,-59.561 468.5,-46.158"/>
 <polygon fill="#000000" stroke="#000000" points="472.0001,-46.003 468.5,-36.003 465.0001,-46.003 472.0001,-46.003"/>
-<text text-anchor="middle" x="524.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({}, U1a + U1b, ())</text>
+<text text-anchor="middle" x="524.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({}, U1b + U1a, ())</text>
 </g>
 <!-- ({0: 2}{0: 1}, {0: 2, 2: 0}{}) -->
 <g id="node8" class="node">
@@ -82,7 +82,7 @@
 <title>({0: 2}{0: 1}, {0: 2, 2: 0}{})&#45;&gt;({0: 2}{0: 0}, {1: 2, 2: 0}{})</title>
 <path fill="none" stroke="#000000" d="M659.5,-86.974C659.5,-75.192 659.5,-59.561 659.5,-46.158"/>
 <polygon fill="#000000" stroke="#000000" points="663.0001,-46.003 659.5,-36.003 656.0001,-46.003 663.0001,-46.003"/>
-<text text-anchor="middle" x="715.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({}, U1a + U1b, ())</text>
+<text text-anchor="middle" x="715.5" y="-57.8" font-family="Arial" font-size="14.00" fill="#000000">({}, U1b + U1a, ())</text>
 </g>
 </g>
 </svg>

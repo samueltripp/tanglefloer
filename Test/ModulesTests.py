@@ -1,5 +1,5 @@
 from Modules.CTMinus import *
-from Modules.Bimodule import *
+from Modules.Module import *
 from Modules.ETangleStrands import *
 import unittest
 
@@ -189,16 +189,16 @@ class TestCTMinus(unittest.TestCase):
         unknot_da = cup_da ** cap_da
         unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
 
-    def test_reduced(self):
+    def test_type_da_reduced(self):
         idempotents = False
-        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        # cup_da = type_da(cup)
-        # cup_da_r = cup_da.reduced()
-        # cup_da_r.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
-        # cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
-        # cap_da = type_da(cap)
-        # cap_da_r = cap_da.reduced()
-        # cap_da_r.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        cup_da_r = cup_da.reduced()
+        cup_da_r.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
+        cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        cap_da = type_da(cap)
+        cap_da_r = cap_da.reduced()
+        cap_da_r.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
         # unknot_da_rt = cup_da_r ** cap_da_r
         # unknot_da_rt.to_agraph(idempotents=idempotents).draw('output/test_unknot_rt.svg')
         # unknot_da_rtr = unknot_da_rt.reduced()
