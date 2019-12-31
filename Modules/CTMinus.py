@@ -157,7 +157,7 @@ def smooth_right_crossing(module: Module, x: ETangleStrands, b1: int, b2: int) -
     for orange in range(1, len(x.etangle.signs)):
         if x.etangle.right_y_pos(orange):
             orange_strands[orange] = (
-                x.etangle.middle_y_pos(orange), x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange)
+                x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange), x.etangle.right_y_pos(orange)
             )
         orange_signs[orange] = x.etangle.middle_signs()[orange]
     black_strands = {}
@@ -190,8 +190,9 @@ def introduce_left_crossing(module: Module, x: ETangleStrands, b1: int, b2: int)
     orange_signs = {}
     for orange in range(1, len(x.etangle.signs)):
         if x.etangle.left_y_pos(orange):
+            # (left, middle, middle) breaks {0: 0, 1: 2} on a cup with (-1, 1)
             orange_strands[orange] = (
-                x.etangle.left_y_pos(orange), x.etangle.middle_y_pos(orange), x.etangle.middle_y_pos(orange)
+                x.etangle.left_y_pos(orange), x.etangle.left_y_pos(orange), x.etangle.middle_y_pos(orange)
             )
         orange_signs[orange] = x.etangle.middle_signs()[orange]
     black_strands = {}

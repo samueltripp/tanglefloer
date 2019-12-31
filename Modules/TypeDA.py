@@ -24,22 +24,6 @@ class TypeDA(Module):
                  graph: MultiDiGraph = None):
         super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph=graph)
 
-    def to_left_type_d(self) -> LeftTypeD:
-        graph = MultiDiGraph()
-        graph.add_nodes_from(self.graph.nodes)
-        graph.add_edges_from([(x, y, k[0], d)
-                              for x, y, k, d in self.graph.edges(keys=True, data=True) if k[1] == tuple()])
-
-        return LeftTypeD(self.ring, self.left_algebra, self.left_scalar_action, graph)
-
-    def to_right_type_a(self) -> RightTypeA:
-        graph = MultiDiGraph()
-        graph.add_nodes_from(self.graph.nodes)
-        graph.add_edges_from([(x, y, k[1], d)
-                              for x, y, k, d in self.graph.edges(keys=True, data=True) if k[0].is_idempotent()])
-
-        return RightTypeA(self.ring, self.right_algebra, self.right_scalar_action, graph)
-
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.Generator, output: Module.Element) -> None:
         assert len(input.left) == output.j == 0 and output.i == 1
