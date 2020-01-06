@@ -148,7 +148,34 @@ def m2(module: Module, x: ETangleStrands, a: AMinus.Generator) -> Module.Element
     return c * x_out.to_generator(module)
 
 
+@multimethod
 def smooth_right_crossing(module: Module, x: ETangleStrands, b1: int, b2: int) -> Module.Element:
+    a1 = x.right_y_pos(b1)
+    a2 = x.right_y_pos(b2)
+
+    crossing_range_1 = range(a1, b1+1) if a1 < b1 else range(b1, a1+1)
+    crossing_range_2 = range(a2, b2+1) if a2 < b2 else range(b2, a2+1)
+    possible_crossings = list(set(crossing_range_1) & set(crossing_range_2))
+    sd = smooth_right_crossing(module, x, b1, b2, possible_crossings[0])
+    for crossing in possible_crossings[1:]:
+        new_sd = smooth_right_crossing(module, x, b1, b2, crossing)
+        if new_sd.num_orange_black_crossings() < sd.num_orange_black_crossings():
+            sd = new_sd
+
+    c = x.etangle.polyring.one()
+    powers = sd.figure_6_relations()
+    if powers is None:
+        return module.zero()
+    for orange, power in powers.items():
+        c *= x.etangle.strand_index_to_variable(orange) ** power
+
+    new_right_strands = swap_values(x.right_strands, b1, b2)
+    x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
+    return c * x_out.to_generator(module)
+
+
+@multimethod
+def smooth_right_crossing(module: Module, x: ETangleStrands, b1: int, b2: int, crossing: int) -> StrandDiagram:
     a1 = x.right_y_pos(b1)
     a2 = x.right_y_pos(b2)
 
@@ -163,26 +190,43 @@ def smooth_right_crossing(module: Module, x: ETangleStrands, b1: int, b2: int) -
     black_strands = {}
     for black in x.right_strands.keys():
         if black == b1:
-            black_strands[b1] = (b1, min(a1, b2) + .1, a2)
+            black_strands[b1] = (b1, crossing + .1, a2)
         elif black == b2:
-            black_strands[b2] = (b2, min(a1, b2) + .2, a1)
+            black_strands[b2] = (b2, crossing + .2, a1)
         else:
             black_strands[black] = (black, black, x.right_y_pos(black))
 
+    return StrandDiagram(orange_strands, orange_signs, black_strands)
+
+
+@multimethod
+def introduce_left_crossing(module: Module, x: ETangleStrands, b1: int, b2: int) -> Module.Element:
+    a1 = x.left_y_pos(b1)
+    a2 = x.left_y_pos(b2)
+
+    crossing_range_1 = range(a1, b2+1) if a1 < b2 else range(b2, a1+1)
+    crossing_range_2 = range(a2, b1+1) if a2 < b1 else range(b1, a2+1)
+    possible_crossings = list(set(crossing_range_1) & set(crossing_range_2))
+    sd = introduce_left_crossing(module, x, b1, b2, possible_crossings[0])
+    for crossing in possible_crossings[1:]:
+        new_sd = introduce_left_crossing(module, x, b1, b2, crossing)
+        if new_sd.num_orange_black_crossings() < sd.num_orange_black_crossings():
+            sd = new_sd
+
     c = x.etangle.polyring.one()
-    sd = StrandDiagram(orange_strands, orange_signs, black_strands)
-    powers = sd.figure_6_relations()
+    powers = sd.figure_7_relations()
     if powers is None:
         return module.zero()
     for orange, power in powers.items():
         c *= x.etangle.strand_index_to_variable(orange) ** power
 
-    new_right_strands = swap_values(x.right_strands, b1, b2)
-    x_out = ETangleStrands(x.etangle, x.left_strands, new_right_strands)
+    new_left_strands = swap_values(x.left_strands, a1, a2)
+    x_out = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
     return c * x_out.to_generator(module)
 
 
-def introduce_left_crossing(module: Module, x: ETangleStrands, b1: int, b2: int) -> Module.Element:
+@multimethod
+def introduce_left_crossing(module: Module, x: ETangleStrands, b1: int, b2: int, crossing: int) -> StrandDiagram:
     a1 = x.left_y_pos(b1)
     a2 = x.left_y_pos(b2)
 
@@ -198,23 +242,13 @@ def introduce_left_crossing(module: Module, x: ETangleStrands, b1: int, b2: int)
     black_strands = {}
     for black in x.left_strands.values():
         if black == b1:
-            black_strands[b1] = (a1, min(a2, b2) - .25, b1)
+            black_strands[b1] = (a1, crossing + .1, b1)
         elif black == b2:
-            black_strands[b2] = (a2, min(a2, b2) + .25, b2)
+            black_strands[b2] = (a2, crossing + .2, b2)
         else:
             black_strands[black] = (x.left_y_pos(black), black, black)
 
-    c = x.etangle.polyring.one()
-    sd = StrandDiagram(orange_strands, orange_signs, black_strands)
-    powers = sd.figure_7_relations()
-    if powers is None:
-        return module.zero()
-    for orange, power in powers.items():
-        c *= x.etangle.strand_index_to_variable(orange) ** power
-
-    new_left_strands = swap_values(x.left_strands, a1, a2)
-    x_out = ETangleStrands(x.etangle, new_left_strands, x.right_strands)
-    return c * x_out.to_generator(module)
+    return StrandDiagram(orange_strands, orange_signs, black_strands)
 
 
 def d_mixed_case_1(module: Module, x: ETangleStrands, b1: int, b2: int) -> Module.Element:

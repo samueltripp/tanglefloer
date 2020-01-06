@@ -127,7 +127,7 @@ class Module:
             return hash((self.module, self.coefficients))
 
         def __repr__(self) -> str:
-            return str(self.coefficients)
+            return str(dict(self.coefficients))
 
     # represents a generator of A^(x)i (x) M (x) A^(x)j
     class Generator:

@@ -231,7 +231,7 @@ class TestCTMinus(unittest.TestCase):
     def test_test(self):
         cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
         cap_da = type_da(cap)
-        x = ETangleStrands(cap, {1: 2, 2: 0}, {})
+        x = ETangleStrands(cap, {0: 2, 1: 0}, {})
         print(d_plus(cap_da, x))
         print(d_minus(cap_da, x))
         print(d_mixed(cap_da, x))

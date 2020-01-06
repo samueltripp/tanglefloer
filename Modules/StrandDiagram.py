@@ -91,6 +91,8 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
+                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None:  # ???
                         return None
@@ -129,6 +131,8 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
+                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_right_pos(orange) is not None:  # ???
                         powers[orange] += 1
@@ -170,6 +174,8 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
+                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) < a2:
@@ -207,6 +213,8 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
+                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
+                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) > a1:
@@ -235,6 +243,11 @@ class StrandDiagram:
 
     def figure_8_case_4a(self, b1: int, b2: int) -> Optional[Dict]:
         return self.reflect().figure_8_case_4b(b1, b2)
+
+    # counts the number of orange-black crossings
+    def num_orange_black_crossings(self) -> int:
+        return sum(self.orange_times_crossed_black(orange, black)
+                   for orange in self.orange_strands for black in self.black_strands)
 
     def black_crosses_black(self, b1: int, b2: int) -> bool:
         return self.black_times_crossed_black(b1, b2) > 0
