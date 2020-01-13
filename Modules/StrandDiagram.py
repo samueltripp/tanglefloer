@@ -91,8 +91,6 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
-                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
-                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None:  # ???
                         return None
@@ -131,8 +129,6 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
-                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
-                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_right_pos(orange) is not None:  # ???
                         powers[orange] += 1
@@ -174,8 +170,6 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
-                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
-                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) < a2:
@@ -213,8 +207,6 @@ class StrandDiagram:
         for orange in self.orange_strands:
             powers[orange] = 0
             if b1 < self.orange_middle_pos(orange) < b2:
-                if self.orange_left_pos(orange) is None or self.orange_right_pos(orange) is None:
-                    continue
                 if self.orange_signs[orange] == 1:
                     if self.orange_left_pos(orange) is not None and \
                             self.orange_left_pos(orange) > a1:

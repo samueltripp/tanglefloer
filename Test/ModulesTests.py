@@ -47,9 +47,9 @@ class TestCTMinus(unittest.TestCase):
         cap1 = ETangle(ETangle.Type.CAP, (1, 1, -1, 1), 2)
         cap1_module = TestCTMinus.empty_da_module(cap1)
         sd_cap1_1 = ETangleStrands(cap1, {0: 0, 1: 1}, {4: 1, 3: 2})
-        sd_cap1_1_out = cap1.polyring['U3'] * ETangleStrands(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}).to_generator(cap1_module)
+        sd_cap1_1_out = cap1.polyring['U4'] * ETangleStrands(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}).to_generator(cap1_module)
         sd_cap1_2 = ETangleStrands(cap1, {3: 3, 1: 1}, {4: 0, 0: 2})
-        sd_cap1_2_out = cap1.polyring['U1'] * cap1.polyring['U3'] * \
+        sd_cap1_2_out = cap1.polyring['U1'] * cap1.polyring['U4'] * \
                         ETangleStrands(cap1, {3: 3, 1: 1}, {4: 2, 0: 0}).to_generator(cap1_module)
 
         self.assertEqual(sd_under1_1_out, d_plus(under1_module, sd_under1_1))
@@ -229,13 +229,12 @@ class TestCTMinus(unittest.TestCase):
         # unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
 
     def test_test(self):
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        cap_da = type_da(cap)
-        x = ETangleStrands(cap, {0: 2, 1: 0}, {})
-        print(d_plus(cap_da, x))
-        print(d_minus(cap_da, x))
-        print(d_mixed(cap_da, x))
-        print(delta_ell(cap_da, x))
+        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        t2 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
+        t3 = ETangle(ETangle.Type.CAP, (1, -1), 1)
+
+        da = (type_da(t1) ** type_da(t2) ** type_da(t3)).reduced()
+        da.to_agraph(idempotents=False).draw('output/test.svg')
 
 
 if __name__ == '__main__':

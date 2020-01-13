@@ -73,7 +73,7 @@ class ETangle(Tangle):
         self.etype = etype
         self.signs = (None,) + signs
         self.position = position
-        self.polyring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()) + 1)])
+        self.polyring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.signs))])
 
         super().__init__((self,))
 
@@ -167,10 +167,7 @@ class ETangle(Tangle):
                 return None
 
     def strand_index_to_variable_name(self, strand_index: int) -> str:
-        if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP) and strand_index > self.position:
-            return 'U' + str(strand_index - 1)
-        else:
-            return 'U' + str(strand_index)
+        return 'U' + str(strand_index)
 
     # turns the given strand index into a variable in F[U1, U2, ...]
     def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
