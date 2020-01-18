@@ -119,10 +119,20 @@ class TestCTMinus(unittest.TestCase):
         sd_cup1_1 = ETangleStrands(cup1, {}, {2: 1, 0: 0})
         algebra2 = AMinus((1, -1))
         idem2 = algebra2.generator({0: 0, 1: 1})
-        sd_cup1_2 = ETangleStrands(cup1, {}, {2: 0, 0: 1})
+        elt = algebra2.generator({1: 0, 2: 2})
+        sd_cup1_2 = ETangleStrands(cup1, {}, {2: 2, 0: 1})
+        sd_cup1_2_out = cup1_module.ring['U1'] * ETangleStrands(cup1, {}, {2: 2, 0: 0}).to_generator(cup1_module)
 
         self.assertEqual(sd_cup1_1.to_generator(cup1_module), m2(cup1_module, sd_cup1_1, idem2))
-        self.assertEqual(sd_cup1_2.to_generator(cup1_module), m2(cup1_module, sd_cup1_2, idem2))
+        self.assertEqual(sd_cup1_2_out, m2(cup1_module, sd_cup1_2, elt))
+
+        cup2 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        cup2_module = TestCTMinus.empty_da_module(cup2)
+        sd_cup2_1 = ETangleStrands(cup2, {}, {0: 0, 2: 1})
+        elt2 = cup2.right_algebra.generator({0: 0, 1: 2})
+        sd_cup2_1_out = cup2_module.ring['U1'] * ETangleStrands(cup2, {}, {0: 0, 2: 2}).to_generator(cup2_module)
+
+        self.assertEqual(sd_cup2_1_out, m2(cup2_module, sd_cup2_1, elt2))
 
     def test_delta_ell_case_1(self):
         over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
@@ -203,13 +213,13 @@ class TestCTMinus(unittest.TestCase):
         unknot_da_rt = cup_da_r ** cap_da_r
         unknot_da_rt.to_agraph(idempotents=idempotents).draw('output/test_unknot_rt.svg')
         unknot_da_rtr = unknot_da_rt.reduced()
-        unknot_da_rtr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr.svg')
+        unknot_da_rtr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrtr.svg')
         unknot_da = cup_da ** cap_da
         unknot_da_tr = unknot_da.reduced()
         unknot_da_tr.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
 
-    #     (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_1.svg')
-    #     (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_2.svg')
+        (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_1.svg')
+        (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_2.svg')
 
         # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         # cup_da = type_da(cup)
@@ -229,16 +239,8 @@ class TestCTMinus(unittest.TestCase):
         # unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
 
     # def test_test(self):
-        # t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        # t2 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
-        # t3 = ETangle(ETangle.Type.CAP, (1, -1), 1)
-        #
-        # da = type_da(t1) ** type_da(t2)
-        # da.to_agraph(idempotents=False).draw('output/test12.svg')
-        # da = da ** type_da(t3)
-        # da.to_agraph(idempotents=False).draw('output/test123.svg')
-        # da = da.reduced()
-        # da.to_agraph(idempotents=False).draw('output/test123r.svg')
+    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    #     cup_da = type_da(cup)
 
 
 if __name__ == '__main__':

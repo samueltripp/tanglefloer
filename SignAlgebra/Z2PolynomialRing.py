@@ -32,12 +32,6 @@ class Z2PolynomialRing:
 
         return in1, in2
 
-    def __eq__(self, other: Z2PolynomialRing):
-        return self.variables == other.variables
-
-    def __hash__(self):
-        return hash(frozenset(self.variables))
-
     # represents a map between polynomial rings that sends some variables to other variables
     # very limited in scope
     class Map:
@@ -49,6 +43,12 @@ class Z2PolynomialRing:
             self.target = target
             self.mapping = mapping
             self.retract = invert_injection(self.mapping) if is_injection(self.mapping) else None
+
+        @staticmethod
+        def identity(source: Z2PolynomialRing, target: Z2PolynomialRing) -> Z2PolynomialRing.Map:
+            assert source.variables == target.variables
+
+            return Z2PolynomialRing.Map(source, target, {v: v  for v in source.variables})
 
         def apply(self, x: Z2Polynomial):
             assert x.ring == self.source

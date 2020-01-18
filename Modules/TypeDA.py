@@ -100,6 +100,7 @@ class TypeDA(Module):
         assert self.right_algebra.ss == other.left_algebra.ss
 
         in_m, in_n = self.ring.tensor_inclusions(other.ring)
+        scalar_map = Z2PolynomialRing.Map.identity(other.left_algebra.ring, self.right_algebra.ring)
 
         out = TypeDA(in_m.target, self.left_algebra, other.right_algebra, in_n.compose(other.right_scalar_action))
 
@@ -128,7 +129,8 @@ class TypeDA(Module):
                             out.add_structure_map(
                                 x ** right_n,
                                 (left_monomial.to_polynomial() * left_m) **
-                                (in_m.apply(c_m * self.right_scalar_action.apply(left_monomial_n.to_polynomial())) *
+                                (in_m.apply(c_m * self.right_scalar_action.apply(
+                                    scalar_map.apply(left_monomial_n.to_polynomial()))) *
                                  in_n.apply(c_n) * y))
 
         return out
