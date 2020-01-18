@@ -16,9 +16,9 @@ class ETangleStrands:
         self.right_strands = frozendict(right_strands)
         self.right_strands_inverse = frozendict(invert_injection(right_strands))
 
-    def to_generator(self, module) -> Module.Generator:
+    def to_generator(self, module):
         from Modules.Module import Module
-        return Module.Generator(module, self, self.left_idempotent(), self.right_idempotent())
+        return Module.TensorGenerator(module, self, self.left_idempotent(), self.right_idempotent())
 
     # the idempotent e^D_L                                                                                                                                
     def left_idempotent(self) -> AMinus.Generator:

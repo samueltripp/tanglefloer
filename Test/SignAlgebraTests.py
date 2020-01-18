@@ -6,9 +6,9 @@ class TestAMinus(unittest.TestCase):
 
     def test_mul(self):
         am = AMinus([-1, 1, 1, -1])
-        r = am.polyring
-        U1 = am.polyring['U1']
-        U2 = am.polyring['U2']
+        r = am.ring
+        U1 = am.ring['U1']
+        U2 = am.ring['U2']
 
         # First multiplication of single elements
         # double crosses black, should be empty product
@@ -28,9 +28,9 @@ class TestAMinus(unittest.TestCase):
 
     def test_diff(self):
         am = AMinus([-1, 1, 1, -1])
-        r = am.polyring
-        U1 = am.polyring['U1']
-        U2 = am.polyring['U2']
+        r = am.ring
+        U1 = am.ring['U1']
+        U2 = am.ring['U2']
 
         elt = am.generator({0: 4, 1: 2, 3: 1})
         assert elt.diff() == U1 * am.generator({0: 4, 1: 1, 3: 2}) + am.generator({0: 2, 1: 4, 3: 1})

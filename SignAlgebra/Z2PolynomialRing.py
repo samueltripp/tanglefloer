@@ -4,6 +4,7 @@ from operator import add
 from frozendict import frozendict
 from multimethod import multimethod
 from typing import Set, FrozenSet, Tuple, Dict, Iterable
+from Functions.Functions import is_injection, invert_injection
 
 
 class Z2PolynomialRing:
@@ -42,9 +43,12 @@ class Z2PolynomialRing:
     class Map:
         # mapping: {source_variable_index: target_variable_index}
         def __init__(self, source: Z2PolynomialRing, target: Z2PolynomialRing, mapping: Dict):
+            for s, t in mapping.items():
+                assert s in source.variables and t in target.variables
             self.source = source
             self.target = target
             self.mapping = mapping
+            self.retract = invert_injection(self.mapping) if is_injection(self.mapping) else None
 
         def apply(self, x: Z2Polynomial):
             assert x.ring == self.source
@@ -56,6 +60,18 @@ class Z2PolynomialRing:
                                               for var, power in x_term.powers.items()}).to_polynomial()
 
             return y
+
+        # applies f^{-1} to y if possible
+        def retract(self, y: Z2Polynomial):
+            assert self.retract is not None and y.ring == self.target
+
+            x = self.target.zero()
+
+            for y_term in y.terms:
+                x += Z2Monomial(self.source, {self.retract[var]: power
+                                              for var, power in y_term.powers.items()}).to_polynomial()
+
+            return x
 
         # returns the map x -> self.apply(other.apply(x))
         def compose(self, other: Z2PolynomialRing.Map):
@@ -141,6 +157,11 @@ class Z2Monomial:
     def to_polynomial(self) -> Z2Polynomial:
         return Z2Polynomial(self.ring, {self})
 
+    @multimethod
+    def __mul__(self, other):
+        return other.__rmul__(self)
+
+    @multimethod
     def __mul__(self, other: Z2Monomial) -> Z2Monomial:
         return Z2Monomial(self.ring, {var: self.powers.get(var, 0) + other.powers.get(var, 0)
                                       for var in self.powers.keys() | other.powers.keys()})

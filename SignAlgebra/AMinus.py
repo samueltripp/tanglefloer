@@ -14,7 +14,7 @@ class AMinus:
         # the list of positive indices, which are important for variable indices
         self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
         # the polynomial ring acting on this algebra
-        self.polyring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
+        self.ring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
 
     # the zero element in A^-(P)
     def zero(self):
@@ -45,10 +45,10 @@ class AMinus:
 
     # represents an element of A^-(P)
     class Element:
+        # coefficients = {AMinus.Generator : Z2Polynomial}
         def __init__(self, algebra, coefficients):
             self.algebra = algebra
-            self.coefficients = frozendict({gen: coefficient for (gen, coefficient)
-                                            in coefficients.items() if coefficient != algebra.polyring.zero()})
+            self.coefficients = frozendict(simplify_coefficients(coefficients))
 
         # addition
         def __add__(self, other: AMinus.Element):
@@ -133,10 +133,10 @@ class AMinus:
         def __init__(self, algebra, strands):
             self.algebra = algebra
             self.strands = frozendict(strands)
-            super().__init__(algebra, {self: algebra.polyring.one()})
+            super().__init__(algebra, {self: algebra.ring.one()})
 
         def to_element(self) -> AMinus.Element:
-            return AMinus.Element(self.algebra, {self: self.algebra.polyring.one()})
+            return AMinus.Element(self.algebra, {self: self.algebra.ring.one()})
 
         # the left idempotent of this element
         def left_idempotent(self) -> AMinus.Generator:
@@ -164,11 +164,11 @@ class AMinus:
             powers = sd.figure_6_relations()
             if powers is None:
                 return self.algebra.zero()
-            c = self.algebra.polyring.one()
+            c = self.algebra.ring.one()
             for orange, power in powers.items():
                 if orange in self.algebra.positives:
                     p = self.algebra.positives.index(orange)
-                    c *= self.algebra.polyring['U' + str(p)] ** power
+                    c *= self.algebra.ring['U' + str(p)] ** power
 
             # construct the new generator
             strands = {}
@@ -225,13 +225,13 @@ class AMinus:
 
             sd = StrandDiagram(orange_strands, orange_signs, black_strands)
             powers = sd.figure_6_relations()
-            c = self.algebra.polyring.one()
+            c = self.algebra.ring.one()
             if powers is None:
                 return self.algebra.zero()
             for orange, power in powers.items():
                 if orange in self.algebra.positives:
                     p = self.algebra.positives.index(orange)
-                    c *= self.algebra.polyring['U' + str(p)] ** power
+                    c *= self.algebra.ring['U' + str(p)] ** power
 
             # construct the new generator
             new_strands = dict(self.strands)

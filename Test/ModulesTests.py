@@ -8,8 +8,8 @@ class TestCTMinus(unittest.TestCase):
 
     @staticmethod
     def empty_da_module(etangle: ETangle):
-        return TypeDA(etangle.polyring, etangle.left_algebra, etangle.right_algebra,
-                      etangle.left_scalar_action, etangle.right_scalar_action)
+        return TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra,
+                      etangle.right_scalar_action)
 
     def test_d_plus(self):
         under1 = ETangle(ETangle.Type.UNDER, (1, 1, 1, 1), 2)
@@ -17,7 +17,7 @@ class TestCTMinus(unittest.TestCase):
         sd_under1_1 = ETangleStrands(under1, {0: 0, 3: 3, 4: 4}, {1: 4, 2: 3})
         sd_under1_1_out = ETangleStrands(under1, {0: 0, 3: 3, 4: 4}, {1: 3, 2: 4}).to_generator(under1_module)
         sd_under1_2 = ETangleStrands(under1, {0: 0, 2: 2, 3: 3}, {1: 3, 4: 0})
-        sd_under1_2_out = under1.polyring['U2'] * under1.polyring['U3'] * \
+        sd_under1_2_out = under1.ring['U2'] * under1.ring['U3'] * \
                           ETangleStrands(under1, {0: 0, 2: 2, 3: 3}, {1: 0, 4: 3}).to_generator(under1_module)
         under2 = ETangle(ETangle.Type.UNDER, (1, -1, 1, 1), 2)
         under2_module = TestCTMinus.empty_da_module(under2)
@@ -29,10 +29,10 @@ class TestCTMinus(unittest.TestCase):
         over1 = ETangle(ETangle.Type.OVER, (1, 1, 1, 1), 2)
         over1_module = TestCTMinus.empty_da_module(over1)
         sd_over1_1 = ETangleStrands(over1, {4: 4, 1: 1, 3: 3}, {2: 2, 0: 4})
-        sd_over1_1_out = over1.polyring['U2'] * \
+        sd_over1_1_out = over1.ring['U2'] * \
                          ETangleStrands(over1, {4: 4, 1: 1, 3: 3}, {0: 2, 2: 4}).to_generator(over1_module)
         sd_over1_2 = ETangleStrands(over1, {1: 1, 4: 4, 3: 3}, {2: 1, 0: 4})
-        sd_over1_2_out = over1.polyring['U2'] * \
+        sd_over1_2_out = over1.ring['U2'] * \
                          ETangleStrands(over1, {1: 1, 4: 4, 3: 3}, {0: 1, 2: 4}).to_generator(over1_module)
         over2 = ETangle(ETangle.Type.OVER, (1, 1, -1, 1), 2)
         over2_module = TestCTMinus.empty_da_module(over2)
@@ -47,9 +47,9 @@ class TestCTMinus(unittest.TestCase):
         cap1 = ETangle(ETangle.Type.CAP, (1, 1, -1, 1), 2)
         cap1_module = TestCTMinus.empty_da_module(cap1)
         sd_cap1_1 = ETangleStrands(cap1, {0: 0, 1: 1}, {4: 1, 3: 2})
-        sd_cap1_1_out = cap1.polyring['U4'] * ETangleStrands(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}).to_generator(cap1_module)
+        sd_cap1_1_out = cap1.ring['U3'] * ETangleStrands(cap1, {0: 0, 1: 1}, {4: 2, 3: 1}).to_generator(cap1_module)
         sd_cap1_2 = ETangleStrands(cap1, {3: 3, 1: 1}, {4: 0, 0: 2})
-        sd_cap1_2_out = cap1.polyring['U1'] * cap1.polyring['U4'] * \
+        sd_cap1_2_out = cap1.ring['U1'] * cap1.ring['U3'] * \
                         ETangleStrands(cap1, {3: 3, 1: 1}, {4: 2, 0: 0}).to_generator(cap1_module)
 
         self.assertEqual(sd_under1_1_out, d_plus(under1_module, sd_under1_1))
@@ -69,16 +69,16 @@ class TestCTMinus(unittest.TestCase):
         under1 = ETangle(ETangle.Type.OVER, (-1, -1, -1, -1), 2)
         under1_module = TestCTMinus.empty_da_module(under1)
         sd_under1_1 = ETangleStrands(under1, {2: 2, 4: 4}, {0: 0, 1: 1, 3: 3})
-        sd_under1_1_out = under1.polyring['U3'] * under1.polyring['U4'] * \
+        sd_under1_1_out = under1.ring['U3'] * under1.ring['U4'] * \
                           ETangleStrands(under1, {2: 4, 4: 2}, {0: 0, 1: 1, 3: 3}).to_generator(under1_module)
 
         # Figure 9 from "An introduction..."
         over3 = ETangle(ETangle.Type.OVER, (1, 1, -1, -1), 2)
         over3_module = TestCTMinus.empty_da_module(over3)
         sd_over3_1 = ETangleStrands(over3, {1: 2, 2: 1, 3: 4}, {0: 1, 3: 2})
-        sd_over3_1_out = over3.polyring['U3'] * \
+        sd_over3_1_out = over3.ring['U3'] * \
                          ETangleStrands(over3, {1: 2, 2: 4, 3: 1}, {0: 1, 3: 2}).to_generator(over3_module) + \
-                         over3.polyring['U3'] * \
+                         over3.ring['U3'] * \
                          ETangleStrands(over3, {1: 4, 2: 1, 3: 2}, {0: 1, 3: 2}).to_generator(over3_module)
 
         self.assertEqual(sd_under1_1_out, d_minus(under1_module, sd_under1_1))
@@ -90,13 +90,13 @@ class TestCTMinus(unittest.TestCase):
         over3_module = TestCTMinus.empty_da_module(over3)
         sd_over3_1 = ETangleStrands(over3, {1: 2, 2: 1, 3: 4}, {0: 1, 3: 2})
 
-        sd_over3_1_out = over3.polyring['U2'] * \
+        sd_over3_1_out = over3.ring['U2'] * \
                          ETangleStrands(over3, {1: 1, 2: 2, 3: 4}, {0: 1, 3: 2}).to_generator(over3_module) + \
-                         over3.polyring['U2'] * over3.polyring['U3'] * \
+                         over3.ring['U2'] * over3.ring['U3'] * \
                          ETangleStrands(over3, {1: 2, 2: 3, 3: 4}, {0: 1, 1: 2}).to_generator(over3_module) + \
-                         over3.polyring['U3'] * \
+                         over3.ring['U3'] * \
                          ETangleStrands(over3, {1: 3, 2: 1, 3: 4}, {0: 1, 2: 2}).to_generator(over3_module) + \
-                         over3.polyring.one() * \
+                         over3.ring.one() * \
                          ETangleStrands(over3, {1: 2, 2: 1, 3: 3}, {0: 1, 4: 2}).to_generator(over3_module)
 
         self.assertEqual(sd_over3_1_out, d_mixed(over3_module, sd_over3_1))
@@ -131,7 +131,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 1
         a2 = 2
         y = x
-        out = over1.left_algebra.generator({1: 2, 2: 1}) ** (over1.polyring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({1: 2, 2: 1}) ** (over1.ring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_1(over1_module, x, a1, a2))
 
     def test_delta_ell_case_2(self):
@@ -141,7 +141,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 0, 1: 1}, {2: 2})
-        out = over1.left_algebra.generator({2: 2}) ** (over1.polyring['U1'] * y.to_generator(over1_module))
+        out = (over1.left_algebra.ring['U1'] * over1.left_algebra.generator({2: 2})) ** y.to_generator(over1_module)
         self.assertEqual(out, delta_ell_case_2(over1_module, x, a1, a2))
 
     def test_delta_ell_case_3(self):
@@ -151,7 +151,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
-        out = over1.left_algebra.generator({0: 1}) ** (over1.polyring['U1'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({0: 1}) ** (over1.ring['U1'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_3(over1_module, x, a1, a2))
 
     def test_delta_ell_case_4(self):
@@ -161,7 +161,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 2
         y = ETangleStrands(over1, {2: 1, 1: 0}, {2: 2})
-        out = over1.left_algebra.generator({2: 0}) ** (over1.polyring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({2: 0}) ** (over1.ring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_4(over1_module, x, a1, a2))
 
     def test_delta_ell(self):
@@ -169,7 +169,7 @@ class TestCTMinus(unittest.TestCase):
         over1_module = TestCTMinus.empty_da_module(over1)
         x = ETangleStrands(over1, {1: 0, 2: 1}, {3: 0, 2: 2})
         y = ETangleStrands(over1, {0: 0, 2: 1}, {3: 0, 2: 2})
-        c = over1.polyring.one()
+        c = over1.ring.one()
         elt = over1.left_algebra.generator({0: 1, 3: 3})
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
@@ -208,8 +208,8 @@ class TestCTMinus(unittest.TestCase):
         unknot_da_tr = unknot_da.reduced()
         unknot_da_tr.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
 
-        (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_1.svg')
-        (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_2.svg')
+    #     (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_1.svg')
+    #     (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_2.svg')
 
         # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         # cup_da = type_da(cup)
@@ -228,13 +228,17 @@ class TestCTMinus(unittest.TestCase):
         # unknot_da_ttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_ttr.svg')
         # unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
 
-    def test_test(self):
-        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        t2 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
-        t3 = ETangle(ETangle.Type.CAP, (1, -1), 1)
-
-        da = (type_da(t1) ** type_da(t2) ** type_da(t3)).reduced()
-        da.to_agraph(idempotents=False).draw('output/test.svg')
+    # def test_test(self):
+        # t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        # t2 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
+        # t3 = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        #
+        # da = type_da(t1) ** type_da(t2)
+        # da.to_agraph(idempotents=False).draw('output/test12.svg')
+        # da = da ** type_da(t3)
+        # da.to_agraph(idempotents=False).draw('output/test123.svg')
+        # da = da.reduced()
+        # da.to_agraph(idempotents=False).draw('output/test123r.svg')
 
 
 if __name__ == '__main__':

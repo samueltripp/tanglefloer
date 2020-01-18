@@ -27,6 +27,10 @@ def partial_bijections(source, target):
     return output
 
 
+def is_injection(f):
+    return len(f.values()) == len(set(f.values()))
+
+
 def invert_injection(inj):
     return {t: s for s, t in inj.items()}
 
@@ -74,3 +78,12 @@ def dict_to_sorted_string(d) -> str:
     for k in sorted(d.keys()):
         out += str(k) + ': ' + str(d[k]) + ', '
     return out[:-2] + '}'
+
+
+# remove any generators with a coefficient of 0
+def simplify_coefficients(coefficients: Dict) -> Dict:
+    new_coefficients = dict(coefficients)
+    for g, c in coefficients.items():
+        if c == c.ring.zero():
+            del new_coefficients[g]
+    return new_coefficients

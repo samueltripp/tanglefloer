@@ -15,7 +15,7 @@ class Tangle:
 
         self.etangles = tuple(etangles)
 
-        height = max(len(etangle.signs) for etangle in etangles)
+        self.height = max(len(etangle.signs) for etangle in etangles)
         self.left_algebra = AMinus(self.left_signs())
         self.right_algebra = AMinus(self.right_signs())
 
@@ -73,25 +73,30 @@ class ETangle(Tangle):
         self.etype = etype
         self.signs = (None,) + signs
         self.position = position
-        self.polyring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.signs))])
 
         super().__init__((self,))
 
-        self.left_scalar_action = self.build_left_scalar_action()
+        self.ring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()))])
+
         self.right_scalar_action = self.build_right_scalar_action()
 
-    def build_scalar_action(self, algebra: AMinus) -> Z2PolynomialRing.Map:
-        return Z2PolynomialRing.Map(algebra.polyring, self.polyring,
+    def strand_index_to_variable_name(self, strand_index: int) -> str:
+        if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP) and strand_index > self.position:
+            return 'U' + str(strand_index-1)
+        return 'U' + str(strand_index)
+
+    # turns the given strand index into a variable in F[U1, U2, ...]
+    def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
+        return self.ring[self.strand_index_to_variable_name(strand_index)]
+
+    def left_algebra_strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
+        return self.left_algebra.ring['U' +
+                                      str(self.left_algebra.positives.index(self.left_y_pos(strand_index) + 1 / 2))]
+
+    def build_right_scalar_action(self):
+        return Z2PolynomialRing.Map(self.right_algebra.ring, self.ring,
                                     {'U' + str(i): self.strand_index_to_variable_name(p)
-                                     for i, p in enumerate(algebra.positives) if p is not None})
-
-    # the map from the coefficients of A^-(-dL T) to the coefficients of CT^-(T)
-    def build_left_scalar_action(self) -> Z2PolynomialRing.Map:
-        return self.build_scalar_action(self.left_algebra)
-
-    # the map from the coefficients of A^-(dR T) to the coefficients of CT^-(T)
-    def build_right_scalar_action(self) -> Z2PolynomialRing.Map:
-        return self.build_scalar_action(self.right_algebra)
+                                     for i, p in enumerate(self.right_algebra.positives) if p is not None})
 
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_signs(self) -> Tuple:
@@ -165,13 +170,6 @@ class ETangle(Tangle):
                 return strand_index - 5 / 2
             else:
                 return None
-
-    def strand_index_to_variable_name(self, strand_index: int) -> str:
-        return 'U' + str(strand_index)
-
-    # turns the given strand index into a variable in F[U1, U2, ...]
-    def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
-        return self.polyring[self.strand_index_to_variable_name(strand_index)]
 
     # does this strand stay straight on the left side of this tangle?
     def left_strand_straight(self, strand_index: int) -> bool:
