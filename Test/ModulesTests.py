@@ -184,63 +184,76 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
-    def test_type_da(self):
-        idempotents = False
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        cup_da = type_da(cup)
-        cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
-
-    def test_tensor(self):
-        idempotents = False
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        cup_da = type_da(cup)
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        cap_da = type_da(cap)
-        cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
-        unknot_da = cup_da ** cap_da
-        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
-
-    def test_type_da_reduced(self):
-        idempotents = False
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        cup_da = type_da(cup)
-        cup_da_r = cup_da.reduced()
-        cup_da_r.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        cap_da = type_da(cap)
-        cap_da_r = cap_da.reduced()
-        cap_da_r.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
-        unknot_da_rt = cup_da_r ** cap_da_r
-        unknot_da_rt.to_agraph(idempotents=idempotents).draw('output/test_unknot_rt.svg')
-        unknot_da_rtr = unknot_da_rt.reduced()
-        unknot_da_rtr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrtr.svg')
-        unknot_da = cup_da ** cap_da
-        unknot_da_tr = unknot_da.reduced()
-        unknot_da_tr.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
-
-        (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_1.svg')
-        (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_2.svg')
-
-        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        # cup_da = type_da(cup)
-        # cup_da_r = cup_da.reduced()
-        # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        # over_da = type_da(over)
-        # over_da_r = over_da.reduced()
-        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        # cap_da = type_da(cap)
-        # cap_da_r = cap_da.reduced()
-        # unknot_da_tt = cup_da ** over_da ** cap_da
-        # unknot_da_ttr = unknot_da_tt.reduced()
-        # unknot_da_rrrtt = cup_da_r ** over_da_r ** cap_da_r
-        # unknot_da_rrrttr = unknot_da_rrrtt.reduced()
-        # unknot_da_tt.to_agraph(idempotents=idempotents).draw('output/test_unknot_tt.svg')
-        # unknot_da_ttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_ttr.svg')
-        # unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
-
-    # def test_test(self):
+    # def test_type_da(self):
+    #     idempotents = False
     #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
     #     cup_da = type_da(cup)
+    #     cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
+    #
+    # def test_tensor(self):
+    #     idempotents = False
+    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    #     cup_da = type_da(cup)
+    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #     cap_da = type_da(cap)
+    #     cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
+    #     unknot_da = cup_da ** cap_da
+    #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
+    #
+    # def test_type_da_reduced(self):
+    #     idempotents = False
+    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    #     cup_da = type_da(cup)
+    #     cup_da_r = cup_da.reduced()
+    #     cup_da_r.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
+    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #     cap_da = type_da(cap)
+    #     cap_da_r = cap_da.reduced()
+    #     cap_da_r.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
+    #     unknot_da_rt = cup_da_r ** cap_da_r
+    #     unknot_da_rt.to_agraph(idempotents=idempotents).draw('output/test_unknot_rt.svg')
+    #     unknot_da_rtr = unknot_da_rt.reduced()
+    #     unknot_da_rtr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrtr.svg')
+    #     unknot_da = cup_da ** cap_da
+    #     unknot_da_tr = unknot_da.reduced()
+    #     unknot_da_tr.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
+    #
+    #     (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_1.svg')
+    #     (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_2.svg')
+    #
+    #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+    #     cup_da = type_da(cup)
+    #     cup_da_r = cup_da.reduced()
+    #     over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+    #     over_da = type_da(over)
+    #     over_da_r = over_da.reduced()
+    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #     cap_da = type_da(cap)
+    #     cap_da_r = cap_da.reduced()
+    #     unknot_da_tt = cup_da ** over_da ** cap_da
+    #     unknot_da_ttr = unknot_da_tt.reduced()
+    #     unknot_da_rrrtt = cup_da_r ** over_da_r ** cap_da_r
+    #     unknot_da_rrrttr = unknot_da_rrrtt.reduced()
+    #     unknot_da_tt.to_agraph(idempotents=idempotents).draw('output/test_unknot_tt.svg')
+    #     unknot_da_ttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_ttr.svg')
+    #     unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
+
+    def test_trefoil(self):
+        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
+        t3 = ETangle(ETangle.Type.OVER, (-1, 1, -1, 1), 2)
+        t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
+        t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
+        t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
+        t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+
+        da_list = [type_da(t) for t in [t1, t2, t3, t4, t5, t6, t7]]
+        for da in da_list:
+            print(len(da.graph.nodes))
+
+        da_reduced_list = [da.reduced() for da in da_list]
+        for da in da_reduced_list:
+            print(len(da.graph.nodes))
 
 
 if __name__ == '__main__':

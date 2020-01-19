@@ -36,12 +36,9 @@ class Module:
     def reduced(self) -> Module:
         out = self
         reducible_edge = out.reducible_edge()
-        i=0
         while reducible_edge is not None:
             out = out.reduce_edge(*reducible_edge)
             reducible_edge = out.reducible_edge()
-            out.to_agraph(idempotents=False).draw('output/test'+str(i)+'.svg')
-            i += 1
         return out
 
     def reducible_edge(self):

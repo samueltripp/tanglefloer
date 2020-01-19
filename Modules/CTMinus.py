@@ -21,8 +21,6 @@ def type_da(etangle: ETangle) -> TypeDA:
         out.add_structure_map(x.to_generator(out), delta1_1(out, x))
 
         for a in etangle.right_algebra.left_gens(list(x.right_strands.values())):
-            if a.strands == {0: 0, 1: 2} and x.right_strands == {0: 0, 2: 1}:
-                print('hi')
             out.add_structure_map(x.to_generator(out) ** a, delta1_2(out, x, a))
 
     return out
