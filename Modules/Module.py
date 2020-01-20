@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import lru_cache
 
@@ -17,7 +18,7 @@ from Functions.Functions import simplify_coefficients
 
 
 # Base class for Type D, A, DD, AA, DA, and AD structures
-class Module:
+class Module(ABC):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: Optional[AMinus], right_algebra: Optional[AMinus],
                  left_scalar_action: Optional[Z2PolynomialRing.Map],
                  right_scalar_action: Optional[Z2PolynomialRing.Map],
@@ -32,8 +33,14 @@ class Module:
     def __repr__(self) -> str:
         return str(self.__dict__)
 
-    # reduce this bimodule using the cancellation lemma
     def reduced(self) -> Module:
+        components = self.decomposed()
+        components_reduced = [component.component_reduced() for component in components]
+        return self.direct_sum(components_reduced)
+
+    # reduce this bimodule using the cancellation lemma
+    # O(V) * reducible_edge * reduce_edge
+    def component_reduced(self) -> Module:
         out = self
         reducible_edge = out.reducible_edge()
         while reducible_edge is not None:
@@ -41,10 +48,21 @@ class Module:
             reducible_edge = out.reducible_edge()
         return out
 
+    @abstractmethod
     def reducible_edge(self):
         pass
 
+    @abstractmethod
     def reduce_edge(self, x, y, k, d):
+        pass
+
+    @abstractmethod
+    def decomposed(self) -> List[Module]:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def direct_sum(modules: List) -> Module:
         pass
 
     # add the given generator to this module

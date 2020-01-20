@@ -60,6 +60,19 @@ class TypeDA(Module):
         graph.layout('dot')
         return graph
 
+    # returns the direct sum decomposition of this module
+    def decomposed(self) -> List[TypeDA]:
+        return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
+                       self.right_scalar_action, self.graph.subgraph(component))
+                for component in nx.weakly_connected_components(self.graph)]
+
+    @staticmethod
+    def direct_sum(modules: List) -> TypeDA:
+        new_graph = nx.union_all([da.graph for da in modules])
+        return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
+                      modules[0].right_scalar_action, new_graph)
+
+    # O(V^2)
     def reducible_edge(self) -> Optional[Tuple]:
         for x in self.graph:
             for y in self.graph[x]:
@@ -70,6 +83,7 @@ class TypeDA(Module):
                         return x, y, k, d
         return None
 
+    # O(V+E^2)
     def reduce_edge(self, x, y, k, d) -> TypeDA:
         reduced_graph = MultiDiGraph(
             self.graph.subgraph([node for node in self.graph.nodes if node != x and node != y]))

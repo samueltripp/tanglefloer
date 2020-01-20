@@ -2,6 +2,7 @@ from Modules.CTMinus import *
 from Modules.Module import *
 from Modules.ETangleStrands import *
 import unittest
+import timeit
 
 
 class TestCTMinus(unittest.TestCase):
@@ -238,22 +239,39 @@ class TestCTMinus(unittest.TestCase):
     #     unknot_da_ttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_ttr.svg')
     #     unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
 
-    def test_trefoil(self):
-        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
-        t3 = ETangle(ETangle.Type.OVER, (-1, 1, -1, 1), 2)
-        t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
-        t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
-        t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
-        t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    # def test_trefoil(self):
+    #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    #     t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
+    #     t3 = ETangle(ETangle.Type.OVER, (-1, 1, -1, 1), 2)
+    #     t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
+    #     t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
+    #     t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
+    #     t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #
+    #     da_list = [type_da(t) for t in [t1, t2, t3, t4, t5, t6, t7]]
+    #     for da in da_list:
+    #         print(len(da.graph.nodes))
+    #
+    #     da_reduced_list = [da.reduced() for da in da_list]
+    #     for da in da_reduced_list:
+    #         print(len(da.graph.nodes))
 
-        da_list = [type_da(t) for t in [t1, t2, t3, t4, t5, t6, t7]]
-        for da in da_list:
-            print(len(da.graph.nodes))
+    def test_timer(self):
+        print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=5))
+        print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=5))
 
-        da_reduced_list = [da.reduced() for da in da_list]
-        for da in da_reduced_list:
-            print(len(da.graph.nodes))
+    @staticmethod
+    def trial1():
+        t = ETangle(ETangle.Type.CAP, (1, -1, 1), 1)
+        da = type_da(t)
+        print(len(da.component_reduced().graph.nodes))
+
+    @staticmethod
+    def trial2():
+        t = ETangle(ETangle.Type.CAP, (1, -1, 1), 1)
+        da = type_da(t)
+        print(len(da.reduced().graph.nodes))
+
 
 
 if __name__ == '__main__':
