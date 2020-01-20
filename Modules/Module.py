@@ -15,6 +15,7 @@ from multimethod import *
 from frozendict import *
 from SignAlgebra.Z2PolynomialRing import *
 from Functions.Functions import simplify_coefficients
+from pathos.pools import ProcessPool
 
 
 # Base class for Type D, A, DD, AA, DA, and AD structures
@@ -30,23 +31,57 @@ class Module(ABC):
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
 
+    def __getstate__(self):
+        return self.ring, self.left_algebra, self.right_algebra, self.left_scalar_action, self.right_scalar_action, \
+               list(self.graph.nodes), list(self.graph.edges(keys=True, data=True))
+
+    def __setstate__(self, state):
+        self.ring = state[0]
+        self.left_algebra = state[1]
+        self.right_algebra = state[2]
+        self.left_scalar_action = state[3]
+        self.right_scalar_action = state[4]
+        self.nodes = state[5]
+        self.edges = state[6]
+        self.graph = MultiDiGraph()
+
     def __repr__(self) -> str:
         return str(self.__dict__)
 
     def reduced(self) -> Module:
         components = self.decomposed()
-        components_reduced = [component.component_reduced() for component in components]
+        for component in components:
+            component.reduce_component()
+        return self.direct_sum(components)
+
+    def pool_reduced(self) -> Module:
+        components = self.decomposed()
+        pool = ProcessPool(8)
+        components_reduced = pool.map(lambda m: m.pool_reduce_component(), components)
+        for component in components_reduced:
+            component.restore_graph()
         return self.direct_sum(components_reduced)
 
-    # reduce this bimodule using the cancellation lemma
-    # O(V) * reducible_edge * reduce_edge
-    def component_reduced(self) -> Module:
-        out = self
-        reducible_edge = out.reducible_edge()
+    def restore_graph(self) -> None:
+        self.graph.add_nodes_from(self.nodes)
+        self.graph.add_edges_from(self.edges)
+
+    def pool_reduce_component(self):
+        self.restore_graph()
+        reducible_edge = self.reducible_edge()
         while reducible_edge is not None:
-            out = out.reduce_edge(*reducible_edge)
-            reducible_edge = out.reducible_edge()
-        return out
+            print(len(self.graph.nodes))
+            self.reduce_edge(*reducible_edge)
+            reducible_edge = self.reducible_edge()
+        return self
+
+    def reduce_component(self) -> Module:
+        reducible_edge = self.reducible_edge()
+        while reducible_edge is not None:
+            print(len(self.graph.nodes))
+            self.reduce_edge(*reducible_edge)
+            reducible_edge = self.reducible_edge()
+        return self
 
     @abstractmethod
     def reducible_edge(self):

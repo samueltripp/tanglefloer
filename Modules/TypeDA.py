@@ -63,7 +63,7 @@ class TypeDA(Module):
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                       self.right_scalar_action, self.graph.subgraph(component))
+                       self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)))
                 for component in nx.weakly_connected_components(self.graph)]
 
     @staticmethod
@@ -83,30 +83,27 @@ class TypeDA(Module):
                         return x, y, k, d
         return None
 
-    # O(V+E^2)
-    def reduce_edge(self, x, y, k, d) -> TypeDA:
-        reduced_graph = MultiDiGraph(
-            self.graph.subgraph([node for node in self.graph.nodes if node != x and node != y]))
-        reduced_module = TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                                self.right_scalar_action, reduced_graph)
+    def reduce_edge(self, x, y, k, d) -> None:
+        in_edges = list(self.graph.in_edges(y, keys=True, data=True))
+        out_edges = list(self.graph.out_edges(x, keys=True, data=True))
+
+        self.graph.remove_nodes_from([x, y])
 
         left = k[1]
 
-        for w, _, (left_monomial_wy, left_wy, right_wy), d_wy in self.graph.in_edges(y, keys=True, data=True):
+        for w, _, (left_monomial_wy, left_wy, right_wy), d_wy in in_edges:
             if w == x or w == y:
                 continue
             c_wy = d_wy['c']
-            for _, z, (left_monomial_xz, left_xz, right_xz), d_xz in self.graph.out_edges(x, keys=True, data=True):
+            for _, z, (left_monomial_xz, left_xz, right_xz), d_xz in out_edges:
                 if z == x or z == y:
                     continue
                 c_xz = d_xz['c']
-                reduced_module.add_structure_map(
+                self.add_structure_map(
                     w ** (right_wy + right_xz),
                     c_wy * c_xz *
                     ((left_monomial_wy.to_polynomial() * left_monomial_xz.to_polynomial() * left_wy * left * left_xz)
                      ** z))
-
-        return reduced_module
 
     # tensor product of type DA structures
     # assumes self is bounded, other may or may not be

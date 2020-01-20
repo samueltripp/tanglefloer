@@ -142,7 +142,8 @@ class TestCTMinus(unittest.TestCase):
         a1 = 1
         a2 = 2
         y = x
-        out = over1.left_algebra.generator({1: 2, 2: 1}) ** (over1.ring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({1: 2, 2: 1}).to_element() ** \
+              (over1.ring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_1(over1_module, x, a1, a2))
 
     def test_delta_ell_case_2(self):
@@ -152,7 +153,8 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 0, 1: 1}, {2: 2})
-        out = (over1.left_algebra.ring['U1'] * over1.left_algebra.generator({2: 2})) ** y.to_generator(over1_module)
+        out = (over1.left_algebra.ring['U1'] * over1.left_algebra.generator({2: 2}).to_element()) ** \
+              y.to_generator(over1_module)
         self.assertEqual(out, delta_ell_case_2(over1_module, x, a1, a2))
 
     def test_delta_ell_case_3(self):
@@ -162,7 +164,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 1
         y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
-        out = over1.left_algebra.generator({0: 1}) ** (over1.ring['U1'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({0: 1}).to_element() ** (over1.ring['U1'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_3(over1_module, x, a1, a2))
 
     def test_delta_ell_case_4(self):
@@ -172,7 +174,7 @@ class TestCTMinus(unittest.TestCase):
         a1 = 0
         a2 = 2
         y = ETangleStrands(over1, {2: 1, 1: 0}, {2: 2})
-        out = over1.left_algebra.generator({2: 0}) ** (over1.ring['U2'] * y.to_generator(over1_module))
+        out = over1.left_algebra.generator({2: 0}).to_element() ** (over1.ring['U2'] * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell_case_4(over1_module, x, a1, a2))
 
     def test_delta_ell(self):
@@ -181,7 +183,7 @@ class TestCTMinus(unittest.TestCase):
         x = ETangleStrands(over1, {1: 0, 2: 1}, {3: 0, 2: 2})
         y = ETangleStrands(over1, {0: 0, 2: 1}, {3: 0, 2: 2})
         c = over1.ring.one()
-        elt = over1.left_algebra.generator({0: 1, 3: 3})
+        elt = over1.left_algebra.generator({0: 1, 3: 3}).to_element()
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
@@ -256,22 +258,28 @@ class TestCTMinus(unittest.TestCase):
     #     for da in da_reduced_list:
     #         print(len(da.graph.nodes))
 
+    # def test_pool(self):
+    #     t = ETangle(ETangle.Type.CAP, (1, -1, 1, -1), 1)
+    #     da = type_da(t)
+    #     print('da created')
+    #     da_reduced = da.pool_reduced()
+    #     da_reduced.to_agraph(idempotents=False).draw('output/test_pool.svg')
+
     def test_timer(self):
-        print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=5))
-        print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=5))
+        print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+        print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=1))
 
     @staticmethod
     def trial1():
-        t = ETangle(ETangle.Type.CAP, (1, -1, 1), 1)
-        da = type_da(t)
-        print(len(da.component_reduced().graph.nodes))
-
-    @staticmethod
-    def trial2():
-        t = ETangle(ETangle.Type.CAP, (1, -1, 1), 1)
+        t = ETangle(ETangle.Type.OVER, (1, -1, 1), 1)
         da = type_da(t)
         print(len(da.reduced().graph.nodes))
 
+    @staticmethod
+    def trial2():
+        t = ETangle(ETangle.Type.OVER, (1, -1, 1), 1)
+        da = type_da(t)
+        print(len(da.pool_reduced().graph.nodes))
 
 
 if __name__ == '__main__':

@@ -27,11 +27,11 @@ def type_da(etangle: ETangle) -> TypeDA:
 
 
 def delta1_1(module: TypeDA, x: ETangleStrands) -> Module.TensorElement:
-    return x.left_idempotent() ** (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
+    return x.left_idempotent().to_element() ** (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
 
 
 def delta1_2(module: TypeDA, x: ETangleStrands, a: AMinus.Generator) -> Module.TensorElement:
-    return x.left_idempotent() ** m2(module, x, a)
+    return x.left_idempotent().to_element() ** m2(module, x, a)
 
 
 def d_plus(module: Module, x: ETangleStrands) -> Module.TensorElement:

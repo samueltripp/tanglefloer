@@ -51,6 +51,7 @@ class AMinus:
             self.coefficients = frozendict(simplify_coefficients(coefficients))
 
         # addition
+        @multimethod
         def __add__(self, other: AMinus.Element):
             out_coefficients = {}
             for gen in self.coefficients.keys() - other.coefficients.keys():
@@ -60,6 +61,10 @@ class AMinus:
             for gen in other.coefficients.keys() - self.coefficients.keys():
                 out_coefficients[gen] = other.coefficients[gen]
             return AMinus.Element(self.algebra, out_coefficients)
+
+        @multimethod
+        def __add__(self, other):
+            return other.__radd__(self)
 
         # the algebra multiplication
         @multimethod
@@ -129,11 +134,13 @@ class AMinus:
     # this only exists because I want to use strand diagrams as keys in algebra elements.
     # strand diagrams are dictionaries, however, and you can't use dictionaries as keys in dictionaries.
     # hence, wrap them in a class.
-    class Generator(Element):
+    class Generator:
         def __init__(self, algebra, strands):
             self.algebra = algebra
             self.strands = frozendict(strands)
-            super().__init__(algebra, {self: algebra.ring.one()})
+
+        def is_idempotent(self):
+            return self.to_element().is_idempotent()
 
         def to_element(self) -> AMinus.Element:
             return AMinus.Element(self.algebra, {self: self.algebra.ring.one()})
@@ -145,6 +152,12 @@ class AMinus:
         # the right idempotent of this element
         def right_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.values())
+
+        def __add__(self, other):
+            return self.to_element() + other
+
+        def __radd__(self, other):
+            return other + self.to_element()
 
         # the algebra multiplication
         @multimethod
@@ -277,8 +290,8 @@ class AMinus:
             return self.algebra == other.algebra and self.strands == other.strands
 
         @multimethod
-        def __eq__(self, other):
-            return AMinus.Element.__eq__(self, other)
+        def __eq__(self, other: AMinus.Element):
+            return self.to_element() == other
 
         def __hash__(self):
             return hash((self.algebra, self.strands))
