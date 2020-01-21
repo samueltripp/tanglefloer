@@ -7,25 +7,19 @@ from Modules.Module import *
 from Modules.ETangleStrands import *
 
 
-def pool_reduced_da(etangle: ETangle) -> TypeDA:
-    pool = ProcessPool(12)
-    components = pool.map(lambda r: type_da(etangle, r).reduce_component(),
-                          [r for r in range(0, len(etangle.left_points()) + 1)])
-    for component in components:
-        component.restore_graph()
+def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
+    if pool:
+        pool = ProcessPool()
+        components = pool.map(lambda r: type_da_in_grading(etangle, r),
+                              [r for r in range(0, len(etangle.left_points()) + 1)])
+        for component in components:
+            component.restore_graph()
+    else:
+        components = [type_da_in_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
     return TypeDA.direct_sum(components)
 
 
-def pool_type_da(etangle: ETangle) -> TypeDA:
-    pool = ProcessPool(12)
-    components = pool.map(lambda r: type_da(etangle, r), [r for r in range(0, len(etangle.left_points())+1)])
-    for component in components:
-        component.restore_graph()
-    return TypeDA.direct_sum(components)
-
-
-# r - if specified, only build the part of the type DA structure in the r-grading
-def type_da(etangle: ETangle, r: int = None) -> TypeDA:
+def type_da_in_grading(etangle: ETangle, r: int) -> TypeDA:
     out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.right_scalar_action)
 
     strands = [ETangleStrands(etangle, left_strands, right_strands)

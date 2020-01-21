@@ -267,14 +267,16 @@ class TestCTMinus(unittest.TestCase):
 
     @staticmethod
     def trial1():
-        t = ETangle(ETangle.Type.CAP, (-1, -1, 1), 2)
-        da = type_da(t).reduced()
+        t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
+        da = type_da(t)
+        da = da.reduce(edge_priorities=False, pool=False)
         print(len(da.graph.nodes))
 
     @staticmethod
     def trial2():
-        t = ETangle(ETangle.Type.CAP, (-1, -1, 1), 2)
-        da = pool_reduced_da(t)
+        t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
+        da = type_da(t)
+        da = da.reduce(edge_priorities=True, pool=False)
         print(len(da.graph.nodes))
 
     # def test_test(self):

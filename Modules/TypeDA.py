@@ -22,7 +22,7 @@ class TypeDA(Module):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  right_scalar_action: Z2PolynomialRing.Map,
                  graph: MultiDiGraph = None):
-        super().__init__(ring, left_algebra, right_algebra, None, right_scalar_action, graph=graph)
+        super().__init__(ring, left_algebra, right_algebra, None, right_scalar_action, graph)
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
