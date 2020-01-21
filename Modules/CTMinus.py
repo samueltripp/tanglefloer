@@ -7,19 +7,30 @@ from Modules.Module import *
 from Modules.ETangleStrands import *
 
 
-def reduced_da(tangle: Tangle):
-    out = type_da(tangle.etangles[0]).reduced()
-    for etangle in tangle.etangles[1:]:
-        out = (out ** type_da(etangle).reduced()).reduced()
-    return out
+def pool_reduced_da(etangle: ETangle) -> TypeDA:
+    pool = ProcessPool(12)
+    components = pool.map(lambda r: type_da(etangle, r).reduce_component(),
+                          [r for r in range(0, len(etangle.left_points()) + 1)])
+    for component in components:
+        component.restore_graph()
+    return TypeDA.direct_sum(components)
 
 
-def type_da(etangle: ETangle) -> TypeDA:
+def pool_type_da(etangle: ETangle) -> TypeDA:
+    pool = ProcessPool(12)
+    components = pool.map(lambda r: type_da(etangle, r), [r for r in range(0, len(etangle.left_points())+1)])
+    for component in components:
+        component.restore_graph()
+    return TypeDA.direct_sum(components)
+
+
+# r - if specified, only build the part of the type DA structure in the r-grading
+def type_da(etangle: ETangle, r: int = None) -> TypeDA:
     out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.right_scalar_action)
 
     strands = [ETangleStrands(etangle, left_strands, right_strands)
                for left_strands, right_strands in
-               enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()])]
+               enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()], r)]
 
     for x in strands:
         out.add_generator(x.to_generator(out))
@@ -399,14 +410,15 @@ def delta_ell_case_4(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
 
 
 # points - a list of sets of points
-def enumerate_gens(points):
+# r - number of points occupied in the rightmost set
+def enumerate_gens(points, r=None):
     sequences = []
     if len(points) < 2:
         return sequences
     elif len(points) == 2:
-        return [[pb] for pb in partial_bijections(points[0], points[1])]
+        return [[pb] for pb in partial_bijections(points[0], points[1], r)]
     else:
-        for pb in partial_bijections(points[0], points[1]):
+        for pb in partial_bijections(points[0], points[1], r):
             coker = set(points[1]).difference(pb.values())
             sequences.extend(
                 [[pb] + sequence for sequence in enumerate_gens_helper([list(coker)] + points[2:])])

@@ -91,6 +91,7 @@ class Module(ABC):
             component.restore_graph()
         return self.direct_sum(components_reduced)
 
+    # O(V^2 + E)
     def restore_graph(self) -> None:
         self.graph.add_nodes_from(self.nodes)
         self.graph.add_edges_from(self.edges)

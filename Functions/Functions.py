@@ -20,9 +20,9 @@ def injections(source, target):
 
 
 # returns a list of all partial bijections, modeled as dicts
-def partial_bijections(source, target):
+def partial_bijections(source, target, r=None):
     output = []
-    for sublist in sublists(source):
+    for sublist in sublists(source, r):
         output.extend(injections(sublist, target))
     return output
 
@@ -36,7 +36,9 @@ def invert_injection(inj):
 
 
 # returns a list of all sublists of the given list
-def sublists(a_list):
+def sublists(a_list, r=None):
+    if r is not None:
+        return list(itertools.combinations(a_list, r))
     output = []
     for i in range(len(a_list) + 1):
         output.extend(itertools.combinations(a_list, i))
