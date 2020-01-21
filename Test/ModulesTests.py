@@ -187,11 +187,11 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
-    # def test_type_da(self):
-    #     idempotents = False
-    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-    #     cup_da = type_da(cup)
-    #     cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
+    def test_type_da(self):
+        idempotents = False
+        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        cup_da = type_da(cup)
+        cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
     #
     # def test_tensor(self):
     #     idempotents = False
@@ -250,19 +250,15 @@ class TestCTMinus(unittest.TestCase):
     #     t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
     #     t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
     #
-    #     da_list = [type_da(t) for t in [t1, t2, t3, t4, t5, t6, t7]]
-    #     for da in da_list:
-    #         print(len(da.graph.nodes))
-    #
-    #     da_reduced_list = [da.reduced() for da in da_list]
-    #     for da in da_reduced_list:
-    #         print(len(da.graph.nodes))
+    #     for t in [t1, t2, t3, t4, t5, t6, t7]:
+    #         da = type_da(t)
+    #         da_reduced = da.pool_reduced()
+    #         print(str(t) + ' reduced from ' + str(len(da.graph.nodes)) + ' to ' + str(len(da_reduced.graph.nodes)))
 
-    # def test_pool(self):
-    #     t = ETangle(ETangle.Type.CAP, (1, -1, 1, -1), 1)
+    # def test_priority(self):
+    #     t = ETangle(ETangle.Type.CAP, (1, -1), 1)
     #     da = type_da(t)
-    #     print('da created')
-    #     da_reduced = da.pool_reduced()
+    #     da_reduced = da.priority_reduced()
     #     da_reduced.to_agraph(idempotents=False).draw('output/test_pool.svg')
 
     def test_timer(self):
@@ -271,13 +267,13 @@ class TestCTMinus(unittest.TestCase):
 
     @staticmethod
     def trial1():
-        t = ETangle(ETangle.Type.OVER, (1, -1, 1), 1)
+        t = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
         da = type_da(t)
         print(len(da.reduced().graph.nodes))
 
     @staticmethod
     def trial2():
-        t = ETangle(ETangle.Type.OVER, (1, -1, 1), 1)
+        t = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
         da = type_da(t)
         print(len(da.pool_reduced().graph.nodes))
 
