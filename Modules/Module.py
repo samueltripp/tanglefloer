@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import lru_cache
 
+from heapdict import heapdict
 from networkx import MultiDiGraph
 import networkx as nx
 from typing import Iterable
@@ -30,6 +31,12 @@ class Module(ABC):
         self.left_scalar_action = left_scalar_action
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
+        self.reducible_edges = heapdict()
+
+        for x in self.graph:
+            for y in self.graph[x]:
+                if self.edge_is_reducible(x, y):
+                    self.reducible_edges[(x, y)] = self.reduction_cost(x, y)
 
     def __getstate__(self):
         return self.ring, self.left_algebra, self.right_algebra, self.left_scalar_action, self.right_scalar_action, \
@@ -44,9 +51,31 @@ class Module(ABC):
         self.nodes = state[5]
         self.edges = state[6]
         self.graph = MultiDiGraph()
+        self.reducible_edges = heapdict()
 
     def __repr__(self) -> str:
         return str(self.__dict__)
+
+    def add_edge(self, x, y, k, c):
+        current = self.graph.get_edge_data(x, y, key=k)
+        if current is None:
+            self.graph.add_edge(x, y, key=k, c=self.ring.zero())
+            current = self.graph.get_edge_data(x, y, key=k)
+        current['c'] += c
+        if current['c'] == self.ring.zero():
+            self.graph.remove_edge(x, y, key=k)
+
+        if self.edge_is_reducible(x, y):
+            self.reducible_edges[(x, y)] = self.reduction_cost(x, y)
+        elif (x, y) in self.reducible_edges:
+            del self.reducible_edges[(x, y)]
+
+    @abstractmethod
+    def edge_is_reducible(self, x, y) -> bool:
+        pass
+
+    def reduction_cost(self, x, y) -> int:
+        return len(self.graph.in_edges(y)) * len(self.graph.out_edges(x))
 
     def reduced(self) -> Module:
         components = self.decomposed()
@@ -56,7 +85,7 @@ class Module(ABC):
 
     def pool_reduced(self) -> Module:
         components = self.decomposed()
-        pool = ProcessPool(8)
+        pool = ProcessPool(12)
         components_reduced = pool.map(lambda m: m.pool_reduce_component(), components)
         for component in components_reduced:
             component.restore_graph()
@@ -66,26 +95,36 @@ class Module(ABC):
         self.graph.add_nodes_from(self.nodes)
         self.graph.add_edges_from(self.edges)
 
+        for x in self.graph:
+            for y in self.graph[x]:
+                if self.edge_is_reducible(x, y):
+                    self.reducible_edges[(x, y)] = self.reduction_cost(x, y)
+
     def pool_reduce_component(self):
         self.restore_graph()
-        reducible_edge = self.reducible_edge()
+        reducible_edge = self.get_reducible_edge()
         while reducible_edge is not None:
-            print(len(self.graph.nodes))
             self.reduce_edge(*reducible_edge)
-            reducible_edge = self.reducible_edge()
+            reducible_edge = self.get_reducible_edge()
         return self
 
     def reduce_component(self) -> Module:
-        reducible_edge = self.reducible_edge()
+        reducible_edge = self.get_reducible_edge()
         while reducible_edge is not None:
-            print(len(self.graph.nodes))
             self.reduce_edge(*reducible_edge)
-            reducible_edge = self.reducible_edge()
+            reducible_edge = self.get_reducible_edge()
         return self
 
-    @abstractmethod
-    def reducible_edge(self):
-        pass
+    def get_reducible_edge(self):
+        if len(self.reducible_edges) == 0:
+            return None
+        (x, y), _ = self.reducible_edges.popitem()
+        while x not in self.graph or y not in self.graph:
+            if len(self.reducible_edges) == 0:
+                return None
+            (x, y), _ = self.reducible_edges.popitem()
+        k, d = list(self.graph[x][y].items())[0]
+        return x, y, k, d
 
     @abstractmethod
     def reduce_edge(self, x, y, k, d):

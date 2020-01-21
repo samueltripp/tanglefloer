@@ -13,6 +13,7 @@ def reduced_da(tangle: Tangle):
         out = (out ** type_da(etangle).reduced()).reduced()
     return out
 
+
 def type_da(etangle: ETangle) -> TypeDA:
     out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.right_scalar_action)
 

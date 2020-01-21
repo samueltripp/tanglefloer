@@ -33,13 +33,15 @@ class TypeDA(Module):
             y = gen_out.get_module_generator()
             left_gen = gen_out.left[0]
             left_monomial = gen_out.left_monomial
-            current = self.graph.get_edge_data(x, y, key=(left_monomial, left_gen, right_gens))
-            if current is None:
-                self.graph.add_edge(x, y, key=(left_monomial, left_gen, right_gens), c=self.ring.zero())
-                current = self.graph.get_edge_data(x, y, key=(left_monomial, left_gen, right_gens))
-            current['c'] += c_out
-            if current['c'] == self.ring.zero():
-                self.graph.remove_edge(x, y, key=(left_monomial, left_gen, right_gens))
+            self.add_edge(x, y, (left_monomial, left_gen, right_gens), c_out)
+
+    def edge_is_reducible(self, x, y) -> bool:
+        if x in self.graph and y in self.graph[x] and len(self.graph[x][y]) == 1:
+            k, d = list(self.graph[x][y].items())[0]
+            if k[0].to_polynomial() == self.left_algebra.ring.one() and \
+                    k[1].is_idempotent() and k[2] == tuple() and d['c'] == self.ring.one():
+                return True
+        return False
 
     # turns this bimodule into a graphviz-compatible format
     def to_agraph(self, idempotents=True) -> AGraph:
@@ -72,18 +74,9 @@ class TypeDA(Module):
         return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
                       modules[0].right_scalar_action, new_graph)
 
-    # O(V^2)
-    def reducible_edge(self) -> Optional[Tuple]:
-        for x in self.graph:
-            for y in self.graph[x]:
-                if len(self.graph[x][y]) == 1:
-                    k, d = list(self.graph[x][y].items())[0]
-                    if k[0].to_polynomial() == self.left_algebra.ring.one() and \
-                            k[1].is_idempotent() and k[2] == tuple() and d['c'] == self.ring.one():
-                        return x, y, k, d
-        return None
-
     def reduce_edge(self, x, y, k, d) -> None:
+        assert self.edge_is_reducible(x, y)
+
         in_edges = list(self.graph.in_edges(y, keys=True, data=True))
         out_edges = list(self.graph.out_edges(x, keys=True, data=True))
 
