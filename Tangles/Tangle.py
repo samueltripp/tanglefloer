@@ -10,22 +10,22 @@ class Tangle:
     # check - whether or not to check if etangles are compatible with each other
     def __init__(self, etangles):
         for i in range(len(etangles) - 1):
-            assert etangles[i].right_signs() == etangles[i + 1].left_signs(), \
+            assert etangles[i].right_sign_sequence() == etangles[i + 1].left_sign_sequence(), \
                 "Signs do not match at index {}".format(i)
 
         self.etangles = tuple(etangles)
 
         self.height = max(len(etangle.signs) for etangle in etangles)
-        self.left_algebra = AMinus(self.left_signs())
-        self.right_algebra = AMinus(self.right_signs())
+        self.left_algebra = AMinus(self.left_sign_sequence())
+        self.right_algebra = AMinus(self.right_sign_sequence())
 
     # returns the sign sequence corresponding to the left edge of this tangle
-    def left_signs(self):
-        return self.etangles[0].left_signs()
+    def left_sign_sequence(self):
+        return self.etangles[0].left_sign_sequence()
 
     # returns the sign sequence corresponding to the right edge of this tangle
-    def right_signs(self):
-        return self.etangles[-1].right_signs()
+    def right_sign_sequence(self):
+        return self.etangles[-1].right_sign_sequence()
 
     # add two tangles
     def __add__(self, other):
@@ -55,8 +55,7 @@ class ETangle(Tangle):
         CAP = auto()
 
     # etype - one of OVER, UNDER, CUP, or CAP
-    # signs - a tuple {-1,1}* representing the signs of the left edge of the tangle,
-    #         unless etype is CUP, in which case it represents the signs on the right edge
+    # signs - a tuple {-1,1}* representing the signs *in the middle* of this tangle
     #         signs[0] is None to enforce 1-indexing
     # position - nat n, where the cup/cap/crossing is between strand indices n and n+1
     # over/under represents what the bottom strand does; under on the left, over on the right
@@ -98,28 +97,32 @@ class ETangle(Tangle):
                                     {'U' + str(i): self.strand_index_to_variable_name(p)
                                      for i, p in enumerate(self.right_algebra.positives) if p is not None})
 
+    def strand_index_to_left_sign(self, strand_index) -> Optional[int]:
+        if self.etype == ETangle.Type.CUP and strand_index in (self.position, self.position + 1):
+            return None
+        else:
+            return self.signs[strand_index]
+
     # returns the sign sequence corresponding to the left edge of this tangle
-    def left_signs(self) -> Tuple:
+    def left_sign_sequence(self) -> Tuple:
         if self.etype == ETangle.Type.CUP:
-            return self.signs[:self.position] + self.signs[self.position + 2:]
+            return self.signs[:self.position] + \
+                   self.signs[self.position + 2:]
+        elif self.etype == ETangle.Type.UNDER:
+            return self.signs[:self.position] + \
+                   (self.signs[self.position+1], self.signs[self.position]) + \
+                   self.signs[self.position+2:]
         else:
             return self.signs
 
-    # returns the sign sequence corresponding to the middle of this tangle
-    def middle_signs(self) -> Tuple:
-        if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP):
-            return self.left_signs()
-        else:
-            return self.right_signs()
-
     # returns the sign sequence corresponding to the right edge of this tangle
-    def right_signs(self) -> Tuple:
+    def right_sign_sequence(self) -> Tuple:
         if self.etype == ETangle.Type.CAP:
             return self.signs[:self.position] + self.signs[self.position + 2:]
-        elif self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
+        elif self.etype == ETangle.Type.OVER:
             return self.signs[:self.position] + \
-                   (self.signs[self.position + 1], self.signs[self.position]) + \
-                   self.signs[self.position + 2:]
+                   (self.signs[self.position+1], self.signs[self.position]) + \
+                   self.signs[self.position+2:]
         else:
             return self.signs
 

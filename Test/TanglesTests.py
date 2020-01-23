@@ -6,7 +6,7 @@ import unittest
 # some simple examples
 cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
 over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-under = ETangle(ETangle.Type.UNDER, (-1, 1), 1)
+under = ETangle(ETangle.Type.UNDER, (1, -1), 1)
 cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
 unknot = Tangle((cup, cap))
 unknot2 = Tangle((cup, over, under, cap))
@@ -31,18 +31,14 @@ torus_knot = twist + twist + twist + twist
 class TestTangles(unittest.TestCase):
 
     def test_signs(self):
-        self.assertEqual(cup.left_signs(), (None,))
-        self.assertEqual(cup.middle_signs(), (None, 1, -1))
-        self.assertEqual(cup.right_signs(), (None, 1, -1))
-        self.assertEqual(cap.left_signs(), (None, 1, -1))
-        self.assertEqual(cap.middle_signs(), (None, 1, -1))
-        self.assertEqual(cap.right_signs(), (None,))
-        self.assertEqual(over.left_signs(), (None, 1, -1))
-        self.assertEqual(over.middle_signs(), (None, 1, -1))
-        self.assertEqual(over.right_signs(), (None, -1, 1))
-        self.assertEqual(under.left_signs(), (None, -1, 1))
-        self.assertEqual(under.middle_signs(), (None, 1, -1))
-        self.assertEqual(under.right_signs(), (None, 1, -1))
+        self.assertEqual(cup.left_sign_sequence(), (None,))
+        self.assertEqual(cup.right_sign_sequence(), (None, 1, -1))
+        self.assertEqual(cap.left_sign_sequence(), (None, 1, -1))
+        self.assertEqual(cap.right_sign_sequence(), (None,))
+        self.assertEqual(over.left_sign_sequence(), (None, 1, -1))
+        self.assertEqual(over.right_sign_sequence(), (None, -1, 1))
+        self.assertEqual(under.left_sign_sequence(), (None, -1, 1))
+        self.assertEqual(under.right_sign_sequence(), (None, 1, -1))
 
     def test_y_pos(self):
         self.assertEqual(cup.left_y_pos(1), None)

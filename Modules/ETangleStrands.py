@@ -46,7 +46,7 @@ class ETangleStrands:
             orange_strands[orange] = (
                 self.etangle.left_y_pos(orange), self.etangle.middle_y_pos(orange), self.etangle.right_y_pos(orange)
             )
-            orange_signs[orange] = self.etangle.middle_signs()[orange]
+            orange_signs[orange] = self.etangle.signs[orange]
         black_strands = {}
         for black in self.left_strands.values():
             black_strands[black] = (self.left_y_pos(black), black, None)
@@ -63,7 +63,7 @@ class ETangleStrands:
                 orange_strands[orange] = (
                     self.etangle.left_y_pos(orange), self.etangle.left_y_pos(orange), self.etangle.middle_y_pos(orange)
                 )
-                orange_signs[orange] = self.etangle.middle_signs()[orange]
+                orange_signs[orange] = self.etangle.signs[orange]
         black_strands = {}
         for black in self.etangle.left_points():
             if black in self.left_strands.keys():

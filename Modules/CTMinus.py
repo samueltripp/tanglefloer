@@ -126,7 +126,7 @@ def delta_ell(module: Module, x: ETangleStrands) -> Module.TensorElement:
 
 def m2(module: Module, x: ETangleStrands, a: AMinus.Generator) -> Module.TensorElement:
     # if the sign sequences do not match, return 0
-    if x.etangle.right_signs() != a.algebra.ss:
+    if x.etangle.right_sign_sequence() != a.algebra.ss:
         return module.zero()
 
     # if the strands cannot be merged, return 0
@@ -140,7 +140,7 @@ def m2(module: Module, x: ETangleStrands, a: AMinus.Generator) -> Module.TensorE
             orange_strands[orange] = (
                 x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange), x.etangle.right_y_pos(orange)
             )
-        orange_signs[orange] = x.etangle.middle_signs()[orange]
+        orange_signs[orange] = x.etangle.signs[orange]
     black_strands = {}
     for black in x.right_strands.keys():
         black_strands[black] = (black, x.right_strands[black], a.strands[x.right_strands[black]])
@@ -197,7 +197,7 @@ def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int, crossing: int) ->
             orange_strands[orange] = (
                 x.etangle.middle_y_pos(orange), x.etangle.right_y_pos(orange), x.etangle.right_y_pos(orange)
             )
-        orange_signs[orange] = x.etangle.middle_signs()[orange]
+        orange_signs[orange] = x.etangle.signs[orange]
     black_strands = {}
     for black in x.right_strands.keys():
         if black == b1:
@@ -249,7 +249,7 @@ def introduce_left_crossing(x: ETangleStrands, b1: int, b2: int, crossing: int) 
             orange_strands[orange] = (
                 x.etangle.left_y_pos(orange), x.etangle.left_y_pos(orange), x.etangle.middle_y_pos(orange)
             )
-        orange_signs[orange] = x.etangle.middle_signs()[orange]
+        orange_signs[orange] = x.etangle.signs[orange]
     black_strands = {}
     for black in x.left_strands.values():
         if black == b1:
@@ -329,7 +329,7 @@ def delta_ell_case_1(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     if powers is None:
         return module.zero(1, 0)
     for orange, power in powers.items():
-        if x.etangle.left_signs()[orange] == 1:
+        if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
         else:
             c2 *= x.etangle.strand_index_to_variable(orange) ** power
@@ -348,7 +348,7 @@ def delta_ell_case_2(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     if powers is None:
         return module.zero(1, 0)
     for orange, power in powers.items():
-        if x.etangle.left_signs()[orange] == 1:
+        if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
         else:
             c2 *= x.etangle.strand_index_to_variable(orange) ** power
@@ -364,7 +364,7 @@ def delta_ell_case_3(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     if powers is None:
         return module.zero(1, 0)
     for orange, power in powers.items():
-        if x.etangle.left_signs()[orange] == 1:
+        if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
         else:
             c2 *= x.etangle.strand_index_to_variable(orange) ** power
@@ -387,7 +387,7 @@ def delta_ell_case_4(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     if powers is None:
         return module.zero(1, 0)
     for orange, power in powers.items():
-        if x.etangle.left_signs()[orange] == 1:
+        if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
         else:
             c2 *= x.etangle.strand_index_to_variable(orange) ** power

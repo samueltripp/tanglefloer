@@ -187,11 +187,11 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
-    def test_type_da(self):
-        idempotents = False
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        cup_da = type_da(cup)
-        cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
+    # def test_type_da(self):
+    #     idempotents = False
+    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    #     cup_da = type_da(cup)
+    #     cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
     #
     # def test_tensor(self):
     #     idempotents = False
@@ -261,28 +261,39 @@ class TestCTMinus(unittest.TestCase):
     #     da_reduced = da.priority_reduced()
     #     da_reduced.to_agraph(idempotents=False).draw('output/test_pool.svg')
 
-    def test_timer(self):
-        print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=1))
-        print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+    # def test_timer(self):
+    #     print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+    #     print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+    #
+    # @staticmethod
+    # def trial1():
+    #     t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
+    #     da = type_da(t)
+    #     da = da.reduce(edge_priorities=False, pool=False)
+    #     print(len(da.graph.nodes))
+    #
+    # @staticmethod
+    # def trial2():
+    #     t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
+    #     da = type_da(t)
+    #     da = da.reduce(edge_priorities=True, pool=False)
+    #     print(len(da.graph.nodes))
 
-    @staticmethod
-    def trial1():
-        t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
-        da = type_da(t)
-        da = da.reduce(edge_priorities=False, pool=False)
-        print(len(da.graph.nodes))
-
-    @staticmethod
-    def trial2():
-        t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
-        da = type_da(t)
-        da = da.reduce(edge_priorities=True, pool=False)
-        print(len(da.graph.nodes))
-
-    # def test_test(self):
-    #     t = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #     da = pool_type_da(t)
-    #     da.to_agraph(idempotents=False).draw('output/test_pool_da.svg')
+    def test_test(self):
+        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        t1_da = type_da(t1)
+        t1_da_r = t1_da.reduce()
+        t2 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
+        t2_da = type_da(t2)
+        t2_da_r = t2_da.reduce()
+        t3 = ETangle(ETangle.Type.UNDER, (-1, 1), 1)
+        t3_da = type_da(t3)
+        t3_da_r = t3_da.reduce()
+        t4 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        t4_da = type_da(t4)
+        t4_da_r = t4_da.reduce()
+        da = t1_da_r ** t2_da_r ** t3_da_r ** t4_da_r
+        da.to_agraph(idempotents=False).draw('output/test_test1.svg')
 
 
 if __name__ == '__main__':

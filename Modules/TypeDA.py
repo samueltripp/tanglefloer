@@ -62,6 +62,10 @@ class TypeDA(Module):
         graph.layout('dot')
         return graph
 
+    # def write_m2_def(self, filename: str):
+    #     with open(filename, 'w') as out:
+    #         out.write(f"R=ZZ/2[{self.}]")
+
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
