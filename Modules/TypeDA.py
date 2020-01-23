@@ -62,9 +62,26 @@ class TypeDA(Module):
         graph.layout('dot')
         return graph
 
-    # def write_m2_def(self, filename: str):
-    #     with open(filename, 'w') as out:
-    #         out.write(f"R=ZZ/2[{self.}]")
+    def m2_def(self) -> List[str]:
+        gens = list(self.graph.nodes)
+
+        arrow_strings = []
+        for i, x in enumerate(gens):
+            for j, y in enumerate(gens):
+                if y in self.graph[x]:
+                    k, d = list(self.graph[x][y].items())[0]
+                    c = d['c']
+                    arrow_strings += [f"({j},{i}) => {c}"]
+
+        out = [f"R=ZZ/2[{','.join(self.ring.variables)}]"]
+        out += [f"M=R^{len(gens)}"]
+        out += [f"d=map(M, M, {{{', '.join(arrow_strings)}}})"]
+
+        return out
+
+    def write_m2_def(self, filename: str):
+        with open(filename, 'w') as out:
+            out.writelines(self.m2_def())
 
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
