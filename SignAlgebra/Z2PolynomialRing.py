@@ -176,7 +176,7 @@ class Z2Monomial:
         out = ''
         for var, power in self.powers.items():
             if power == 1:
-                out += str(var) + '.'
+                out += str(var) + '*'
             elif power > 1:
                 out += str(var) + '^' + str(power) + '.'
         return out[:-1] or str(1)

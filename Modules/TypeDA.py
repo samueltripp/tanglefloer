@@ -68,6 +68,8 @@ class TypeDA(Module):
         arrow_strings = []
         for i, x in enumerate(gens):
             for j, y in enumerate(gens):
+                if x == y:
+                    continue
                 if y in self.graph[x]:
                     k, d = list(self.graph[x][y].items())[0]
                     c = d['c']
@@ -81,7 +83,7 @@ class TypeDA(Module):
 
     def write_m2_def(self, filename: str):
         with open(filename, 'w') as out:
-            out.writelines(self.m2_def())
+            out.writelines([line+'\n' for line in self.m2_def()])
 
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
