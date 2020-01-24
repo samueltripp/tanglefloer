@@ -11,6 +11,12 @@ cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
 unknot = Tangle((cup, cap))
 unknot2 = Tangle((cup, over, under, cap))
 
+# some larger examples
+cup2 = ETangle(ETangle.Type.CUP, (-1, -1, 1, -1), 2)
+over2 = ETangle(ETangle.Type.OVER, (-1, -1, 1, -1), 2)
+under2 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, -1), 2)
+cap2 = ETangle(ETangle.Type.CAP, (-1, -1, 1, -1), 2)
+
 # the trefoil from the paper
 t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
 t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
@@ -39,6 +45,24 @@ class TestTangles(unittest.TestCase):
         self.assertEqual(over.right_sign_sequence(), (None, -1, 1))
         self.assertEqual(under.left_sign_sequence(), (None, -1, 1))
         self.assertEqual(under.right_sign_sequence(), (None, 1, -1))
+
+        self.assertEqual(cup2.left_sign_sequence(), (None, -1, -1))
+        self.assertEqual(over2.left_sign_sequence(), (None, -1, -1, 1, -1))
+        self.assertEqual(under2.left_sign_sequence(), (None, -1, 1, -1, -1))
+        self.assertEqual(cap2.left_sign_sequence(), (None, -1, -1, 1, -1))
+        self.assertEqual(cup2.right_sign_sequence(), (None, -1, -1, 1, -1))
+        self.assertEqual(over2.right_sign_sequence(), (None, -1, 1, -1, -1))
+        self.assertEqual(under2.right_sign_sequence(), (None, -1, -1, 1, -1))
+        self.assertEqual(cap2.right_sign_sequence(), (None, -1, -1))
+
+        self.assertEqual([None, None], [cup.strand_index_to_left_sign(i) for i in range(1, 3)])
+        self.assertEqual([1, -1], [over.strand_index_to_left_sign(i) for i in range(1, 3)])
+        self.assertEqual([1, -1], [under.strand_index_to_left_sign(i) for i in range(1, 3)])
+        self.assertEqual([1, -1], [cap.strand_index_to_left_sign(i) for i in range(1, 3)])
+        self.assertEqual([-1, None, None, -1], [cup2.strand_index_to_left_sign(i) for i in range(1, 5)])
+        self.assertEqual([-1, -1, 1, -1], [over2.strand_index_to_left_sign(i) for i in range(1, 5)])
+        self.assertEqual([-1, -1, 1, -1], [under2.strand_index_to_left_sign(i) for i in range(1, 5)])
+        self.assertEqual([-1, -1, 1, -1], [cap2.strand_index_to_left_sign(i) for i in range(1, 5)])
 
     def test_y_pos(self):
         self.assertEqual(cup.left_y_pos(1), None)
