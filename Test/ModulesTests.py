@@ -292,15 +292,17 @@ class TestCTMinus(unittest.TestCase):
     #     da = t1_da_r ** t3_da_r ** t4_da_r
     #     da.to_agraph(idempotents=False).draw('output/test_test1.svg')
 
-    def test_m2(self):
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+    def test_macaulay2(self):
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         cup_da = type_da(cup)
-        cup_da_r = cup_da.reduce()
+        over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+        over_da = type_da(over)
         cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
         cap_da = type_da(cap)
-        cap_da_r = cap_da.reduce()
-        unknot_da = cup_da_r ** cap_da_r
-        print(unknot_da.m2_def())
+        unknot_da_tt = cup_da ** over_da ** cap_da
+        unknot_da_ttr = unknot_da_tt.reduce()
+        unknot_da_ttr.to_agraph(idempotents=False).draw('output/test_unknot_ttr.svg')
+        unknot_da_ttr.write_m2_def('output/unknot_da_ttr.m2')
 
 
 if __name__ == '__main__':
