@@ -24,15 +24,21 @@ class Module(ABC):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: Optional[AMinus], right_algebra: Optional[AMinus],
                  left_scalar_action: Optional[Z2PolynomialRing.Map],
                  right_scalar_action: Optional[Z2PolynomialRing.Map],
-                 graph: MultiDiGraph = None):
+                 graph: MultiDiGraph = None,
+                 gradings: dict = None):
         self.ring = ring
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
         self.left_scalar_action = left_scalar_action
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
+        self.gradings = gradings or {}
         self.edge_priorities = False
         self.reducible_edges = None
+        if graph != None:
+            if gradings == None:
+                raise AssertionError("Incomplete grading information")
+            assert set(graph.nodes).issubset(set(gradings.keys())),"Incomplete grading information"
 
     def __getstate__(self):
         return self.ring, self.left_algebra, self.right_algebra, self.left_scalar_action, self.right_scalar_action, \
@@ -145,8 +151,9 @@ class Module(ABC):
         pass
 
     # add the given generator to this module
-    def add_generator(self, generator: Module.TensorGenerator) -> None:
+    def add_generator(self, generator: Module.TensorGenerator,grading:List[int]) -> None:
         self.graph.add_node(generator)
+        self.gradings[generator]=grading
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
     def zero(self, i=0, j=0) -> Module.TensorElement:

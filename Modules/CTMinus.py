@@ -27,7 +27,7 @@ def type_da_in_grading(etangle: ETangle, r: int) -> TypeDA:
                enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()], r)]
 
     for x in strands:
-        out.add_generator(x.to_generator(out))
+        out.add_generator(x.to_generator(out),[x.to_strand_diagram().maslov(),x.to_strand_diagram().twoalexander()])
 
     for x in strands:
         out.add_structure_map(x.to_generator(out), delta1_1(out, x))

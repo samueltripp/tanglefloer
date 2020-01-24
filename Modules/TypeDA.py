@@ -21,8 +21,8 @@ from Modules.Module import Module
 class TypeDA(Module):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  right_scalar_action: Z2PolynomialRing.Map,
-                 graph: MultiDiGraph = None):
-        super().__init__(ring, left_algebra, right_algebra, None, right_scalar_action, graph)
+                 graph: MultiDiGraph = None, gradings: dict = None):
+        super().__init__(ring, left_algebra, right_algebra, None, right_scalar_action, graph, gradings)
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
@@ -86,14 +86,16 @@ class TypeDA(Module):
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                       self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)))
+                       self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
+                       {g:self.gradings[g] for g in self.graph.subgraph(component).nodes})
                 for component in nx.weakly_connected_components(self.graph)]
 
     @staticmethod
     def direct_sum(modules: List) -> TypeDA:
         new_graph = nx.union_all([da.graph for da in modules])
         return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
-                      modules[0].right_scalar_action, new_graph)
+                      modules[0].right_scalar_action, new_graph,
+                      {g:da.gradings[g] for da in modules for g in da.gradings.keys()})
 
     def reduce_edge(self, x, y, k, d) -> None:
         assert self.edge_is_reducible(x, y)
@@ -133,7 +135,8 @@ class TypeDA(Module):
             for x_n in other.graph.nodes:
                 if x_m.right_idempotent == x_n.left_idempotent:
                     out.add_generator(Module.TensorGenerator(out, (x_m.key, x_n.key),
-                                                             x_m.left_idempotent, x_n.right_idempotent))
+                                                             x_m.left_idempotent, x_n.right_idempotent),
+                                                             list(map(add,self.gradings[x_m],other.gradings[x_n])))
 
         for x_m in self.graph.nodes:
             for x_n in other.graph.nodes:
