@@ -308,7 +308,7 @@ class StrandDiagram:
                    for o1 in self.orange_strands if self.orange_signs[o1]==1 for o2 in self.orange_strands if self.orange_signs[o1]==1)
     def num_orange_orange_neg_crossings(self) -> int:
         return sum(self.orange_times_crossed_orange(o1,o2)
-                   for o1 in self.orange_strands if self.orange_signs[o1]==-1 for o2 in self.orange_strands if self.orange_signs[o1]==-1)
+                   for o1 in self.orange_strands if self.orange_signs[o1]==-1 for o2 in self.orange_strands if self.orange_signs[o2]==-1)
     def num_black_black_crossings(self) -> int:
         return sum(self.black_times_crossed_black(b1,b2)
                    for b1 in self.black_strands for b2 in self.black_strands)
@@ -333,8 +333,10 @@ class StrandDiagram:
     def maslov(self) -> int:
         left_black = {k:self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][2]==None}
         right_black = {k:self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][0]==None}
-        left_orange = {k:[self.orange_strands[k][0],self.orange_strands[k][1],None] for k in self.orange_strands.keys()}
-        right_orange = {k:[None,self.orange_strands[k][1],self.orange_strands[k][2],None] for k in self.orange_strands.keys()}
+        left_orange = {k:[self.orange_strands[k][0],self.orange_strands[k][1],None]
+                       for k in self.orange_strands.keys() if self.orange_strands[k][0] != None}
+        right_orange = {k:[None,self.orange_strands[k][1],self.orange_strands[k][2],None]
+                        for k in self.orange_strands.keys() if self.orange_strands[k][2] != None}
         left = StrandDiagram(left_orange,self.orange_signs,left_black)
         right = StrandDiagram(right_orange,self.orange_signs,right_black)
         m = right.nbbc()-right.nobpc()+right.noopc()-left.nbbc()+left.nobnc()-left.noonc()-left.nno()

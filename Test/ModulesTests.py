@@ -193,16 +193,16 @@ class TestCTMinus(unittest.TestCase):
     #     cup_da = type_da(cup)
     #     cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
     #
-    # def test_tensor(self):
-    #     idempotents = False
-    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-    #     cup_da = type_da(cup)
-    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #     cap_da = type_da(cap)
-    #     cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
-    #     unknot_da = cup_da ** cap_da
-    #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
-    #
+    def test_tensor(self):
+        idempotents = False
+        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        cup_da = type_da(cup)
+        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        cap_da = type_da(cap)
+        cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
+        unknot_da = cup_da ** cap_da
+        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
+
     # def test_type_da_reduced(self):
     #     idempotents = False
     #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
