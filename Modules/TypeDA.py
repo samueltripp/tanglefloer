@@ -47,14 +47,14 @@ class TypeDA(Module):
     def to_agraph(self, idempotents=True) -> AGraph:
         graph = AGraph(strict=False, directed=True)
         for generator in self.graph.nodes:
-            graph.add_node(generator.key,
+            graph.add_node(str(generator.key)+str(self.gradings[generator]),
                            shape='box',
                            fontname='Arial')
         for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
             c = d['c']
             if not idempotents and len(right) == 1 and right[0].is_idempotent():
                 continue
-            graph.add_edge(x.key, y.key,
+            graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
                            label=str((left_monomial, left, c, right)),
                            dir='forward',
                            color=['black', 'blue', 'red', 'green', 'purple'][len(right)],

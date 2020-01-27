@@ -311,7 +311,7 @@ class StrandDiagram:
                    for o1 in self.orange_strands if self.orange_signs[o1]==-1 for o2 in self.orange_strands if self.orange_signs[o2]==-1)
     def num_black_black_crossings(self) -> int:
         return sum(self.black_times_crossed_black(b1,b2)
-                   for b1 in self.black_strands for b2 in self.black_strands)
+                   for b1 in self.black_strands for b2 in self.black_strands) // 2
     def num_negative_orange(self) -> int:
         return sum(1 for o in self.orange_strands if self.orange_signs[o]==-1)
 

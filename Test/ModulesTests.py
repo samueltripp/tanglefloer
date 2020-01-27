@@ -201,6 +201,7 @@ class TestCTMinus(unittest.TestCase):
         cap_da = type_da(cap)
         cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
         unknot_da = cup_da ** cap_da
+        unknot_da = unknot_da.reduce()
         unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
 
     # def test_type_da_reduced(self):
