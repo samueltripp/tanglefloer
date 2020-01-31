@@ -8,6 +8,7 @@ import networkx as nx
 from typing import Iterable
 from pygraphviz import AGraph
 from Modules import ETangleStrands
+from Modules.ChainComplex import ChainComplex
 from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
 from multimethod import *
@@ -62,28 +63,17 @@ class TypeDA(Module):
         graph.layout('dot')
         return graph
 
-    def m2_def(self) -> List[str]:
-        gens = list(self.graph.nodes)
+    def to_chain_complex(self) -> ChainComplex:
+        out = ChainComplex(self.ring)
 
-        arrow_strings = []
-        for i, x in enumerate(gens):
-            for j, y in enumerate(gens):
-                if x == y:
-                    continue
-                if y in self.graph[x]:
-                    k, d = list(self.graph[x][y].items())[0]
-                    c = d['c']
-                    arrow_strings += [f"({j},{i}) => {c}"]
+        for generator in self.graph.nodes:
+            out.add_generator(generator, self.gradings[generator])
 
-        out = [f"R=ZZ/2[{','.join(self.ring.variables)}]"]
-        out += [f"M=R^{len(gens)}"]
-        out += [f"d=map(M, M, {{{', '.join(arrow_strings)}}})"]
+        for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
+            if left_monomial == self.left_algebra.ring.one() and left.is_idempotent() and len(right) == 0:
+                out.add_structure_map(x, d['c'] * y)
 
         return out
-
-    def write_m2_def(self, filename: str):
-        with open(filename, 'w') as out:
-            out.writelines([line+'\n' for line in self.m2_def()])
 
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
@@ -166,7 +156,7 @@ class TypeDA(Module):
         return out
 
     # returns [(left_monomial, left, right, coefficient)] representing the delta_n paths from source to target
-    def delta_n(self, n, source, target) -> List[Tuple, Tuple, Z2Polynomial]:
+    def delta_n(self, n, source, target) -> List[Tuple[Z2Monomial, Tuple, Tuple, Z2Polynomial]]:
         if n == 0:
             if source == target:
                 return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), tuple(), self.ring.one())]
@@ -186,7 +176,7 @@ class TypeDA(Module):
 
     # returns [(left_monomial, left, coefficient)] representing the delta_n paths from source ** right to target
     @lru_cache(maxsize=None)
-    def delta_n_helper(self, n, source, target, current_right) -> List[Tuple, Z2Polynomial]:
+    def delta_n_helper(self, n, source, target, current_right) -> List[Tuple[Z2Monomial, Tuple, Z2Polynomial]]:
         if n == 0:
             if source == target:
                 return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), self.ring.one())]

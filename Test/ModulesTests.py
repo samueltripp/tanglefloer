@@ -203,8 +203,8 @@ class TestCTMinus(unittest.TestCase):
     #     unknot_da = cup_da ** cap_da
     #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
     #
-    # def test_type_da_reduced(self):
-    #     idempotents = False
+    def test_type_da_reduced(self):
+        idempotents = False
         # cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
         # cup_da = type_da(cup)
         # cup_da_r = cup_da.reduced()
@@ -224,26 +224,30 @@ class TestCTMinus(unittest.TestCase):
         # (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_1.svg')
         # (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_2.svg')
 
-        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        # cup_da = type_da(cup)
-        # cup_da_r = cup_da.reduce()
-        # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        # over_da = type_da(over)
-        # over_da_r = over_da.reduce()
-        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        # cap_da = type_da(cap)
-        # cap_da_r = cap_da.reduce()
-        # unknot_da_tt = cup_da ** over_da ** cap_da
-        # unknot_da_ttr = unknot_da_tt.reduce()
-        # unknot_da_rrrtt = cup_da_r ** over_da_r ** cap_da_r
-        # unknot_da_rrrttr = unknot_da_rrrtt.reduce()
-        # over_da.to_agraph(idempotents=False).draw('output/test_over.svg')
-        # (cup_da ** over_da_r ** cap_da).reduce().to_agraph(idempotents=False).draw('output/test1.svg')
-        # unknot_da_tt.to_agraph(idempotents=idempotents).draw('output/test_unknot_tt.svg')
-        # unknot_da_ttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_ttr.svg')
-        # unknot_da_rrrttr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrttr.svg')
-        #
-        # unknot_da_ttr.write_m2_def('output/unknot_da_ttr.m2')
+        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        cup_da = type_da(cup)
+        over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+        over_da = type_da(over)
+        over_da.to_agraph(idempotents=idempotents).draw('output/over_da.svg')
+        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        cap_da = type_da(cap)
+        unknot_da_ttr1 = (cup_da ** (over_da ** cap_da)).reduce()
+        unknot_da_ttr1.to_agraph(idempotents=idempotents).draw('output/unknot_da_ttr1.svg')
+        unknot_da_ttr2 = (cup_da ** (over_da ** cap_da.reduce())).reduce()
+        unknot_da_ttr2.to_agraph(idempotents=idempotents).draw('output/unknot_da_ttr2.svg')
+
+        print(cup_da.to_chain_complex().d_squared_is_zero())
+        print(over_da.to_chain_complex().d_squared_is_zero())
+        print(cap_da.to_chain_complex().d_squared_is_zero())
+
+        unknot_cc_ttr1 = unknot_da_ttr1.to_chain_complex()
+        print(unknot_cc_ttr1.d_squared_is_zero())
+        unknot_cc_ttr2 = unknot_da_ttr2.to_chain_complex()
+        print(unknot_cc_ttr2.d_squared_is_zero())
+        unknot_cc_ttr1.to_agraph().draw('output/unknot_cc_ttr1.svg')
+        unknot_cc_ttr2.to_agraph().draw('output/unknot_cc_ttr2.svg')
+        unknot_cc_ttr1.write_m2_def('output/unknot_cc_ttr1.m2')
+        unknot_cc_ttr2.write_m2_def('output/unknot_cc_ttr2.m2')
 
     # def test_trefoil(self):
     #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
@@ -289,13 +293,14 @@ class TestCTMinus(unittest.TestCase):
     #     t1_da_r = t1_da.reduce()
     #     t3 = ETangle(ETangle.Type.UNDER, (1, -1), 1)
     #     t3_da = type_da(t3)
+    #     t3_da.to_agraph(idempotents=False).draw('output/test_under.svg')
     #     t3_da_r = t3_da.reduce()
     #     t4 = ETangle(ETangle.Type.CAP, (1, -1), 1)
     #     t4_da = type_da(t4)
     #     t4_da_r = t4_da.reduce()
     #     da = t1_da_r ** t3_da_r ** t4_da_r
     #     da.to_agraph(idempotents=False).draw('output/test_test1.svg')
-    #
+
     # def test_macaulay2(self):
     #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
     #     cup_da = type_da(cup)

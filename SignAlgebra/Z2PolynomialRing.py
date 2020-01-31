@@ -166,8 +166,13 @@ class Z2Monomial:
         return Z2Monomial(self.ring, {var: self.powers.get(var, 0) + other.powers.get(var, 0)
                                       for var in self.powers.keys() | other.powers.keys()})
 
+    @multimethod
     def __eq__(self, other: Z2Monomial) -> bool:
         return self.ring == other.ring and self.powers == other.powers
+
+    @multimethod
+    def __eq__(self, other) -> bool:
+        return self.to_polynomial() == other
 
     def __hash__(self):
         return hash(self.ring) + hash(self.powers)
