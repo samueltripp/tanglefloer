@@ -239,15 +239,11 @@ class TestCTMinus(unittest.TestCase):
         print(cup_da.to_chain_complex().d_squared_is_zero())
         print(over_da.to_chain_complex().d_squared_is_zero())
         print(cap_da.to_chain_complex().d_squared_is_zero())
-
+        print((cup_da ** over_da).to_chain_complex().d_squared_is_zero())
+        print((over_da ** cap_da).to_chain_complex().d_squared_is_zero())
         unknot_cc_ttr1 = unknot_da_ttr1.to_chain_complex()
         print(unknot_cc_ttr1.d_squared_is_zero())
-        unknot_cc_ttr2 = unknot_da_ttr2.to_chain_complex()
-        print(unknot_cc_ttr2.d_squared_is_zero())
         unknot_cc_ttr1.to_agraph().draw('output/unknot_cc_ttr1.svg')
-        unknot_cc_ttr2.to_agraph().draw('output/unknot_cc_ttr2.svg')
-        unknot_cc_ttr1.write_m2_def('output/unknot_cc_ttr1.m2')
-        unknot_cc_ttr2.write_m2_def('output/unknot_cc_ttr2.m2')
 
     # def test_trefoil(self):
     #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)

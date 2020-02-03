@@ -27,7 +27,7 @@ def type_da_in_grading(etangle: ETangle, r: int) -> TypeDA:
                enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()], r)]
 
     for x in strands:
-        out.add_generator(x.to_generator(out),[x.to_strand_diagram().maslov(),x.to_strand_diagram().twoalexander()])
+        out.add_generator(x.to_generator(out), [x.to_strand_diagram().maslov(), x.to_strand_diagram().twoalexander()])
 
     for x in strands:
         out.add_structure_map(x.to_generator(out), delta1_1(out, x))
@@ -205,7 +205,7 @@ def smooth_right_crossing(x: ETangleStrands, b1: int, b2: int, crossing: int) ->
         elif black == b2:
             black_strands[b2] = (b2, crossing + .2, a1)
         else:
-            black_strands[black] = (black, black, x.right_y_pos(black))
+            black_strands[black] = (black, x.right_y_pos(black), x.right_y_pos(black))
 
     return StrandDiagram(orange_strands, orange_signs, black_strands)
 
@@ -257,7 +257,7 @@ def introduce_left_crossing(x: ETangleStrands, b1: int, b2: int, crossing: int) 
         elif black == b2:
             black_strands[b2] = (a2, crossing + .2, b2)
         else:
-            black_strands[black] = (x.left_y_pos(black), black, black)
+            black_strands[black] = (x.left_y_pos(black), x.left_y_pos(black), black)
 
     return StrandDiagram(orange_strands, orange_signs, black_strands)
 

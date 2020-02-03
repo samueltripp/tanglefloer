@@ -58,6 +58,9 @@ class ChainComplex(Module):
     def d_squared_is_zero(self) -> bool:
         for x in self.graph.nodes:
             if self.d(self.d(x)) != self.zero():
+                print(x)
+                print(self.d(x))
+                print(self.d(self.d(x)))
                 return False
         return True
 
