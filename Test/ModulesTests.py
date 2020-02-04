@@ -276,19 +276,24 @@ class TestCTMinus(unittest.TestCase):
     #     da = da.reduce(edge_priorities=True, pool=False)
     #     print(len(da.graph.nodes))
 
-    # def test_test(self):
-    #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-    #     t1_da = type_da(t1)
-    #     t1_da_r = t1_da.reduce()
-    #     t3 = ETangle(ETangle.Type.UNDER, (1, -1), 1)
-    #     t3_da = type_da(t3)
-    #     t3_da.to_agraph(idempotents=False).draw('output/test_under.svg')
-    #     t3_da_r = t3_da.reduce()
-    #     t4 = ETangle(ETangle.Type.CAP, (1, -1), 1)
-    #     t4_da = type_da(t4)
-    #     t4_da_r = t4_da.reduce()
-    #     da = t1_da_r ** t3_da_r ** t4_da_r
-    #     da.to_agraph(idempotents=False).draw('output/test_test1.svg')
+    def test_test(self):
+        t1 = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        t1_da = type_da(t1)
+        t1_da_r = t1_da.reduce()
+        t2 = ETangle(ETangle.Type.OVER, (1, -1), 1)
+        t2_da = type_da(t2)
+        t2_da_r = t2_da.reduce()
+        t3 = ETangle(ETangle.Type.UNDER, (1, -1), 1)
+        t3_da = type_da(t3)
+        t3_da_r = t3_da.reduce()
+        t4 = ETangle(ETangle.Type.CAP, (1, -1), 1)
+        t4_da = type_da(t4)
+        t4_da_r = t4_da.reduce()
+        da_rrrrtttr = (t1_da_r ** t2_da_r ** t3_da_r ** t4_da_r).reduce()
+        da_rrrrtttr.to_agraph(idempotents=False).draw('output/unknot_da_rrrrtttr.svg')
+        cc_rrrrtttr = da_rrrrtttr.to_chain_complex()
+        print(cc_rrrrtttr.d_squared_is_zero())
+        cc_rrrrtttr.write_m2_def('output/cc_rrrrtttr.m2')
 
     # def test_macaulay2(self):
     #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)

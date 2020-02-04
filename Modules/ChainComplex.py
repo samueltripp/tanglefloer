@@ -82,6 +82,8 @@ class ChainComplex(Module):
         return graph
 
     def m2_def(self) -> List[str]:
+        arrows_per_def = 50
+
         gens = list(self.graph.nodes)
 
         arrow_strings = []
@@ -94,9 +96,11 @@ class ChainComplex(Module):
                     c = d['c']
                     arrow_strings += [f"({j},{i}) => {c}"]
 
-        out = [f"R=ZZ/2[{','.join(self.ring.variables)}]"]
-        out += [f"M=R^{len(gens)}"]
-        out += [f"d=map(M, M, {{{', '.join(arrow_strings)}}})"]
+        out = [f"R = ZZ/2[{','.join(self.ring.variables)}]"]
+        out += [f"M = R^{len(gens)}"]
+        out += [f"d = map(M, M, 0)"]
+        for i in range(0, (len(arrow_strings) // arrows_per_def) + 1):
+            out += [f"d = d + map(M, M, {{{', '.join(arrow_strings[i * arrows_per_def:(i+1) * arrows_per_def])}}})"]
         out += ["trim' = Q -> image(generators Q)/intersect(image generators Q, image relations Q)"]
         out += ["H = trim' trim ((ker d) / (image d))"]
 
