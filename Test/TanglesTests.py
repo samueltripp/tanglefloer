@@ -36,6 +36,14 @@ torus_knot = twist + twist + twist + twist
 
 class TestTangles(unittest.TestCase):
 
+    def trefoil_test(self):
+        tref_da = reduced_type_da(trefoil)
+        tref_cc = tref_da.to_chain_complex()
+        print(tref_cc.d_squared_is_zero())
+#        tref_da.to_agraph().draw('Test/output/tref_da.svg')
+#        tref_cc.to_agraph().draw('Test/output/tref_cc.svg')
+        tref_cc.write_m2_def('Test/output/tref_cc.m2')
+        
     def test_signs(self):
         self.assertEqual(cup.left_sign_sequence(), (None,))
         self.assertEqual(cup.right_sign_sequence(), (None, 1, -1))
