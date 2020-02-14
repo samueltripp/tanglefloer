@@ -7,6 +7,14 @@ from Modules.Module import *
 from Modules.ETangleStrands import *
 
 
+def reduced_type_da(tangle: Tangle) -> TypeDA:
+    out = type_da(tangle.etangles[0]).reduce()
+    for etangle in tangle.etangles[1:]:
+        da = type_da(etangle).reduce()
+        out = (out ** da).reduce()
+    return out
+
+
 def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
     if pool:
         pool = ProcessPool()

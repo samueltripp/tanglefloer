@@ -102,8 +102,6 @@ class ETangle(Tangle):
             else:
                 return pos
 
-
-
     # turns the given strand index into a variable in F[U1, U2, ...]
     def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
         return self.ring[self.strand_index_to_variable_name(strand_index)]
@@ -114,8 +112,10 @@ class ETangle(Tangle):
 
     def build_right_scalar_action(self):
         return Z2PolynomialRing.Map(self.right_algebra.ring, self.ring,
-                                    {'U' + str(i): self.strand_index_to_variable_name(self.right_strand_position_to_index(p))
-                                     for i, p in enumerate(self.right_algebra.positives) if p is not None and self.right_strand_position_to_index(p) is not None})
+                                    {'U' + str(i): self.strand_index_to_variable_name(
+                                        self.right_strand_position_to_index(p))
+                                     for i, p in enumerate(self.right_algebra.positives)
+                                        if p is not None and self.right_strand_position_to_index(p) is not None})
 
     def strand_index_to_left_sign(self, strand_index) -> Optional[int]:
         if self.etype == ETangle.Type.CUP and strand_index in (self.position, self.position + 1):

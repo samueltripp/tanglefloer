@@ -7,7 +7,7 @@ from functools import lru_cache
 from heapdict import heapdict
 from networkx import MultiDiGraph
 import networkx as nx
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from pygraphviz import AGraph
 from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
@@ -33,12 +33,10 @@ class Module(ABC):
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
         self.gradings = gradings or {}
-        self.edge_priorities = False
-        self.reducible_edges = None
-        if graph != None:
-            if gradings == None:
+        if graph is not None:
+            if gradings is None:
                 raise AssertionError("Incomplete grading information")
-            assert set(graph.nodes).issubset(set(gradings.keys())),"Incomplete grading information"
+            assert set(graph.nodes).issubset(set(gradings.keys())), "Incomplete grading information"
 
     def __getstate__(self):
         return self.ring, self.left_algebra, self.right_algebra, self.left_scalar_action, self.right_scalar_action, \
@@ -68,74 +66,29 @@ class Module(ABC):
         if current['c'] == self.ring.zero():
             self.graph.remove_edge(x, y, key=k)
 
-        if self.edge_priorities:
-            if self.edge_is_reducible(x, y):
-                self.reducible_edges[(x, y)] = self.reduction_cost(x, y)
-            elif (x, y) in self.reducible_edges:
-                del self.reducible_edges[(x, y)]
-
     @abstractmethod
     def edge_is_reducible(self, x, y) -> bool:
         pass
 
-    def reduction_cost(self, x, y) -> int:
-        return len(self.graph.in_edges(y)) * len(self.graph.out_edges(x))
-
-    def reduce(self, edge_priorities=False, pool=False) -> Module:
+    def reduce(self) -> Module:
         components = self.decomposed()
-        if pool:
-            pool = ProcessPool()
-            components = \
-                pool.map(lambda m: m.restore_graph().reduce_component(edge_priorities),
-                         components)
-            for component in components:
-                component.restore_graph()
-        else:
-            for component in components:
-                component.reduce_component(edge_priorities)
+        for component in components:
+            component.reduce_component()
         return self.direct_sum(components)
 
-    # O(V^2 + E)
-    def restore_graph(self) -> Module:
-        self.graph.add_nodes_from(self.nodes)
-        self.graph.add_edges_from(self.edges)
-        return self
-
-    def reduce_component(self, edge_priorities=False) -> Module:
-        if edge_priorities:
-            self.initialize_edge_priorities()
+    def reduce_component(self) -> Module:
         reducible_edge = self.get_reducible_edge()
         while reducible_edge is not None:
             self.reduce_edge(*reducible_edge)
             reducible_edge = self.get_reducible_edge()
         return self
 
-    def initialize_edge_priorities(self):
-        self.edge_priorities = True
-        self.reducible_edges = heapdict()
-
+    def get_reducible_edge(self):
         for x in self.graph:
             for y in self.graph[x]:
                 if self.edge_is_reducible(x, y):
-                    self.reducible_edges[(x, y)] = self.reduction_cost(x, y)
-
-    def get_reducible_edge(self):
-        if self.edge_priorities:
-            if len(self.reducible_edges) == 0:
-                return None
-            (x, y), _ = self.reducible_edges.popitem()
-            while x not in self.graph or y not in self.graph:
-                if len(self.reducible_edges) == 0:
-                    return None
-                (x, y), _ = self.reducible_edges.popitem()
-            k, d = list(self.graph[x][y].items())[0]
-            return x, y, k, d
-        else:
-            for x in self.graph:
-                for y in self.graph[x]:
-                    if self.edge_is_reducible(x, y):
-                        k, d = list(self.graph[x][y].items())[0]
-                        return x, y, k, d
+                    k, d = list(self.graph[x][y].items())[0]
+                    return x, y, k, d
 
     @abstractmethod
     def reduce_edge(self, x, y, k, d):
@@ -154,6 +107,7 @@ class Module(ABC):
     def add_generator(self, generator: Module.TensorGenerator,grading:List[int]) -> None:
         self.graph.add_node(generator)
         self.gradings[generator]=grading
+        self.gradings[generator] = grading
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
     def zero(self, i=0, j=0) -> Module.TensorElement:
