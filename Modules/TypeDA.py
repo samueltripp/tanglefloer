@@ -58,7 +58,7 @@ class TypeDA(Module):
             graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
                            label=str((left_monomial, left, c, right)),
                            dir='forward',
-                           color=['black', 'blue', 'red', 'green', 'purple'][len(right)],
+                           color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
                            fontname='Arial')
         graph.layout('dot')
         return graph
@@ -143,9 +143,7 @@ class TypeDA(Module):
                         c_m = d_m['c']
                         y = Module.TensorGenerator(out, (y_m.key, y_n.key),
                                                    y_m.left_idempotent, y_n.right_idempotent)
-                        for left_monomial_n, left_n, right_n, c_n in other.delta_n(len(right_m), x_n, y_n):
-                            if left_n != right_m:
-                                continue
+                        for left_monomial_n, right_n, c_n in other.delta_n(right_m, x_n, y_n):
                             out.add_structure_map(
                                 x ** right_n,
                                 (left_monomial.to_polynomial() * left_m) **
@@ -153,45 +151,28 @@ class TypeDA(Module):
                                     scalar_map.apply(left_monomial_n.to_polynomial()))) *
                                  in_n.apply(c_n) * y))
 
+        assert(out.to_chain_complex().d_squared_is_zero())  # probably slow, take out when not debugging
+
         return out
 
-    # returns [(left_monomial, left, right, coefficient)] representing the delta_n paths from source to target
-    def delta_n(self, n, source, target) -> List[Tuple[Z2Monomial, Tuple, Tuple, Z2Polynomial]]:
-        if n == 0:
-            if source == target:
-                return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), tuple(), self.ring.one())]
-            else:
-                return []
-        else:
-            out = []
-            for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
-                left_monomial = k[0]
-                left = k[1]
-                right = k[2]
-                c = d['c']
-                out += [(more_left_monomial * left_monomial, more_left + (left,), right, more_c * c)
-                        for more_left_monomial, more_left, more_c in
-                        self.delta_n_helper(n - 1, source, new_target, right)]
-            return out
-
-    # returns [(left_monomial, left, coefficient)] representing the delta_n paths from source ** right to target
-    @lru_cache(maxsize=None)
-    def delta_n_helper(self, n, source, target, current_right) -> List[Tuple[Z2Monomial, Tuple, Z2Polynomial]]:
-        if n == 0:
+    # returns [(left_monomial, right, coefficient)]
+    #   representing the delta_n paths from source to target outputting left
+    # INCORRECT
+    def delta_n(self, left, source, target) -> List[Tuple[Z2Monomial, Tuple, Z2Polynomial]]:
+        if len(left) == 0:
             if source == target:
                 return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), self.ring.one())]
             else:
                 return []
         else:
             out = []
-            for new_target, _, k, d in self.graph.in_edges(target, keys=True, data=True):
+            for _, new_source, k, d in self.graph.out_edges(source, keys=True, data=True):
                 left_monomial = k[0]
-                left = k[1]
+                if k[1] != left[0]:
+                    continue
                 right = k[2]
                 c = d['c']
-                if right != current_right:
-                    continue
-                out += [(more_left_monomial * left_monomial, more_left + (left,), more_c * c)
-                        for more_left_monomial, more_left, more_c
-                        in self.delta_n_helper(n - 1, source, new_target, right)]
+                out += [(more_left_monomial * left_monomial, right + more_right, more_c * c)
+                        for more_left_monomial, more_right, more_c in
+                        self.delta_n(left[1:], new_source, target)]
             return out

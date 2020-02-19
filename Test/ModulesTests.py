@@ -212,9 +212,7 @@ class TestCTMinus(unittest.TestCase):
         # some simple examples
         cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
         over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        under = ETangle(ETangle.Type.UNDER, (1, -1), 1)
         cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        unknot = Tangle((cup, over, cap))
 
         cup_da = type_da(cup)
         cup_da_reduced = cup_da.reduce()
@@ -225,10 +223,12 @@ class TestCTMinus(unittest.TestCase):
         cap_da.to_agraph(idempotents=False).draw('output/cap_da.svg')
         cap_da_reduced.to_agraph(idempotents=True).draw('output/cap_da_reduced.svg')
 
-        (cup_da_reduced ** over_da_reduced ** cap_da_reduced).reduce().to_agraph(idempotents=idempotents).draw('output/test0.svg')
-        ((cup_da_reduced ** over_da_reduced).reduce() ** cap_da_reduced).reduce().to_agraph(idempotents=idempotents).draw('output/test1.svg')
-
-
+        (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)) \
+            .to_agraph(idempotents=idempotents).draw('output/test0.svg')
+        (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)).to_chain_complex().write_m2_def('output/test0.m2')
+        ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced) \
+            .to_agraph(idempotents=idempotents).draw('output/test1.svg')
+        ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
 
         # cap_da_reduced.to_agraph(idempotents=False).draw('output/cap_da_reduced.svg')
         # (cupover ** cap_da_reduced).to_agraph(idempotents=False).draw('output/rrrtrt.svg')
