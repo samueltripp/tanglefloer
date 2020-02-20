@@ -16,14 +16,7 @@ def reduced_type_da(tangle: Tangle) -> TypeDA:
 
 
 def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
-    if pool:
-        pool = ProcessPool()
-        components = pool.map(lambda r: type_da_in_grading(etangle, r),
-                              [r for r in range(0, len(etangle.left_points()) + 1)])
-        for component in components:
-            component.restore_graph()
-    else:
-        components = [type_da_in_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
+    components = [type_da_in_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
     return TypeDA.direct_sum(components)
 
 

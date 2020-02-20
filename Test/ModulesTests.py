@@ -205,7 +205,7 @@ class TestCTMinus(unittest.TestCase):
     #     cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
     #     unknot_da = cup_da ** cap_da
     #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
-    #
+
     def test_type_da_reduced(self):
         idempotents = False
 
@@ -230,46 +230,6 @@ class TestCTMinus(unittest.TestCase):
             .to_agraph(idempotents=idempotents).draw('output/test1.svg')
         ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
 
-        # cap_da_reduced.to_agraph(idempotents=False).draw('output/cap_da_reduced.svg')
-        # (cupover ** cap_da_reduced).to_agraph(idempotents=False).draw('output/rrrtrt.svg')
-
-        # da = reduced_type_da(unknot)
-        # da.to_agraph(idempotents=False).draw('output/test.svg')
-        # da.to_chain_complex().write_m2_def('output/test.m2')
-
-        # cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        # cup_da = type_da(cup)
-        # cup_da_r = cup_da.reduced()
-        # cup_da_r.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
-        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        # cap_da = type_da(cap)
-        # cap_da_r = cap_da.reduced()
-        # cap_da_r.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
-        # unknot_da_rt = cup_da_r ** cap_da_r
-        # unknot_da_rt.to_agraph(idempotents=idempotents).draw('output/test_unknot_rt.svg')
-        # unknot_da_rtr = unknot_da_rt.reduced()
-        # unknot_da_rtr.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrtr.svg')
-        # unknot_da = cup_da ** cap_da
-        # unknot_da_tr = unknot_da.reduced()
-        # unknot_da_tr.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
-        #
-        # (cup_da_r ** cap_da).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_1.svg')
-        # (cup_da ** cap_da_r).reduced().to_agraph(idempotents=idempotents).draw('output/test_unknot_rtr_2.svg')
-
-        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        # cup_da = type_da(cup)
-        # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        # over_da = type_da(over)
-        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        # cap_da = type_da(cap)
-        #
-        # unknot_da = cup_da ** over_da ** cap_da
-        # unknot_da = unknot_da.reduce()
-        # unknot_cc = unknot_da.to_chain_complex()
-        # print(unknot_cc.d_squared_is_zero())
-        # unknot_cc.to_agraph().draw('output/unknot_cc.svg')
-        # unknot_cc.write_m2_def('output/unknot_cc.m2')
-
     # def test_trefoil(self):
     #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
     #     t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
@@ -291,21 +251,23 @@ class TestCTMinus(unittest.TestCase):
     #     da_reduced.to_agraph(idempotents=False).draw('output/test_pool.svg')
 
     # def test_timer(self):
-    #     print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=1))
-    #     print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+    #     print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=5))
+    #     print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=5))
     #
     # @staticmethod
     # def trial1():
-    #     t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
-    #     da = type_da(t)
-    #     da = da.reduce(edge_priorities=False, pool=False)
+    #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+    #     over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #     da = ((type_da(cup).reduce() ** type_da(over).reduce()).reduce() ** type_da(cap).reduce()).reduce()
     #     print(len(da.graph.nodes))
     #
     # @staticmethod
     # def trial2():
-    #     t = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
-    #     da = type_da(t)
-    #     da = da.reduce(edge_priorities=True, pool=False)
+    #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+    #     over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #     da = type_da(cup).reduce().newpow(type_da(over).reduce()).reduce().newpow(type_da(cap).reduce()).reduce()
     #     print(len(da.graph.nodes))
 
     # def test_test(self):
