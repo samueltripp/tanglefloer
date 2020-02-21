@@ -72,6 +72,8 @@ class Module(ABC):
 
     def reduce(self) -> Module:
         components = self.decomposed()
+        if len(components) == 0:
+            return self
         for component in components:
             component.reduce_component()
         return self.direct_sum(components)

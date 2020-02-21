@@ -19,6 +19,9 @@ class Tangle:
         self.left_algebra = AMinus(self.left_sign_sequence())
         self.right_algebra = AMinus(self.right_sign_sequence())
 
+    def right_points(self) -> List:
+        return self.etangles[-1].right_points()
+
     # returns the sign sequence corresponding to the left edge of this tangle
     def left_sign_sequence(self):
         return self.etangles[0].left_sign_sequence()
@@ -202,19 +205,19 @@ class ETangle(Tangle):
     def right_strand_straight(self, strand_index: int) -> bool:
         return self.right_y_pos(strand_index) == self.middle_y_pos(strand_index)
 
-    # returns the set of points corresponding to the left side of this tangle
+    # returns the list of points corresponding to the left side of this tangle
     def left_points(self) -> List:
         if self.etype == ETangle.Type.CUP:
             return list(range(len(self.signs) - 2))
         return list(range(len(self.signs)))
 
-    # returns the set of points corresponding to the middle of this tangle
+    # returns the list of points corresponding to the middle of this tangle
     def middle_points(self) -> List:
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
             return list(range(self.position)) + list(range(self.position + 1, len(self.signs)))
         return list(range(len(self.signs)))
 
-    # returns the set of points corresponding to the right side of this tangle
+    # returns the list of points corresponding to the right side of this tangle
     def right_points(self) -> List:
         if self.etype == ETangle.Type.CAP:
             return list(range(len(self.signs) - 2))

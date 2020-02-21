@@ -20,7 +20,10 @@ def injections(source, target):
 
 
 # returns a list of all partial bijections, modeled as dicts
+# if specified, r is the size of the image (= size of the coimage)
 def partial_bijections(source, target, r=None):
+    if r is not None and r < 0:
+        return []
     output = []
     for sublist in sublists(source, r):
         output.extend(injections(sublist, target))
@@ -36,6 +39,7 @@ def invert_injection(inj):
 
 
 # returns a list of all sublists of the given list
+# if r is specified, only returns sublists of size r
 def sublists(a_list, r=None):
     if r is not None:
         return list(itertools.combinations(a_list, r))

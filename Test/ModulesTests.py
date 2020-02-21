@@ -206,43 +206,42 @@ class TestCTMinus(unittest.TestCase):
     #     unknot_da = cup_da ** cap_da
     #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
 
-    def test_type_da_reduced(self):
-        idempotents = False
+    # def test_type_da_reduced(self):
+        # idempotents = False
+        #
+        # # some simple examples
+        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+        # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        #
+        # cup_da = type_da(cup)
+        # cup_da_reduced = cup_da.reduce()
+        # over_da = type_da(over)
+        # over_da_reduced = over_da.reduce()
+        # cap_da = type_da(cap)
+        # cap_da_reduced = cap_da.reduce()
+        # cap_da.to_agraph(idempotents=False).draw('output/cap_da.svg')
+        # cap_da_reduced.to_agraph(idempotents=True).draw('output/cap_da_reduced.svg')
+        #
+        # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)) \
+        #     .to_agraph(idempotents=idempotents).draw('output/test0.svg')
+        # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)).to_chain_complex().write_m2_def('output/test0.m2')
+        # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced) \
+        #     .to_agraph(idempotents=idempotents).draw('output/test1.svg')
+        # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
 
-        # some simple examples
-        cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    def test_trefoil(self):
+        t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
+        t3 = ETangle(ETangle.Type.OVER, (-1, 1, -1, 1), 2)
+        t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
+        t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
+        t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
+        t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        t = t1+t2+t3+t4+t5+t6+t7
 
-        cup_da = type_da(cup)
-        cup_da_reduced = cup_da.reduce()
-        over_da = type_da(over)
-        over_da_reduced = over_da.reduce()
-        cap_da = type_da(cap)
-        cap_da_reduced = cap_da.reduce()
-        cap_da.to_agraph(idempotents=False).draw('output/cap_da.svg')
-        cap_da_reduced.to_agraph(idempotents=True).draw('output/cap_da_reduced.svg')
-
-        (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)) \
-            .to_agraph(idempotents=idempotents).draw('output/test0.svg')
-        (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)).to_chain_complex().write_m2_def('output/test0.m2')
-        ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced) \
-            .to_agraph(idempotents=idempotents).draw('output/test1.svg')
-        ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
-
-    # def test_trefoil(self):
-    #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-    #     t2 = ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
-    #     t3 = ETangle(ETangle.Type.OVER, (-1, 1, -1, 1), 2)
-    #     t4 = ETangle(ETangle.Type.UNDER, (-1, -1, 1, 1), 1)
-    #     t5 = ETangle(ETangle.Type.OVER, (-1, -1, 1, 1), 2)
-    #     t6 = ETangle(ETangle.Type.CAP, (-1, 1, -1, 1), 1)
-    #     t7 = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #
-    #     for t in [t1, t2, t3, t4, t5, t6, t7]:
-    #         da = type_da(t)
-    #         da_reduced = da.pool_reduced()
-    #         print(str(t) + ' reduced from ' + str(len(da.graph.nodes)) + ' to ' + str(len(da_reduced.graph.nodes)))
+        da = reduced_type_da(t)
+        da.to_chain_complex().write_m2_def('output/trefoil.m2')
 
     # def test_priority(self):
     #     t = ETangle(ETangle.Type.CAP, (1, -1), 1)
@@ -251,43 +250,33 @@ class TestCTMinus(unittest.TestCase):
     #     da_reduced.to_agraph(idempotents=False).draw('output/test_pool.svg')
 
     # def test_timer(self):
-    #     print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=5))
-    #     print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=5))
+    #     print(timeit.timeit('TestCTMinus.trial1()', setup='from Test.ModulesTests import TestCTMinus', number=1))
+    #     print(timeit.timeit('TestCTMinus.trial2()', setup='from Test.ModulesTests import TestCTMinus', number=1))
     #
     # @staticmethod
     # def trial1():
     #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
     #     over = ETangle(ETangle.Type.OVER, (1, -1), 1)
     #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #     da = ((type_da(cup).reduce() ** type_da(over).reduce()).reduce() ** type_da(cap).reduce()).reduce()
-    #     print(len(da.graph.nodes))
+    #     t = cup + over + cap
+    #     da = reduced_type_da(t)
     #
     # @staticmethod
     # def trial2():
     #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
     #     over = ETangle(ETangle.Type.OVER, (1, -1), 1)
     #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #     da = type_da(cup).reduce().newpow(type_da(over).reduce()).reduce().newpow(type_da(cap).reduce()).reduce()
-    #     print(len(da.graph.nodes))
+    #     t = cup + over + cap
+    #     da = reduced_type_da2(t)
 
     # def test_test(self):
     #     t1 = ETangle(ETangle.Type.CUP, (1, -1), 1)
-    #     t1_da = type_da(t1)
-    #     t1_da_r = t1_da.reduce()
     #     t2 = ETangle(ETangle.Type.OVER, (1, -1), 1)
-    #     t2_da = type_da(t2)
-    #     t2_da_r = t2_da.reduce()
     #     t3 = ETangle(ETangle.Type.UNDER, (1, -1), 1)
-    #     t3_da = type_da(t3)
-    #     t3_da_r = t3_da.reduce()
     #     t4 = ETangle(ETangle.Type.CAP, (1, -1), 1)
-    #     t4_da = type_da(t4)
-    #     t4_da_r = t4_da.reduce()
-    #     da_rrrrtttr = (t1_da_r ** t2_da_r ** t3_da_r ** t4_da_r).reduce()
-    #     da_rrrrtttr.to_agraph(idempotents=False).draw('output/unknot_da_rrrrtttr.svg')
-    #     cc_rrrrtttr = da_rrrrtttr.to_chain_complex()
-    #     print(cc_rrrrtttr.d_squared_is_zero())
-    #     cc_rrrrtttr.write_m2_def('output/cc_rrrrtttr.m2')
+    #     t = t1 + t2 + t3 + t4
+    #     da = reduced_type_da(t)
+    #     da.to_agraph().draw('output/test.svg')
 
     # def test_macaulay2(self):
     #     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)

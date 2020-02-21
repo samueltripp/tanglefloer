@@ -8,24 +8,53 @@ from Modules.ETangleStrands import *
 
 
 def reduced_type_da(tangle: Tangle) -> TypeDA:
-    out = type_da(tangle.etangles[0]).reduce()
-    for etangle in tangle.etangles[1:]:
-        da = type_da(etangle).reduce()
-        out = (out ** da).reduce()
-    return out
-
-
-def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
-    components = [type_da_in_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
+    components = []
+    for i in range(len(tangle.right_points()) + 1):
+        components += [reduced_type_da_in_right_grading(tangle, i)]
     return TypeDA.direct_sum(components)
 
 
-def type_da_in_grading(etangle: ETangle, r: int) -> TypeDA:
+# returns the reduced CT^-_i for this tangle
+def reduced_type_da_in_right_grading(tangle: Tangle, i: int) -> TypeDA:
+    r = left_occupied_points(tangle, i)
+    etangle = tangle.etangles[0]
+    print(f"computing da structure for {etangle} in grading {r}...")
+    out = type_da_in_left_grading(etangle, r)
+    print("reducing...")
+    out = out.reduce_component()
+    r = len(etangle.right_points()) - (len(etangle.middle_points()) - r)
+    for etangle in tangle.etangles[1:]:
+        print(f"computing da structure for {etangle} in grading {r}...")
+        da = type_da_in_left_grading(etangle, r)
+        print("reducing...")
+        da = da.reduce_component()
+        print("tensoring...")
+        out = (out ** da)
+        print("reducing...")
+        out = out.reduce()
+        r = len(etangle.right_points()) - (len(etangle.middle_points()) - r)
+    return out
+
+
+# returns the number of occupied points on the left given i, the number of occupied points on the right
+def left_occupied_points(tangle: Tangle, i: int):
+    r = len(tangle.etangles[-1].right_points()) - i
+    for etangle in tangle.etangles[-1::-1]:
+        r = len(etangle.middle_points()) - (len(etangle.right_points()) - r)
+    return r
+
+
+def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
+    components = [type_da_in_left_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
+    return TypeDA.direct_sum(components)
+
+
+def type_da_in_left_grading(etangle: ETangle, i: int) -> TypeDA:
     out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.right_scalar_action)
 
     strands = [ETangleStrands(etangle, left_strands, right_strands)
                for left_strands, right_strands in
-               enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()], r)]
+               enumerate_gens([etangle.left_points(), etangle.middle_points(), etangle.right_points()], i)]
 
     for x in strands:
         out.add_generator(x.to_generator(out), [x.to_strand_diagram().maslov(), x.to_strand_diagram().twoalexander()])
@@ -405,7 +434,7 @@ def delta_ell_case_4(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
 
 
 # points - a list of sets of points
-# r - number of points occupied in the rightmost set
+# r - number of points occupied in the leftmost set
 def enumerate_gens(points, r=None):
     sequences = []
     if len(points) < 2:
