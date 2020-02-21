@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from functools import lru_cache
@@ -8,7 +6,7 @@ from heapdict import heapdict
 from networkx import MultiDiGraph
 import networkx as nx
 from typing import Iterable, List, Optional
-from pygraphviz import AGraph
+# from pygraphviz import AGraph
 from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
@@ -70,7 +68,7 @@ class Module(ABC):
     def edge_is_reducible(self, x, y) -> bool:
         pass
 
-    def reduce(self) -> Module:
+    def reduce(self):  # -> Module
         components = self.decomposed()
         if len(components) == 0:
             return self
@@ -78,7 +76,7 @@ class Module(ABC):
             component.reduce_component()
         return self.direct_sum(components)
 
-    def reduce_component(self) -> Module:
+    def reduce_component(self):  # -> Module
         reducible_edge = self.get_reducible_edge()
         while reducible_edge is not None:
             self.reduce_edge(*reducible_edge)
@@ -97,28 +95,31 @@ class Module(ABC):
         pass
 
     @abstractmethod
-    def decomposed(self) -> List[Module]:
+    def decomposed(self):  # -> List[Module]
         pass
 
+    # modules: List[Module]
     @staticmethod
     @abstractmethod
-    def direct_sum(modules: List[Module]) -> Module:
+    def direct_sum(modules):  # -> Module
         pass
 
     # add the given generator to this module
-    def add_generator(self, generator: Module.TensorGenerator,grading:List[int]) -> None:
+    # generator: Module.TensorGenerator
+    def add_generator(self, generator, grading: List[int]) -> None:
         self.graph.add_node(generator)
-        self.gradings[generator]=grading
+        self.gradings[generator] = grading
         self.gradings[generator] = grading
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
-    def zero(self, i=0, j=0) -> Module.TensorElement:
+    def zero(self, i=0, j=0):  # -> Module.TensorElement
         return Module.TensorElement(self, i, j)
 
     # represents an element of A^(x)i (x) M (x) A^(x)j
+    # module: Module
     class TensorElement:
         # coefficients - {TensorGenerator: Z2Polynomial}
-        def __init__(self, module: Module, i, j, coefficients=None):
+        def __init__(self, module, i, j, coefficients=None):
             self.module = module
             self.i = i
             self.j = j
@@ -127,7 +128,8 @@ class Module(ABC):
             self.coefficients = frozendict(simplify_coefficients(coefficients))
 
         # addition in A^(x)i (x) M (x) A^(x)j
-        def __add__(self, other: Module.TensorElement) -> Module.TensorElement:
+        # other: Module.TensorElement
+        def __add__(self, other):  # -> Module.TensorElement
             assert self.i == other.i and self.j == other.j
             new_coefficients = dict(self.coefficients)
             for g in other.coefficients:
@@ -138,7 +140,7 @@ class Module(ABC):
             return Module.TensorElement(self.module, self.i, self.j, new_coefficients)
 
         # scalar multiplication in A^(x)i (x) M (x) A^(x)j as a module over the base ring of M
-        def __rmul__(self, other: Z2Polynomial) -> Module.TensorElement:
+        def __rmul__(self, other: Z2Polynomial):  # -> Module.TensorElement
             if other.ring == self.module.ring:
                 new_coefficients = {}
                 for g, c in self.coefficients.items():
@@ -151,7 +153,7 @@ class Module(ABC):
                 return out
 
         # the tensor product A (x) (A^(x)i (x) M (x) A^(x)j) -> A^(x)i+1 (x) M (x) A^(x)j
-        def __rpow__(self, other: AMinus.Element) -> Module.TensorElement:
+        def __rpow__(self, other: AMinus.Element):  # -> Module.TensorElement
             out = self.module.zero(self.i + 1, self.j)
 
             for g1, c1 in other.coefficients.items():
@@ -165,7 +167,7 @@ class Module(ABC):
             return out
 
         # the tensor product (A^(x)i (x) M (x) A^(x)j) (x) A -> A^(x)i (x) M (x) A^(x)j+1
-        def __pow__(self, other: AMinus.Element) -> Module.TensorElement:
+        def __pow__(self, other: AMinus.Element):  # -> Module.TensorElement
             out = self.module.zero(self.i, self.j + 1)
 
             for g1, c1 in self.coefficients.items():
@@ -178,13 +180,10 @@ class Module(ABC):
 
             return out
 
-        @multimethod
-        def __eq__(self, other: Module.TensorElement) -> bool:
+        def __eq__(self, other) -> bool:
+            if issubclass(type(other), Module.TensorGenerator):
+                return self == other.to_element()
             return self.module == other.module and self.coefficients == other.coefficients
-
-        @multimethod
-        def __eq__(self, other: Module.TensorGenerator) -> bool:
-            return self == other.to_element()
 
         def __hash__(self):
             return hash((self.module, self.coefficients))
@@ -193,8 +192,9 @@ class Module(ABC):
             return str(dict(self.coefficients))
 
     # represents a generator of A^(x)i (x) M (x) A^(x)j as a module over the base ring of M
+    # module: Module
     class TensorGenerator:
-        def __init__(self, module: Module, key,
+        def __init__(self, module, key,
                      left_idempotent: AMinus.Generator, right_idempotent: AMinus.Generator,
                      left: Tuple[AMinus.Generator, ...] = None, left_monomial: Z2Monomial = None,
                      right: Tuple[AMinus.Generator, ...] = None, right_monomial: Z2Monomial = None):
@@ -210,10 +210,10 @@ class Module(ABC):
             self.right_monomial = right_monomial or Z2Monomial(self.module.right_algebra.ring, {})
 
         # converts this generator to an actual element
-        def to_element(self) -> Module.TensorElement:
+        def to_element(self):  # -> Module.TensorElement
             return Module.TensorElement(self.module, len(self.left), len(self.right), {self: self.module.ring.one()})
 
-        def get_module_generator(self) -> Module.TensorGenerator:
+        def get_module_generator(self):  # -> Module.TensorGenerator
             return Module.TensorGenerator(self.module, self.key, self.left_idempotent, self.right_idempotent)
 
         def leftmost_idempotent(self) -> AMinus.Generator:
@@ -229,11 +229,11 @@ class Module(ABC):
                 return self.right[-1].right_idempotent()
 
         # addition
-        def __add__(self, other) -> Module.TensorElement:
+        def __add__(self, other):  # -> Module.TensorElement
             return self.to_element() + other
 
         @multimethod
-        def __rmul__(self, other: Z2Polynomial) -> Module.TensorElement:
+        def __rmul__(self, other: Z2Polynomial):  # -> Module.TensorElement
             if other.ring == self.left_monomial.ring:
                 out = self.module.zero(self.i, self.j)
                 for term in other.terms:
@@ -243,14 +243,14 @@ class Module(ABC):
                 return other * self.to_element()
 
         @multimethod
-        def __rmul__(self, other: Z2Monomial) -> Module.TensorGenerator:
+        def __rmul__(self, other: Z2Monomial):  # -> Module.TensorGenerator
             return Module.TensorGenerator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                           self.left, self.left_monomial * other,
                                           self.right, self.right_monomial)
 
         # tensor product
         @multimethod
-        def __pow__(self, other: AMinus.Generator) -> Module.TensorGenerator:
+        def __pow__(self, other: AMinus.Generator):  # -> Module.TensorGenerator
             assert self.rightmost_idempotent() == other.left_idempotent()
             return Module.TensorGenerator(self.module, self.key, self.left_idempotent, self.right_idempotent,
                                           self.left, self.left_monomial,
@@ -258,13 +258,13 @@ class Module(ABC):
 
         # tensor product
         @multimethod
-        def __pow__(self, other: AMinus.Element) -> Module.TensorElement:
+        def __pow__(self, other: AMinus.Element):  # -> Module.TensorElement
             return self.to_element() ** other
 
         # tensor product
         # assumes other is a tuple of generators or elements
         @multimethod
-        def __pow__(self, other) -> Module.TensorGenerator:
+        def __pow__(self, other):  # -> Module.TensorGenerator
             out = self
             for gen in other:
                 out = out ** gen
@@ -272,20 +272,20 @@ class Module(ABC):
 
         # tensor product
         @multimethod
-        def __rpow__(self, other: AMinus.Generator) -> Module.TensorGenerator:
+        def __rpow__(self, other: AMinus.Generator):  # -> Module.TensorGenerator
             assert other.right_idempotent() == self.leftmost_idempotent()
             return Module.TensorGenerator(self.module, self.key,
                                           self.left_idempotent, self.right_idempotent, (other,) + self.left, self.right)
 
         # tensor product
         @multimethod
-        def __rpow__(self, other: AMinus.Element) -> Module.TensorElement:
+        def __rpow__(self, other: AMinus.Element):  # -> Module.TensorElement
             return other ** self.to_element()
 
         # tensor product
         # assumes other is a tuple of generators or elements
         @multimethod
-        def __rpow__(self, other) -> Module.TensorGenerator:
+        def __rpow__(self, other):  # -> Module.TensorGenerator
             out = self
             for gen in reversed(other):
                 out = gen ** out
@@ -297,8 +297,10 @@ class Module(ABC):
         def __repr__(self):
             return str((self.left_monomial, self.left, self.key, self.right_monomial, self.right))
 
-        @multimethod
-        def __eq__(self, other: Module.TensorGenerator):
+        # other: Module.TensorGenerator
+        def __eq__(self, other):
+            if not issubclass(type(other), Module.TensorGenerator):
+                return self.to_element() == other
             return self.module == other.module and \
                    self.key == other.key and \
                    self.left_idempotent == other.left_idempotent and \
@@ -307,10 +309,6 @@ class Module(ABC):
                    self.left_monomial == other.left_monomial and \
                    self.right == other.right and \
                    self.right_monomial == other.right_monomial
-
-        @multimethod
-        def __eq__(self, other):
-            return self.to_element() == other
 
         def __hash__(self):
             return hash((self.left_monomial, self.left, self.module, self.key,

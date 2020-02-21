@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Dict, Tuple, Optional
 import itertools
 from SignAlgebra.Z2PolynomialRing import Z2Polynomial

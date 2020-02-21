@@ -1,12 +1,10 @@
-from __future__ import annotations
-
 from collections import defaultdict
 from functools import lru_cache
 
 from networkx import MultiDiGraph
 import networkx as nx
-from typing import Iterable
-from pygraphviz import AGraph
+from typing import Iterable, List
+# from pygraphviz import AGraph
 from Modules import ETangleStrands
 from Modules.ChainComplex import ChainComplex
 from SignAlgebra.AMinus import AMinus
@@ -45,23 +43,23 @@ class TypeDA(Module):
         return False
 
     # turns this bimodule into a graphviz-compatible format
-    def to_agraph(self, idempotents=True) -> AGraph:
-        graph = AGraph(strict=False, directed=True)
-        for generator in self.graph.nodes:
-            graph.add_node(str(generator.key)+str(self.gradings[generator]),
-                           shape='box',
-                           fontname='Arial')
-        for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
-            c = d['c']
-            if not idempotents and len(right) == 1 and right[0].is_idempotent():
-                continue
-            graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
-                           label=str((left_monomial, left, c, right)),
-                           dir='forward',
-                           color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
-                           fontname='Arial')
-        graph.layout('dot')
-        return graph
+    # def to_agraph(self, idempotents=True) -> AGraph:
+    #     graph = AGraph(strict=False, directed=True)
+    #     for generator in self.graph.nodes:
+    #         graph.add_node(str(generator.key)+str(self.gradings[generator]),
+    #                        shape='box',
+    #                        fontname='Arial')
+    #     for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
+    #         c = d['c']
+    #         if not idempotents and len(right) == 1 and right[0].is_idempotent():
+    #             continue
+    #         graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
+    #                        label=str((left_monomial, left, c, right)),
+    #                        dir='forward',
+    #                        color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
+    #                        fontname='Arial')
+    #     graph.layout('dot')
+    #     return graph
 
     def to_chain_complex(self) -> ChainComplex:
         out = ChainComplex(self.ring)
@@ -76,14 +74,14 @@ class TypeDA(Module):
         return out
 
     # returns the direct sum decomposition of this module
-    def decomposed(self) -> List[TypeDA]:
+    def decomposed(self):  # -> List[TypeDA]
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
                        self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
                        {g:self.gradings[g] for g in self.graph.subgraph(component).nodes})
                 for component in nx.weakly_connected_components(self.graph)]
 
     @staticmethod
-    def direct_sum(modules: List) -> TypeDA:
+    def direct_sum(modules: List):  # -> TypeDA
         new_graph = nx.union_all([da.graph for da in modules])
         return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
                       modules[0].right_scalar_action, new_graph,
@@ -115,7 +113,8 @@ class TypeDA(Module):
 
     # tensor product of type DA structures
     # assumes self is bounded, other may or may not be
-    def __pow__(self, other: TypeDA) -> TypeDA:
+    # other: TypeDA
+    def __pow__(self, other):  # -> TypeDA
         assert self.right_algebra == other.left_algebra
 
         in_m, in_n = self.ring.tensor_inclusions(other.ring)
@@ -156,7 +155,7 @@ class TypeDA(Module):
 
     # returns [(left_monomial, right, target, coefficient)]
     #   representing the delta_n paths starting at source outputting left
-    def delta_n(self, left, source) -> List[Tuple[Z2Monomial, Tuple, Module.TensorGenerator, Z2Polynomial]]:
+    def delta_n(self, left, source):  # -> List[Tuple[Z2Monomial, Tuple, Module.TensorGenerator, Z2Polynomial]]
         if len(left) == 0:
             return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), source, self.ring.one())]
         else:

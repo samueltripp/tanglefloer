@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from Modules.TypeDA import TypeDA
 from Modules.Module import Module
 from Tangles.Tangle import *
