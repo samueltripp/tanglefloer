@@ -112,9 +112,9 @@ class TestTangles(unittest.TestCase):
         print(torus_knot)
 
     def test_svg_rendering(self):
-        TangleRenderer.svg('output/trefoil.svg', trefoil)
-        TangleRenderer.svg('output/unknot2.svg', unknot2)
-        TangleRenderer.svg('output/cup.svg', cup, [{0: 2}, {0: 1}])
+        TangleRenderer.svg('Test/output/trefoil.svg', trefoil)
+        TangleRenderer.svg('Test/output/unknot2.svg', unknot2)
+        TangleRenderer.svg('Test/output/cup.svg', cup, [{0: 2}, {0: 1}])
 
 
 if __name__ == '__main__':

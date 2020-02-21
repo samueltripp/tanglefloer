@@ -241,7 +241,7 @@ class TestCTMinus(unittest.TestCase):
         t = t1+t2+t3+t4+t5+t6+t7
 
         da = reduced_type_da(t)
-        da.to_chain_complex().write_m2_def('output/trefoil.m2')
+        da.to_chain_complex().write_m2_def('Test/output/trefoil.m2')
 
     # def test_priority(self):
     #     t = ETangle(ETangle.Type.CAP, (1, -1), 1)
