@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List
 
 from Modules.StrandDiagram import StrandDiagram
@@ -20,24 +21,23 @@ class AMinus:
         return AMinus.Element(self, {})
 
     # a convenient way to construct elements of A^-(P)
-    def generator(self, strands):  # -> AMinus.Generator
+    def generator(self, strands) -> AMinus.Generator:
         return AMinus.Generator(self, strands)
 
     # returns all generators with the given points occupied on the left
-    def left_gens(self, points):  # -> List[AMinus.Generator]
+    def left_gens(self, points) -> List[AMinus.Generator]:
         return [AMinus.Generator(self, inj) for inj in injections(points, list(range(0, len(self.ss))))]
 
     # returns all generators with the given points occupied on the right
-    def right_gens(self, points):  # -> List[AMinus.Generator]
+    def right_gens(self, points) -> List[AMinus.Generator]:
         return [AMinus.Generator(self, invert_injection(inj))
                 for inj in injections(points, list(range(1, len(self.ss))))]
 
     # returns the idempotent with the given points occupied
-    def idempotent(self, points):  # -> AMinus.Generator
+    def idempotent(self, points) -> AMinus.Generator:
         return AMinus.Generator(self, {p: p for p in points})
 
-    # other: AMinus
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: AMinus) -> bool:
         return self.ss == other.ss
 
     def __hash__(self):
@@ -51,28 +51,24 @@ class AMinus:
             self.coefficients = frozendict(simplify_coefficients(coefficients))
 
         # addition
-        # other: AMinus.Element
+        @multimethod
+        def __add__(self, other: AMinus.Element):
+            out_coefficients = {}
+            for gen in self.coefficients.keys() - other.coefficients.keys():
+                out_coefficients[gen] = self.coefficients[gen]
+            for gen in self.coefficients.keys() & other.coefficients.keys():
+                out_coefficients[gen] = self.coefficients[gen] + other.coefficients[gen]
+            for gen in other.coefficients.keys() - self.coefficients.keys():
+                out_coefficients[gen] = other.coefficients[gen]
+            return AMinus.Element(self.algebra, out_coefficients)
+
+        @multimethod
         def __add__(self, other):
-            if issubclass(type(other), AMinus.Element):
-                out_coefficients = {}
-                for gen in self.coefficients.keys() - other.coefficients.keys():
-                    out_coefficients[gen] = self.coefficients[gen]
-                for gen in self.coefficients.keys() & other.coefficients.keys():
-                    out_coefficients[gen] = self.coefficients[gen] + other.coefficients[gen]
-                for gen in other.coefficients.keys() - self.coefficients.keys():
-                    out_coefficients[gen] = other.coefficients[gen]
-                return AMinus.Element(self.algebra, out_coefficients)
-            elif issubclass(type(other), AMinus.Generator):
-                return self + other.to_element()
-            else:
-                return NotImplemented
+            return other.__radd__(self)
 
         # the algebra multiplication
-        def __mul__(self, other):  # -> AMinus.Element
-            if issubclass(type(other), AMinus.Generator):
-                return self * other.to_element()
-            if not issubclass(type(other), AMinus.Element):
-                return NotImplemented
+        @multimethod
+        def __mul__(self, other: AMinus.Element) -> AMinus.Element:
             out = self.algebra.zero()
             for (gen1, coefficient1) in self.coefficients.items():
                 for (gen2, coefficient2) in other.coefficients.items():
@@ -80,15 +76,19 @@ class AMinus:
 
             return out
 
+        @multimethod
+        def __mul__(self, other: AMinus.Generator) -> AMinus.Element:
+            return self * other.to_element()
+
         # the scalar multiplication
-        def __rmul__(self, other: Z2Polynomial):  # -> AMinus.Element
+        def __rmul__(self, other: Z2Polynomial) -> AMinus.Element:
             out = self.algebra.zero()
             for (gen, coefficient) in self.coefficients.items():
                 out += (other * coefficient) * gen
             return out
 
         # the differential operation
-        def diff(self):  # -> AMinus.Element
+        def diff(self) -> AMinus.Element:
             # sum the differentials of all the strand diagrams
             out = self.algebra.zero()
             for gen, coefficient in self.coefficients.items():
@@ -117,13 +117,13 @@ class AMinus:
         def is_idempotent(self):
             return self == self * self
 
-        def __eq__(self, other) -> bool:
-            if issubclass(type(other), AMinus.Generator):
-                return self == other.to_element()
-            elif issubclass(type(other), AMinus.Element):
-                return self.algebra == other.algebra and self.coefficients == other.coefficients
-            else:
-                return False
+        @multimethod
+        def __eq__(self, other: AMinus.Element):
+            return self.algebra == other.algebra and self.coefficients == other.coefficients
+
+        @multimethod
+        def __eq__(self, other: AMinus.Generator):
+            return self == other.to_element()
 
         def __hash__(self):
             return hash((self.algebra, frozendict(self.coefficients)))
@@ -142,15 +142,15 @@ class AMinus:
         def is_idempotent(self):
             return self.to_element().is_idempotent()
 
-        def to_element(self):  # -> AMinus.Element
+        def to_element(self) -> AMinus.Element:
             return AMinus.Element(self.algebra, {self: self.algebra.ring.one()})
 
         # the left idempotent of this element
-        def left_idempotent(self):  # -> AMinus.Generator
+        def left_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.keys())
 
         # the right idempotent of this element
-        def right_idempotent(self):  # -> AMinus.Generator
+        def right_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.values())
 
         def __add__(self, other):
@@ -161,13 +161,7 @@ class AMinus:
 
         # the algebra multiplication
         @multimethod
-        def __mul__(self, other):  # -> AMinus.Element:
-            if not issubclass(type(other), AMinus.Generator):
-                if issubclass(type(other), AMinus.Element):
-                    return self.to_element() * other
-                else:
-                    return NotImplemented
-
+        def __mul__(self, other: AMinus.Generator) -> AMinus.Element:
             strands1 = self.strands
             strands2 = other.strands
             # check if the ends don't match
@@ -196,12 +190,30 @@ class AMinus:
 
             return c * AMinus.Generator(self.algebra, strands)
 
+        @multimethod
+        def __mul__(self, other: AMinus.Element):
+            return self.to_element() * other
+
+        # we don't know how to multiply generators by anything else
+        @multimethod
+        def __mul__(self, other):
+            return other.__rmul__(self)
+
         # scalar multiplication
-        def __rmul__(self, other: Z2Polynomial):  # -> AMinus.Element:
+        @multimethod
+        def __rmul__(self, other: Z2Polynomial) -> AMinus.Element:
             return AMinus.Element(self.algebra, {self: other})
 
+        @multimethod
+        def __rmul__(self, other: AMinus.Element) -> AMinus.Element:
+            return other * self.to_element()
+
+        @multimethod
+        def __rmul__(self, other):
+            raise NotImplementedError()
+
         # the differential
-        def diff(self):  # -> AMinus.Element
+        def diff(self) -> AMinus.Element:
             # find all strands that cross, and resolve them
             out = self.algebra.zero()
             for s1, t1 in self.strands.items():
@@ -211,7 +223,7 @@ class AMinus:
             return out
 
         # computes a single summand of the differential
-        def smooth_crossing(self, i, j):  # -> AMinus.Element
+        def smooth_crossing(self, i, j) -> AMinus.Element:
             orange_strands = {orange: 3 * (orange - 1 / 2,) for orange in range(1, len(self.algebra.ss))}
             orange_signs = {orange: self.algebra.ss[orange] for orange in range(1, len(self.algebra.ss))}
             black_strands = {}
@@ -273,14 +285,13 @@ class AMinus:
 
             return out
 
-        def __eq__(self, other):
-            if not issubclass(type(other), AMinus.Generator):
-                if issubclass(type(other), AMinus.Element):
-                    return self.to_element() == other
-                else:
-                    return NotImplemented
-
+        @multimethod
+        def __eq__(self, other: AMinus.Generator):
             return self.algebra == other.algebra and self.strands == other.strands
+
+        @multimethod
+        def __eq__(self, other: AMinus.Element):
+            return self.to_element() == other
 
         def __hash__(self):
             return hash((self.algebra, self.strands))

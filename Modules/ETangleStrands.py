@@ -1,3 +1,4 @@
+from __future__ import annotations
 from Modules.CTMinus import *
 from Tangles.Tangle import *
 from SignAlgebra.AMinus import *

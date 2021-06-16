@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import *
 from typing import Optional, List
 from SignAlgebra.AMinus import *
@@ -40,8 +41,7 @@ class Tangle:
         else:
             return other + self
 
-    # other: Tangle
-    def __eq__(self, other):
+    def __eq__(self, other: Tangle):
         return self.etangles == other.etangles
 
     def __str__(self):
@@ -63,8 +63,7 @@ class ETangle(Tangle):
     # position - nat n, where the cup/cap/crossing is between strand indices n and n+1
     # over/under represents what the bottom strand does; under on the left, over on the right
     # CONVENTION: strand indices are 1-indexed, starting from the bottom
-    # etype: ETangle.Type
-    def __init__(self, etype, signs, position):
+    def __init__(self, etype: ETangle.Type, signs, position):
 
         for sign in signs:
             assert sign in (-1, 1), "{} is not a valid sign.".format(sign)

@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from functools import lru_cache
 
 from networkx import MultiDiGraph
 import networkx as nx
-from typing import Iterable, List
-# from pygraphviz import AGraph
+from typing import Iterable
+from pygraphviz import AGraph
 from Modules import ETangleStrands
 from SignAlgebra.AMinus import AMinus
 from Modules.CTMinus import *
@@ -63,21 +65,21 @@ class ChainComplex(Module):
         return True
 
     # turns this bimodule into a graphviz-compatible format
-    # def to_agraph(self) -> AGraph:
-    #     graph = AGraph(strict=False, directed=True)
-    #     for generator in self.graph.nodes:
-    #         graph.add_node(str(generator.key)+str(self.gradings[generator]),
-    #                        shape='box',
-    #                        fontname='Arial')
-    #     for x, y, (), d in self.graph.edges(keys=True, data=True):
-    #         c = d['c']
-    #         graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
-    #                        label=str(c),
-    #                        dir='forward',
-    #                        color='black',
-    #                        fontname='Arial')
-    #     graph.layout('dot')
-    #     return graph
+    def to_agraph(self) -> AGraph:
+        graph = AGraph(strict=False, directed=True)
+        for generator in self.graph.nodes:
+            graph.add_node(str(generator.key)+str(self.gradings[generator]),
+                           shape='box',
+                           fontname='Arial')
+        for x, y, (), d in self.graph.edges(keys=True, data=True):
+            c = d['c']
+            graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
+                           label=str(c),
+                           dir='forward',
+                           color='black',
+                           fontname='Arial')
+        graph.layout('dot')
+        return graph
 
     def m2_def(self) -> List[str]:
         arrows_per_def = 50
@@ -109,13 +111,13 @@ class ChainComplex(Module):
             out.writelines([line+'\n' for line in self.m2_def()])
 
     # returns the direct sum decomposition of this module
-    def decomposed(self):  # -> List[ChainComplex]
+    def decomposed(self) -> List[ChainComplex]:
         return [ChainComplex(self.ring, MultiDiGraph(self.graph.subgraph(component)),
                              {g: self.gradings[g] for g in self.graph.subgraph(component).nodes})
                 for component in nx.weakly_connected_components(self.graph)]
 
     @staticmethod
-    def direct_sum(modules: List):  # -> ChainComplex
+    def direct_sum(modules: List) -> ChainComplex:
         new_graph = nx.union_all([da.graph for da in modules])
         return ChainComplex(modules[0].ring, new_graph,
                             {g: da.gradings[g] for da in modules for g in da.gradings.keys()})

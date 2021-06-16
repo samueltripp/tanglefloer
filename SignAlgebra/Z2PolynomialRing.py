@@ -1,7 +1,8 @@
+from __future__ import annotations
 from operator import add
 
-from multimethod import multimethod
 from frozendict import frozendict
+from multimethod import multimethod
 from typing import Set, FrozenSet, Tuple, Dict, Iterable
 from Functions.Functions import is_injection, invert_injection
 
@@ -10,21 +11,20 @@ class Z2PolynomialRing:
     def __init__(self, variables: Iterable):
         self.variables = set(variables)
 
-    def zero(self):  # -> Z2Polynomial
+    def zero(self) -> Z2Polynomial:
         return Z2Polynomial(self, set())
 
-    def one(self):  # -> Z2Polynomial
+    def one(self) -> Z2Polynomial:
         return Z2Polynomial(self, {Z2Monomial(self, {})})
 
-    def __getitem__(self, item):  # -> Z2Polynomial
+    def __getitem__(self, item) -> Z2Polynomial:
         assert item in self.variables
         return Z2Monomial(self, {item: 1}).to_polynomial()
 
     # returns the two maps
     # self -> self (x) other
     # other -> self (x) other
-    # other: Z2PolynomialRing
-    def tensor_inclusions(self, other):
+    def tensor_inclusions(self, other: Z2PolynomialRing):
         product = Z2PolynomialRing([v + 'a' for v in self.variables] + [v + 'b' for v in other.variables])
 
         in1 = Z2PolynomialRing.Map(self, product, {v: v+'a' for v in self.variables})
@@ -34,11 +34,9 @@ class Z2PolynomialRing:
 
     # represents a map between polynomial rings that sends some variables to other variables
     # very limited in scope
-    # source: Z2PolynomialRing
-    # target: Z2PolynomialRing
     class Map:
         # mapping: {source_variable_index: target_variable_index}
-        def __init__(self, source, target, mapping: Dict):
+        def __init__(self, source: Z2PolynomialRing, target: Z2PolynomialRing, mapping: Dict):
             for s, t in mapping.items():
                 assert s in source.variables and t in target.variables
             self.source = source
@@ -46,16 +44,13 @@ class Z2PolynomialRing:
             self.mapping = mapping
             self.retract = invert_injection(self.mapping) if is_injection(self.mapping) else None
 
-        # source : Z2PolynomialRing
-        # target: Z2PolynomialRing
         @staticmethod
-        def identity(source, target):  # -> Z2PolynomialRing.Map
+        def identity(source: Z2PolynomialRing, target: Z2PolynomialRing) -> Z2PolynomialRing.Map:
             assert source.variables == target.variables
 
             return Z2PolynomialRing.Map(source, target, {v: v  for v in source.variables})
 
-        # x : Z2Polynomial
-        def apply(self, x):
+        def apply(self, x: Z2Polynomial):
             assert x.ring == self.source
 
             y = self.target.zero()
@@ -67,8 +62,7 @@ class Z2PolynomialRing:
             return y
 
         # applies f^{-1} to y if possible
-        # y: Z2Polynomial
-        def retract(self, y):
+        def retract(self, y: Z2Polynomial):
             assert self.retract is not None and y.ring == self.target
 
             x = self.target.zero()
@@ -80,8 +74,7 @@ class Z2PolynomialRing:
             return x
 
         # returns the map x -> self.apply(other.apply(x))
-        # other: Z2PolynomialRing.Map
-        def compose(self, other):
+        def compose(self, other: Z2PolynomialRing.Map):
             assert self.source == other.target
             return Z2PolynomialRing.Map(other.source, self.target,
                                         {var: self.mapping[other.mapping[var]] for var in other.mapping.keys()})
@@ -110,16 +103,17 @@ class Z2Polynomial:
             else:
                 return degrees.pop()
 
-    # other: Z2Polynomial
-    def __add__(self, other):  # -> Z2Polynomial
+    def __add__(self, other: Z2Polynomial) -> Z2Polynomial:
         assert self.ring == other.ring
 
         return Z2Polynomial(self.ring, self.terms ^ other.terms)
 
-    # other: Z2Polynomial
-    def __mul__(self, other):  # -> Z2Polynomial
-        if not issubclass(type(other), Z2Polynomial):
-            return NotImplemented
+    @multimethod
+    def __mul__(self, other):
+        return other.__rmul__(self)
+
+    @multimethod
+    def __mul__(self, other: Z2Polynomial) -> Z2Polynomial:
         assert self.ring == other.ring
 
         out = self.ring.zero()
@@ -130,16 +124,14 @@ class Z2Polynomial:
 
         return out
 
-    def __pow__(self, power: int):  # -> Z2Polynomial
+    def __pow__(self, power: int) -> Z2Polynomial:
         out = self.ring.one()
         for _ in range(power):
             out *= self
         return out
 
-    # other: Z2Polynomial
-    def __eq__(self, other):  # -> bool
-        if not issubclass(type(other), Z2Polynomial):
-            return False
+    @multimethod
+    def __eq__(self, other: Z2Polynomial) -> bool:
         return self.terms == other.terms
 
     def __hash__(self):
@@ -165,19 +157,22 @@ class Z2Monomial:
     def to_polynomial(self) -> Z2Polynomial:
         return Z2Polynomial(self.ring, {self})
 
-    # other: Z2Monomial
-    def __mul__(self, other):  # -> Z2Monomial
-        if not issubclass(type(other), Z2Monomial):
-            return NotImplemented
+    @multimethod
+    def __mul__(self, other):
+        return other.__rmul__(self)
+
+    @multimethod
+    def __mul__(self, other: Z2Monomial) -> Z2Monomial:
         return Z2Monomial(self.ring, {var: self.powers.get(var, 0) + other.powers.get(var, 0)
                                       for var in self.powers.keys() | other.powers.keys()})
 
-    # other: Z2Monomial
+    @multimethod
+    def __eq__(self, other: Z2Monomial) -> bool:
+        return self.ring == other.ring and self.powers == other.powers
+
+    @multimethod
     def __eq__(self, other) -> bool:
-        if issubclass(type(other), Z2Monomial):
-            return self.ring == other.ring and self.powers == other.powers
-        else:
-            return NotImplemented
+        return self.to_polynomial() == other
 
     def __hash__(self):
         return hash(self.ring) + hash(self.powers)
