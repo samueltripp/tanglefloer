@@ -56,18 +56,21 @@ class ETangle(Tangle):
         UNDER = auto()
         CUP = auto()
         CAP = auto()
+        STRAIGHT = auto()
 
-    # etype - one of OVER, UNDER, CUP, or CAP
+    # etype - one of OVER, UNDER, CUP, CAP, or STRAIGHT
     # signs - a tuple {-1,1}* representing the signs *in the middle* of this tangle
     #         signs[0] is None to enforce 1-indexing
     # position - nat n, where the cup/cap/crossing is between strand indices n and n+1
+    #           None if etype is STRAIGHT
     # over/under represents what the bottom strand does; under on the left, over on the right
     # CONVENTION: strand indices are 1-indexed, starting from the bottom
-    def __init__(self, etype: ETangle.Type, signs, position):
+    def __init__(self, etype: ETangle.Type, signs, position=None):
 
         for sign in signs:
             assert sign in (-1, 1), "{} is not a valid sign.".format(sign)
-        assert 1 <= position < len(signs)+1, "{} is not a valid position.".format(position)
+        if position is not None:
+            assert 1 <= position < len(signs)+1, "{} is not a valid position.".format(position)
 
         if etype in (ETangle.Type.CUP, ETangle.Type.CAP):
             assert signs[position - 1] == -signs[position], "Signs are not compatible with {}.".format(etype)
@@ -88,7 +91,7 @@ class ETangle(Tangle):
         return 'U' + str(strand_index)
 
     def right_strand_position_to_index(self, pos):
-        if self.etype in (ETangle.Type.CUP, ETangle.Type.UNDER):
+        if self.etype in (ETangle.Type.CUP, ETangle.Type.UNDER, ETangle.Type.STRAIGHT):
             return pos
         elif self.etype == ETangle.Type.CAP:
             if pos == self.position or pos == self.position + 1:
@@ -97,13 +100,15 @@ class ETangle(Tangle):
                 return pos - 2
             else:
                 return pos
-        else:
+        elif self.etype == ETangle.Type.OVER:
             if pos == self.position:
                 return self.position + 1
             elif pos == self.position + 1:
                 return self.position
             else:
                 return pos
+        else:
+            raise Exception('unknown ETangle.Type')
 
     # turns the given strand index into a variable in F[U1, U2, ...]
     def strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
@@ -151,7 +156,7 @@ class ETangle(Tangle):
 
     # given a strand index, returns the y-position of that strand on the left
     def left_y_pos(self, strand_index: int) -> Optional[float]:
-        if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP):
+        if self.etype in (ETangle.Type.OVER, ETangle.Type.CAP, ETangle.Type.STRAIGHT):
             return strand_index - 1/2
         elif self.etype == ETangle.Type.UNDER:
             if strand_index == self.position:
@@ -160,17 +165,19 @@ class ETangle(Tangle):
                 return self.position - 1/2
             else:
                 return strand_index - 1/2
-        else:
+        elif self.etype == ETangle.Type.CUP:
             if strand_index < self.position:
                 return strand_index - 1/2
             elif strand_index > self.position + 1:
                 return strand_index - 5/2
             else:
                 return None
+        else:
+            raise Exception('unknown ETangle.Type')
 
     # given a strand index, returns the y-position of that strand in the middle
     def middle_y_pos(self, strand_index: int) -> float:
-        if self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER):
+        if self.etype in (ETangle.Type.OVER, ETangle.Type.UNDER, ETangle.Type.STRAIGHT):
             return strand_index - 1/2
         else:
             if strand_index in (self.position, self.position + 1):
@@ -180,7 +187,7 @@ class ETangle(Tangle):
 
     # given a strand index, returns the y-position of that strand on the right
     def right_y_pos(self, strand_index: int) -> Optional[float]:
-        if self.etype in (ETangle.Type.UNDER, ETangle.Type.CUP):
+        if self.etype in (ETangle.Type.UNDER, ETangle.Type.CUP, ETangle.Type.STRAIGHT):
             return strand_index - 1 / 2
         elif self.etype == ETangle.Type.OVER:
             if strand_index == self.position:
@@ -189,13 +196,15 @@ class ETangle(Tangle):
                 return self.position - 1 / 2
             else:
                 return strand_index - 1 / 2
-        else:
+        elif self.etype == ETangle.Type.CAP:
             if strand_index < self.position:
                 return strand_index - 1 / 2
             elif strand_index > self.position + 1:
                 return strand_index - 5 / 2
             else:
                 return None
+        else:
+            raise Exception('unknown ETangle.Type')
 
     # does this strand stay straight on the left side of this tangle?
     def left_strand_straight(self, strand_index: int) -> bool:

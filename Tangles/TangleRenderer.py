@@ -16,6 +16,12 @@ class TangleRenderer:
     @staticmethod
     def ascii_array(etangle, max_strands):
         a = numpy.array([[' ' for y in range(2 * max_strands)] for x in range(8)])
+        if etangle.etype == ETangle.Type.STRAIGHT:
+            for i in range(len(etangle.signs) - 1):
+                for x in range(8):
+                    a[x, 2 * i] = '-'
+                a[3, 2 * i] = '>' if etangle.signs[i + 1] == 1 else '<'
+            return a
         for i in range(etangle.position - 1):
             for x in range(8):
                 a[x, 2 * i] = '-'

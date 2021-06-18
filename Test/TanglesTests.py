@@ -10,6 +10,8 @@ under = ETangle(ETangle.Type.UNDER, (1, -1), 1)
 cap = ETangle(ETangle.Type.CAP, (1, -1), 1)
 unknot = Tangle((cup, cap))
 unknot2 = Tangle((cup, over, under, cap))
+straight = ETangle(ETangle.Type.STRAIGHT, (1, -1))
+straight2 = ETangle(ETangle.Type.STRAIGHT, (1, 1))
 
 # some larger examples
 cup2 = ETangle(ETangle.Type.CUP, (-1, -1, 1, -1), 2)
@@ -110,6 +112,7 @@ class TestTangles(unittest.TestCase):
         print(unknot2)
         print(trefoil)
         print(torus_knot)
+        print(cup+straight+straight+cap)
 
     def test_svg_rendering(self):
         TangleRenderer.svg('Test/output/trefoil.svg', trefoil)
