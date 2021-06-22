@@ -83,12 +83,33 @@ class ETangle(Tangle):
 
         self.ring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()))])
 
+        self.left_scalar_action = self.build_left_scalar_action()
         self.right_scalar_action = self.build_right_scalar_action()
 
     def strand_index_to_variable_name(self, strand_index: int) -> str:
         if self.etype in (ETangle.Type.CUP, ETangle.Type.CAP) and strand_index > self.position:
             return 'U' + str(strand_index-1)
         return 'U' + str(strand_index)
+
+    def left_strand_position_to_index(self, pos):
+        if self.etype in (ETangle.Type.CAP, ETangle.Type.OVER, ETangle.Type.STRAIGHT):
+            return pos
+        elif self.etype == ETangle.Type.CUP:
+            if pos == self.position or pos == self.position + 1:
+                return None
+            elif pos > self.position + 1:
+                return pos - 2
+            else:
+                return pos
+        elif self.etype == ETangle.Type.UNDER:
+            if pos == self.position:
+                return self.position + 1
+            elif pos == self.position + 1:
+                return self.position
+            else:
+                return pos
+        else:
+            raise Exception('unknown ETangle.Type')
 
     def right_strand_position_to_index(self, pos):
         if self.etype in (ETangle.Type.CUP, ETangle.Type.UNDER, ETangle.Type.STRAIGHT):
@@ -117,6 +138,13 @@ class ETangle(Tangle):
     def left_algebra_strand_index_to_variable(self, strand_index: int) -> Z2Polynomial:
         return self.left_algebra.ring['U' +
                                       str(self.left_algebra.positives.index(self.left_y_pos(strand_index) + 1 / 2))]
+
+    def build_left_scalar_action(self):
+        return Z2PolynomialRing.Map(self.left_algebra.ring, self.ring,
+                                    {'U' + str(i): self.strand_index_to_variable_name(
+                                        self.left_strand_position_to_index(p))
+                                     for i, p in enumerate(self.left_algebra.positives)
+                                        if p is not None and self.left_strand_position_to_index(p) is not None})
 
     def build_right_scalar_action(self):
         return Z2PolynomialRing.Map(self.right_algebra.ring, self.ring,

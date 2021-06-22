@@ -139,16 +139,17 @@ class Module(ABC):
 
         # scalar multiplication in A^(x)i (x) M (x) A^(x)j as a module over the base ring of M
         def __rmul__(self, other: Z2Polynomial) -> Module.TensorElement:
+            if (other.ring == self.module.left_algebra.ring) and self.module.left_scalar_action:
+                other = self.module.left_scalar_action.apply(other)
+            elif (other.ring == self.module.right_algebra.ring) and self.module.right_scalar_action:
+                other = self.module.right_scalar_action.apply(other)
             if other.ring == self.module.ring:
                 new_coefficients = {}
                 for g, c in self.coefficients.items():
                     new_coefficients[g] = other * c
                 return Module.TensorElement(self.module, self.i, self.j, new_coefficients)
-            elif other.ring == self.module.left_algebra.ring:
-                out = self.module.zero(self.i, self.j)
-                for g, c in self.coefficients.items():
-                    out += c * (other * g)
-                return out
+            else:
+                raise Exception('no action by the given polynomial')
 
         # the tensor product A (x) (A^(x)i (x) M (x) A^(x)j) -> A^(x)i+1 (x) M (x) A^(x)j
         def __rpow__(self, other: AMinus.Element) -> Module.TensorElement:
@@ -160,7 +161,7 @@ class Module(ABC):
                         if self.module.left_scalar_action is not None:
                             out += (self.module.left_scalar_action.apply(c1) * c2) * (g1 ** g2)
                         else:
-                            out += c2 * (c1 * (g1 ** g2))
+                            raise Exception('no left scalar action')
 
             return out
 
@@ -174,7 +175,7 @@ class Module(ABC):
                         if self.module.right_scalar_action is not None:
                             out += (c1 * self.module.right_scalar_action.apply(c2)) * (g1 ** g2)
                         else:
-                            out += c1 * ((g1 ** g2) * c2)
+                            raise Exception('no right scalar action')
 
             return out
 
@@ -196,18 +197,16 @@ class Module(ABC):
     class TensorGenerator:
         def __init__(self, module: Module, key,
                      left_idempotent: AMinus.Generator, right_idempotent: AMinus.Generator,
-                     left: Tuple[AMinus.Generator, ...] = None, left_monomial: Z2Monomial = None,
-                     right: Tuple[AMinus.Generator, ...] = None, right_monomial: Z2Monomial = None):
+                     left: Tuple[AMinus.Generator, ...] = None,
+                     right: Tuple[AMinus.Generator, ...] = None):
             self.module = module
             self.key = key
             self.left_idempotent = left_idempotent
             self.right_idempotent = right_idempotent
             self.left = left or tuple()  # the tuple of generators of A^(x)i
             self.i = len(self.left)
-            self.left_monomial = left_monomial or Z2Monomial(self.module.left_algebra.ring, {})
             self.right = right or tuple()  # the tuple of generators of A^(x)j
             self.j = len(self.right)
-            self.right_monomial = right_monomial or Z2Monomial(self.module.right_algebra.ring, {})
 
         # converts this generator to an actual element
         def to_element(self) -> Module.TensorElement:
@@ -232,29 +231,15 @@ class Module(ABC):
         def __add__(self, other) -> Module.TensorElement:
             return self.to_element() + other
 
-        @multimethod
         def __rmul__(self, other: Z2Polynomial) -> Module.TensorElement:
-            if other.ring == self.left_monomial.ring:
-                out = self.module.zero(self.i, self.j)
-                for term in other.terms:
-                    out += (term * self).to_element()
-                return out
-            elif other.ring == self.module.ring:
-                return other * self.to_element()
-
-        @multimethod
-        def __rmul__(self, other: Z2Monomial) -> Module.TensorGenerator:
-            return Module.TensorGenerator(self.module, self.key, self.left_idempotent, self.right_idempotent,
-                                          self.left, self.left_monomial * other,
-                                          self.right, self.right_monomial)
+            return other * self.to_element()
 
         # tensor product
         @multimethod
         def __pow__(self, other: AMinus.Generator) -> Module.TensorGenerator:
             assert self.rightmost_idempotent() == other.left_idempotent()
             return Module.TensorGenerator(self.module, self.key, self.left_idempotent, self.right_idempotent,
-                                          self.left, self.left_monomial,
-                                          self.right + (other,), self.right_monomial)
+                                          self.left, self.right + (other,))
 
         # tensor product
         @multimethod
@@ -292,10 +277,10 @@ class Module(ABC):
             return out
 
         def __str__(self):
-            return str((self.left_monomial, self.left, self.key, self.right_monomial, self.right))
+            return str((self.left, self.key, self.right))
 
         def __repr__(self):
-            return str((self.left_monomial, self.left, self.key, self.right_monomial, self.right))
+            return str((self.left, self.key, self.right))
 
         @multimethod
         def __eq__(self, other: Module.TensorGenerator):
@@ -304,14 +289,12 @@ class Module(ABC):
                    self.left_idempotent == other.left_idempotent and \
                    self.right_idempotent == other.right_idempotent and \
                    self.left == other.left and \
-                   self.left_monomial == other.left_monomial and \
-                   self.right == other.right and \
-                   self.right_monomial == other.right_monomial
+                   self.right == other.right
 
         @multimethod
         def __eq__(self, other):
             return self.to_element() == other
 
         def __hash__(self):
-            return hash((self.left_monomial, self.left, self.module, self.key,
-                         self.left_idempotent, self.right_idempotent, self.right_monomial, self.right))
+            return hash((self.left, self.module, self.key,
+                         self.left_idempotent, self.right_idempotent, self.right))

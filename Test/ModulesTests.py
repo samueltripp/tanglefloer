@@ -10,7 +10,7 @@ class TestCTMinus(unittest.TestCase):
     @staticmethod
     def empty_da_module(etangle: ETangle):
         return TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra,
-                      etangle.right_scalar_action)
+                      etangle.left_scalar_action, etangle.right_scalar_action)
 
     def test_d_plus(self):
         under1 = ETangle(ETangle.Type.UNDER, (1, 1, 1, 1), 2)
@@ -197,33 +197,33 @@ class TestCTMinus(unittest.TestCase):
             self.assertEqual(2, len(da.decomposed()))
 
     def test_identity_bimodule(self):
-        idempotents = False
+        idempotents = True
         straight = ETangle(ETangle.Type.STRAIGHT, (1,))
         straight_da = type_da(straight)
-        straight_da = straight_da ** straight_da
+        # straight_da = straight_da ** straight_da
         straight_da.to_agraph(idempotents=idempotents).draw('output/test_identity_bimodule.svg')
         straight_da = straight_da.reduce()
         straight_da.to_agraph(idempotents=idempotents).draw('output/test_identity_bimodule_r.svg')
         print(straight.left_algebra.generator({0:0,1:1}).diff())
 
-    # def test_tensor(self):
-    #     idempotents = False
-    #     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-    #     cup_da = type_da(cup).reduce()
-    #     cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-    #     cap_da = type_da(cap).reduce()
-    #     cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
-    #     straight = ETangle(ETangle.Type.STRAIGHT, (-1,1))
-    #     straight_da = type_da(straight).reduce()
-    #     unknot_da = (cup_da ** straight_da ** cap_da).reduce()
-    #     unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrtt.svg')
+    def test_tensor(self):
+        idempotents = False
+        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+        cup_da = type_da(cup).reduce()
+        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        cap_da = type_da(cap).reduce()
+        cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
+        straight = ETangle(ETangle.Type.STRAIGHT, (-1,1))
+        straight_da = type_da(straight).reduce()
+        unknot_da = (cup_da ** straight_da ** cap_da).reduce()
+        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrrtt.svg')
 
-    # def test_tensor2(self):
-    #     idempotents = False
-    #     straight = ETangle(ETangle.Type.STRAIGHT, (1,))
-    #     straight_da = type_da(straight).reduce()
-    #     da = (straight_da ** straight_da).reduce()
-    #     da.to_agraph(idempotents=idempotents).draw('output/test_straight_da.svg')
+    def test_tensor2(self):
+        idempotents = False
+        straight = ETangle(ETangle.Type.STRAIGHT, (1,))
+        straight_da = type_da(straight).reduce()
+        da = (straight_da ** straight_da).reduce()
+        da.to_agraph(idempotents=idempotents).draw('output/test_straight_da.svg')
 
     # def test_type_da_reduced(self):
         # idempotents = False

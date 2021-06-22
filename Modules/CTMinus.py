@@ -50,7 +50,7 @@ def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
 
 
 def type_da_in_left_grading(etangle: ETangle, i: int) -> TypeDA:
-    out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.right_scalar_action)
+    out = TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra, etangle.left_scalar_action, etangle.right_scalar_action)
 
     strands = [ETangleStrands(etangle, left_strands, right_strands)
                for left_strands, right_strands in

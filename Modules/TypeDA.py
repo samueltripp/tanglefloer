@@ -21,9 +21,9 @@ from Modules.Module import Module
 # represents a type DA bimodule
 class TypeDA(Module):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
-                 right_scalar_action: Z2PolynomialRing.Map,
+                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
                  graph: MultiDiGraph = None, gradings: dict = None):
-        super().__init__(ring, left_algebra, right_algebra, None, right_scalar_action, graph, gradings)
+        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph, gradings)
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
@@ -33,14 +33,12 @@ class TypeDA(Module):
         for gen_out, c_out in output.coefficients.items():
             y = gen_out.get_module_generator()
             left_gen = gen_out.left[0]
-            left_monomial = gen_out.left_monomial
-            self.add_edge(x, y, (left_monomial, left_gen, right_gens), c_out)
+            self.add_edge(x, y, (left_gen, right_gens), c_out)
 
     def edge_is_reducible(self, x, y) -> bool:
         if x in self.graph and y in self.graph[x] and len(self.graph[x][y]) == 1:
             k, d = list(self.graph[x][y].items())[0]
-            if k[0].to_polynomial() == self.left_algebra.ring.one() and \
-                    k[1].is_idempotent() and k[2] == tuple() and d['c'] == self.ring.one():
+            if k[0].is_idempotent() and k[1] == tuple() and d['c'] == self.ring.one():
                 return True
         return False
 
@@ -51,12 +49,12 @@ class TypeDA(Module):
             graph.add_node(str(generator.key)+str(self.gradings[generator]),
                            shape='box',
                            fontname='Arial')
-        for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
+        for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
             c = d['c']
             if not idempotents and len(right) == 1 and right[0].is_idempotent():
                 continue
             graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
-                           label=str((left_monomial, left, c, right)),
+                           label=str((left, c, right)),
                            dir='forward',
                            color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
                            fontname='Arial')
@@ -69,8 +67,8 @@ class TypeDA(Module):
         for generator in self.graph.nodes:
             out.add_generator(generator, self.gradings[generator])
 
-        for x, y, (left_monomial, left, right), d in self.graph.edges(keys=True, data=True):
-            if left_monomial == self.left_algebra.ring.one() and left.is_idempotent() and len(right) == 0:
+        for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
+            if left.is_idempotent() and len(right) == 0:
                 out.add_structure_map(x, d['c'] * y)
 
         return out
@@ -78,7 +76,7 @@ class TypeDA(Module):
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                       self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
+                       self.right_scalar_action, self.left_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
                        {g:self.gradings[g] for g in self.graph.subgraph(component).nodes})
                 for component in nx.weakly_connected_components(self.graph)]
 
@@ -86,7 +84,7 @@ class TypeDA(Module):
     def direct_sum(modules: List) -> TypeDA:
         new_graph = nx.union_all([da.graph for da in modules])
         return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
-                      modules[0].right_scalar_action, new_graph,
+                      modules[0].left_scalar_action, modules[0].right_scalar_action, new_graph,
                       {g:da.gradings[g] for da in modules for g in da.gradings.keys()})
 
     def reduce_edge(self, x, y, k, d) -> None:
@@ -97,21 +95,19 @@ class TypeDA(Module):
 
         self.graph.remove_nodes_from([x, y])
 
-        left = k[1]
+        left = k[0]
 
-        for w, _, (left_monomial_wy, left_wy, right_wy), d_wy in in_edges:
+        for w, _, (left_wy, right_wy), d_wy in in_edges:
             if w == x or w == y:
                 continue
             c_wy = d_wy['c']
-            for _, z, (left_monomial_xz, left_xz, right_xz), d_xz in out_edges:
+            for _, z, (left_xz, right_xz), d_xz in out_edges:
                 if z == x or z == y:
                     continue
                 c_xz = d_xz['c']
                 self.add_structure_map(
                     w ** (right_wy + right_xz),
-                    c_wy * c_xz *
-                    ((left_monomial_wy.to_polynomial() * left_monomial_xz.to_polynomial() * left_wy * left * left_xz)
-                     ** z))
+                    c_wy * c_xz * ((left_wy * left * left_xz) ** z))
 
     # tensor product of type DA structures
     # assumes self is bounded, other may or may not be
@@ -121,7 +117,8 @@ class TypeDA(Module):
         in_m, in_n = self.ring.tensor_inclusions(other.ring)
         scalar_map = Z2PolynomialRing.Map.identity(other.left_algebra.ring, self.right_algebra.ring)
 
-        out = TypeDA(in_m.target, self.left_algebra, other.right_algebra, in_n.compose(other.right_scalar_action))
+        out = TypeDA(in_m.target, self.left_algebra, other.right_algebra,
+                     in_m.compose(self.left_scalar_action), in_n.compose(other.right_scalar_action))
 
         for x_m in self.graph.nodes:
             for x_n in other.graph.nodes:
@@ -136,8 +133,8 @@ class TypeDA(Module):
                     continue
                 x = Module.TensorGenerator(out, (x_m.key, x_n.key),
                                            x_m.left_idempotent, x_n.right_idempotent)
-                for _, y_m, (left_monomial_m, left_m, right_m), d_m in self.graph.out_edges(x_m, keys=True, data=True):
-                    for left_monomial_n, right_n, y_n, c_n in other.delta_n(right_m, x_n):
+                for _, y_m, (left_m, right_m), d_m in self.graph.out_edges(x_m, keys=True, data=True):
+                    for right_n, y_n, c_n in other.delta_n(right_m, x_n):
                         if y_m.right_idempotent != y_n.left_idempotent:
                             continue
                         c_m = d_m['c']
@@ -145,29 +142,27 @@ class TypeDA(Module):
                                                    y_m.left_idempotent, y_n.right_idempotent)
                         out.add_structure_map(
                             x ** right_n,
-                            (left_monomial_m.to_polynomial() * left_m) **
-                            (in_m.apply(c_m * self.right_scalar_action.apply(
-                                scalar_map.apply(left_monomial_n.to_polynomial()))) *
-                             in_n.apply(c_n) * y))
+                            left_m ** (in_m.apply(c_m) * in_n.apply(c_n) * y))
 
         assert (out.to_chain_complex().d_squared_is_zero())  # probably slow, take out when not debugging
 
         return out
 
-    # returns [(left_monomial, right, target, coefficient)]
+    # returns [(right, target, coefficient)]
     #   representing the delta_n paths starting at source outputting left
-    def delta_n(self, left, source) -> List[Tuple[Z2Monomial, Tuple, Module.TensorGenerator, Z2Polynomial]]:
+    def delta_n(self, left, source) -> List[Tuple[Tuple, Module.TensorGenerator, Z2Polynomial]]:
         if len(left) == 0:
-            return [(Z2Monomial(self.left_algebra.ring, {}), tuple(), source, self.ring.one())]
+            return [(tuple(), source, self.ring.one())]
         else:
             out = []
             for _, new_source, k, d in self.graph.out_edges(source, keys=True, data=True):
-                left_monomial = k[0]
-                if k[1] != left[0]:
+                if k[0] != left[0]:
                     continue
-                right = k[2]
+                right = k[1]
                 c = d['c']
-                out += [(more_left_monomial * left_monomial, right + more_right, target, more_c * c)
-                        for more_left_monomial, more_right, target, more_c in
+                out += [(right + more_right, target, more_c * c)
+                        for more_right, target, more_c in
                         self.delta_n(left[1:], new_source)]
             return out
+
+
