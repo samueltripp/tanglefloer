@@ -95,10 +95,8 @@ class ETangle(Tangle):
         if self.etype in (ETangle.Type.CAP, ETangle.Type.OVER, ETangle.Type.STRAIGHT):
             return pos
         elif self.etype == ETangle.Type.CUP:
-            if pos == self.position or pos == self.position + 1:
-                return None
-            elif pos > self.position + 1:
-                return pos - 2
+            if pos >= self.position + 1:
+                return pos - 1
             else:
                 return pos
         elif self.etype == ETangle.Type.UNDER:
@@ -115,10 +113,8 @@ class ETangle(Tangle):
         if self.etype in (ETangle.Type.CUP, ETangle.Type.UNDER, ETangle.Type.STRAIGHT):
             return pos
         elif self.etype == ETangle.Type.CAP:
-            if pos == self.position or pos == self.position + 1:
-                return None
-            elif pos > self.position + 1:
-                return pos - 2
+            if pos >= self.position + 1:
+                return pos - 1
             else:
                 return pos
         elif self.etype == ETangle.Type.OVER:

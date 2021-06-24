@@ -194,10 +194,14 @@ class AMinus:
         def __mul__(self, other: AMinus.Element):
             return self.to_element() * other
 
+        @multimethod
+        def __mul__(self, other):
+            raise NotImplementedError()
+
         # we don't know how to multiply generators by anything else
         @multimethod
         def __mul__(self, other):
-            return other.__rmul__(self)
+            raise NotImplementedError()
 
         # scalar multiplication
         @multimethod

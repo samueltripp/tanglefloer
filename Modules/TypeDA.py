@@ -76,7 +76,7 @@ class TypeDA(Module):
     # returns the direct sum decomposition of this module
     def decomposed(self) -> List[TypeDA]:
         return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                       self.right_scalar_action, self.left_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
+                    self.left_scalar_action, self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
                        {g:self.gradings[g] for g in self.graph.subgraph(component).nodes})
                 for component in nx.weakly_connected_components(self.graph)]
 
@@ -144,7 +144,7 @@ class TypeDA(Module):
                             x ** right_n,
                             left_m ** (in_m.apply(c_m) * in_n.apply(c_n) * y))
 
-        assert (out.to_chain_complex().d_squared_is_zero())  # probably slow, take out when not debugging
+        # assert (out.to_chain_complex().d_squared_is_zero())  # probably slow, take out when not debugging
 
         return out
 

@@ -33,6 +33,13 @@ class Module(ABC):
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
         self.gradings = gradings or {}
+        if left_scalar_action is not None:
+            assert left_algebra.ring == left_scalar_action.source, "left scalar action has wrong source"
+            assert ring == left_scalar_action.target, "left scalar action has wrong target"
+        if right_scalar_action is not None:
+            assert right_algebra.ring == right_scalar_action.source, "right scalar action has wrong source"
+            assert ring == right_scalar_action.target, "right scalar action has wrong target"
+
         if graph is not None:
             if gradings is None:
                 raise AssertionError("Incomplete grading information")
@@ -139,9 +146,11 @@ class Module(ABC):
 
         # scalar multiplication in A^(x)i (x) M (x) A^(x)j as a module over the base ring of M
         def __rmul__(self, other: Z2Polynomial) -> Module.TensorElement:
-            if (other.ring == self.module.left_algebra.ring) and self.module.left_scalar_action:
+            if (self.module.left_algebra is not None) and (other.ring == self.module.left_algebra.ring) \
+                    and (self.module.left_scalar_action is not None):
                 other = self.module.left_scalar_action.apply(other)
-            elif (other.ring == self.module.right_algebra.ring) and self.module.right_scalar_action:
+            elif (self.module.right_algebra is not None) and (other.ring == self.module.right_algebra.ring) \
+                    and (self.module.right_scalar_action is not None):
                 other = self.module.right_scalar_action.apply(other)
             if other.ring == self.module.ring:
                 new_coefficients = {}
@@ -151,7 +160,12 @@ class Module(ABC):
             else:
                 raise Exception('no action by the given polynomial')
 
+        @multimethod
+        def __rpow__(self, other: AMinus.Generator) -> Module.TensorElement:
+            return other.to_element() ** self
+
         # the tensor product A (x) (A^(x)i (x) M (x) A^(x)j) -> A^(x)i+1 (x) M (x) A^(x)j
+        @multimethod
         def __rpow__(self, other: AMinus.Element) -> Module.TensorElement:
             out = self.module.zero(self.i + 1, self.j)
 
