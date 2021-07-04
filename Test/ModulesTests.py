@@ -187,6 +187,17 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
+    def test_differential(self):
+        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+        cap_module = TestCTMinus.empty_da_module(cap)
+        sd_cap_1 = ETangleStrands(cap, {1: 2, 2: 0}, {})
+        sd_cap_1_d_mixed_out = cap.ring['U1'] * ETangleStrands(cap, {1: 0, 2: 2}, {}).to_generator(cap_module)
+        sd_cap_1_delta_ell_out = cap.left_algebra.idempotent([1, 2]) ** \
+                                 ETangleStrands(cap, {1: 0, 2: 2}, {}).to_generator(cap_module)
+
+        self.assertEqual(sd_cap_1_d_mixed_out, d_mixed(cap_module, sd_cap_1))
+        self.assertEqual(cap_module.zero(), delta_ell(cap_module, sd_cap_1))
+
     def test_type_da(self):
         idempotents = False
         cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
@@ -195,7 +206,7 @@ class TestCTMinus(unittest.TestCase):
         for da in da_list:
             self.assertEqual(12, len(da.graph.nodes))
             self.assertEqual(2, len(da.decomposed()))
-    #
+
     def test_identity_bimodule(self):
         idempotents = False
         straight = ETangle(ETangle.Type.STRAIGHT, (1,))
