@@ -61,6 +61,7 @@ class TypeDA(Module):
         graph.layout('dot')
         return graph
 
+    # probably wrong, don't actually know if A^- can be augmented
     def to_chain_complex(self) -> ChainComplex:
         out = ChainComplex(self.ring)
 
@@ -114,8 +115,8 @@ class TypeDA(Module):
     def __pow__(self, other: TypeDA) -> TypeDA:
         assert self.right_algebra == other.left_algebra
 
-        in_m, in_n = self.ring.tensor_inclusions(other.ring)
-        scalar_map = Z2PolynomialRing.Map.identity(other.left_algebra.ring, self.right_algebra.ring)
+        left_right_iso = Z2PolynomialRing.Map.identity(other.left_algebra.ring, self.right_algebra.ring)
+        in_m, in_n = self.right_scalar_action.compose(left_right_iso).pushout_inclusions(other.left_scalar_action)
 
         out = TypeDA(in_m.target, self.left_algebra, other.right_algebra,
                      in_m.compose(self.left_scalar_action), in_n.compose(other.right_scalar_action))

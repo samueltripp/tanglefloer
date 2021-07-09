@@ -21,17 +21,6 @@ class Z2PolynomialRing:
         assert item in self.variables
         return Z2Monomial(self, {item: 1}).to_polynomial()
 
-    # returns the two maps
-    # self -> self (x) other
-    # other -> self (x) other
-    def tensor_inclusions(self, other: Z2PolynomialRing):
-        product = Z2PolynomialRing([v + 'a' for v in self.variables] + [v + 'b' for v in other.variables])
-
-        in1 = Z2PolynomialRing.Map(self, product, {v: v+'a' for v in self.variables})
-        in2 = Z2PolynomialRing.Map(other, product, {v: v+'b' for v in other.variables})
-
-        return in1, in2
-
     # represents a map between polynomial rings that sends some variables to other variables
     # very limited in scope
     class Map:
@@ -48,9 +37,9 @@ class Z2PolynomialRing:
         def identity(source: Z2PolynomialRing, target: Z2PolynomialRing) -> Z2PolynomialRing.Map:
             assert source.variables == target.variables
 
-            return Z2PolynomialRing.Map(source, target, {v: v  for v in source.variables})
+            return Z2PolynomialRing.Map(source, target, {v: v for v in source.variables})
 
-        def apply(self, x: Z2Polynomial):
+        def apply(self, x: Z2Polynomial) -> Z2Polynomial:
             assert x.ring == self.source
 
             y = self.target.zero()
@@ -62,7 +51,7 @@ class Z2PolynomialRing:
             return y
 
         # applies f^{-1} to y if possible
-        def retract(self, y: Z2Polynomial):
+        def retract(self, y: Z2Polynomial) -> Z2Polynomial:
             assert self.retract is not None and y.ring == self.target
 
             x = self.target.zero()
@@ -74,10 +63,29 @@ class Z2PolynomialRing:
             return x
 
         # returns the map x -> self.apply(other.apply(x))
-        def compose(self, other: Z2PolynomialRing.Map):
+        def compose(self, other: Z2PolynomialRing.Map) -> Z2PolynomialRing.Map:
             assert self.source == other.target
             return Z2PolynomialRing.Map(other.source, self.target,
                                         {var: self.mapping[other.mapping[var]] for var in other.mapping.keys()})
+
+        # returns the two maps induced by the pushout of self and other
+        def pushout_inclusions(self, other: Z2PolynomialRing.Map) -> Tuple:
+            assert self.source == other.source
+            left_vars = self.target.variables - set(self.mapping.values())
+            common_vars = self.source.variables
+            right_vars = other.target.variables - set(other.mapping.values())
+            pushout = Z2PolynomialRing([v + 'a' for v in left_vars] +
+                                       [v + 'b' for v in common_vars] +
+                                       [v + 'c' for v in right_vars])
+
+            in_left = Z2PolynomialRing.Map(self.target, pushout,
+                                           {**{v: v + 'a' for v in left_vars},
+                                            **{self.mapping[v]: v + 'b' for v in common_vars}})
+            in_right = Z2PolynomialRing.Map(other.target, pushout,
+                                            {**{v: v + 'c' for v in right_vars},
+                                             **{other.mapping[v]: v + 'b' for v in common_vars}})
+
+            return in_left, in_right
 
 
 # knows addition

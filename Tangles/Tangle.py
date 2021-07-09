@@ -81,7 +81,8 @@ class ETangle(Tangle):
 
         super().__init__((self,))
 
-        self.ring = Z2PolynomialRing(['U' + str(i) for i in range(1, len(self.middle_points()))])
+        self.ring = Z2PolynomialRing(['U' + str(i)
+                                      for i in range(1, len(self.middle_points()) + len(self.left_algebra.positives) - 1)])
 
         self.left_scalar_action = self.build_left_scalar_action()
         self.right_scalar_action = self.build_right_scalar_action()
@@ -137,10 +138,9 @@ class ETangle(Tangle):
 
     def build_left_scalar_action(self):
         return Z2PolynomialRing.Map(self.left_algebra.ring, self.ring,
-                                    {'U' + str(i): self.strand_index_to_variable_name(
-                                        self.left_strand_position_to_index(p))
+                                    {'U' + str(i): 'U' + str(len(self.middle_points()) - 1 + i)
                                      for i, p in enumerate(self.left_algebra.positives)
-                                        if p is not None and self.left_strand_position_to_index(p) is not None})
+                                        if p is not None})
 
     def build_right_scalar_action(self):
         return Z2PolynomialRing.Map(self.right_algebra.ring, self.ring,

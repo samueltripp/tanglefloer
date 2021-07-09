@@ -14,7 +14,7 @@ class AMinus:
         # the list of positive indices, which are important for variable indices
         self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
         # the polynomial ring acting on this algebra
-        self.ring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives) + 1)])
+        self.ring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives))])
 
     # the zero element in A^-(P)
     def zero(self):
