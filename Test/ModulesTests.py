@@ -4,6 +4,8 @@ from Modules.ETangleStrands import *
 import unittest
 import timeit
 
+from Tangles import TangleRenderer
+
 
 class TestCTMinus(unittest.TestCase):
 
@@ -196,42 +198,54 @@ class TestCTMinus(unittest.TestCase):
             self.assertEqual(12, len(da.graph.nodes))
             self.assertEqual(2, len(da.decomposed()))
 
-    def test_identity_bimodule(self):
-        idempotents = False
-        straight = ETangle(ETangle.Type.STRAIGHT, (1,))
-        straight_da = type_da(straight)
-        straight_da.to_agraph(idempotents=idempotents).draw('output/test_identity_bimodule.svg')
-        straight_da = straight_da.reduce()
-        straight_da.to_agraph(idempotents=idempotents).draw('output/test_identity_bimodule_r.svg')
+    # def test_identity_bimodule(self):
+    #     idempotents = False
+    #
+    #     r = ETangle(ETangle.Type.STRAIGHT, (1,))
+    #     r_da = type_da(r)
+    #     r_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/r.svg')
+    #     r_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/r_reduced.svg')
+    #
+    #     l = ETangle(ETangle.Type.STRAIGHT, (-1,))
+    #     l_da = type_da(l)
+    #     l_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l.svg')
+    #     l_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l_reduced.svg')
+    #
+    #     rr = ETangle(ETangle.Type.STRAIGHT, (1, 1))
+    #     rr_da = type_da(rr)
+    #     rr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr.svg')
+    #     rr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr_reduced.svg')
+    #
+    #     rl = ETangle(ETangle.Type.STRAIGHT, (1, -1))
+    #     rl_da = type_da(rl)
+    #     rl_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl.svg')
+    #     rl_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl_reduced.svg')
+    #
+    #     lr = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
+    #     lr_da = type_da(lr)
+    #     lr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr.svg')
+    #     lr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr_reduced.svg')
+    #
+    #     ll = ETangle(ETangle.Type.STRAIGHT, (-1, -1))
+    #     ll_da = type_da(ll)
+    #     ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
+    #     ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
 
     def test_tensor(self):
-        idempotents = False
-        cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
-        cup_da = type_da(cup)
-        cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
-        cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        cap_da = type_da(cap)
-        cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap.svg')
-        unknot_da = (cup_da ** cap_da)
-        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_t.svg')
-        unknot_da = unknot_da.reduce()
-        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_tr.svg')
-
-        cap_da = cap_da.reduce()
-        cap_da.to_agraph(idempotents=idempotents).draw('output/test_cap_r.svg')
-        cup_da = cup_da.reduce()
-        cup_da.to_agraph(idempotents=idempotents).draw('output/test_cup_r.svg')
-        unknot_da = (cup_da ** cap_da)
-        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrt.svg')
-        unknot_da = unknot_da.reduce()
-        unknot_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_rrtr.svg')
-
-        cup_da = type_da(cup)
-        cap_da = type_da(cap)
-        straight = ETangle(ETangle.Type.STRAIGHT, (-1,1))
-        straight_da = type_da(straight)
-        unknot_long_da = (cup_da ** straight_da ** cap_da).reduce()
-        unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_long.svg')
+            idempotents = False
+            cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
+            cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+            cup_da = type_da(cup)
+            cap_da = type_da(cap)
+            straight = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
+            straight_da = type_da(straight)
+            unknot_long_da = (cup_da ** straight_da ** cap_da).reduce()
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_unknot.svg')
+            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1bc')
+            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1b')
+            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1cc')
+            unknot_long_da = unknot_long_da.reduce()
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_s.svg')
 
     # def test_tensor(self):
     #     idempotents = False
@@ -254,28 +268,28 @@ class TestCTMinus(unittest.TestCase):
     #     da.to_agraph(idempotents=idempotents).draw('output/test_straight_da.svg')
 
     # def test_type_da_reduced(self):
-        # idempotents = False
-        #
-        # # some simple examples
-        # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
-        # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
-        # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
-        #
-        # cup_da = type_da(cup)
-        # cup_da_reduced = cup_da.reduce()
-        # over_da = type_da(over)
-        # over_da_reduced = over_da.reduce()
-        # cap_da = type_da(cap)
-        # cap_da_reduced = cap_da.reduce()
-        # cap_da.to_agraph(idempotents=False).draw('output/cap_da.svg')
-        # cap_da_reduced.to_agraph(idempotents=True).draw('output/cap_da_reduced.svg')
-        #
-        # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)) \
-        #     .to_agraph(idempotents=idempotents).draw('output/test0.svg')
-        # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)).to_chain_complex().write_m2_def('output/test0.m2')
-        # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced) \
-        #     .to_agraph(idempotents=idempotents).draw('output/test1.svg')
-        # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
+    # idempotents = False
+    #
+    # # some simple examples
+    # cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
+    # over = ETangle(ETangle.Type.OVER, (1, -1), 1)
+    # cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #
+    # cup_da = type_da(cup)
+    # cup_da_reduced = cup_da.reduce()
+    # over_da = type_da(over)
+    # over_da_reduced = over_da.reduce()
+    # cap_da = type_da(cap)
+    # cap_da_reduced = cap_da.reduce()
+    # cap_da.to_agraph(idempotents=False).draw('output/cap_da.svg')
+    # cap_da_reduced.to_agraph(idempotents=True).draw('output/cap_da_reduced.svg')
+    #
+    # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)) \
+    #     .to_agraph(idempotents=idempotents).draw('output/test0.svg')
+    # (cup_da_reduced ** (over_da_reduced ** cap_da_reduced)).to_chain_complex().write_m2_def('output/test0.m2')
+    # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced) \
+    #     .to_agraph(idempotents=idempotents).draw('output/test1.svg')
+    # ((cup_da_reduced ** over_da_reduced) ** cap_da_reduced).to_chain_complex().write_m2_def('output/test1.m2')
 
     # def test_trefoil(self):
     #     t1 = ETangle(ETangle.Type.CUP, (-1, 1), 1)

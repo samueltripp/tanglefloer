@@ -92,6 +92,33 @@ class Module(ABC):
             reducible_edge = self.get_reducible_edge()
         return self
 
+    def simplify_homotopic_variables(self, var1, var2):
+        m_doubled = self.identify_variables(var1, var2)
+        return m_doubled
+
+    def identify_variables(self, var1, var2):
+        assert var1 in self.ring.variables and var2 in self.ring.variables
+        r_merged = Z2PolynomialRing([v for v in self.ring.variables if v != var2])
+        f_merge = Z2PolynomialRing.Map(self.ring, r_merged,
+                                       {v: (v if v != var2 else var1) for v in self.ring.variables})
+
+        left_scalar_action_merged = f_merge.compose(self.left_scalar_action) if self.left_scalar_action else None
+        right_scalar_action_merged = f_merge.compose(self.right_scalar_action) if self.right_scalar_action else None
+        graph_merged = self.graph.copy()
+        for x in self.graph.nodes:
+            for _, y, k, d in self.graph.out_edges(x, keys=True, data=True):
+                c = d['c']
+                c = f_merge.apply(c)
+                if c == c.ring.zero():
+                    graph_merged.remove_edge(x, y, key=k)
+                else:
+                    graph_merged.add_edge(x, y, key=k, c=c)
+
+        subclass = type(self)
+        return subclass(r_merged, self.left_algebra, self.right_algebra,
+                        left_scalar_action_merged, right_scalar_action_merged,
+                        graph_merged, self.gradings)
+
     def get_reducible_edge(self):
         for x in self.graph:
             for y in self.graph[x]:
@@ -113,7 +140,7 @@ class Module(ABC):
         pass
 
     # add the given generator to this module
-    def add_generator(self, generator: Module.TensorGenerator,grading:List[int]) -> None:
+    def add_generator(self, generator: Module.TensorGenerator, grading: List[int]) -> None:
         self.graph.add_node(generator)
         self.gradings[generator]=grading
         self.gradings[generator] = grading
