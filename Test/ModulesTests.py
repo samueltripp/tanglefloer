@@ -189,6 +189,13 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
+    def test_apply(self):
+        r = Z2PolynomialRing(['a', 'b'])
+        f = Z2PolynomialRing.Map(r, r, {'a': 'a', 'b': 'a'})
+        x = Z2Monomial(r, {'a': 1, 'b': 1}).to_polynomial()
+        y = Z2Monomial(r, {'a': 2}).to_polynomial()
+        self.assertEqual(y, f.apply(x))
+
     def test_type_da(self):
         idempotents = False
         cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
@@ -197,6 +204,10 @@ class TestCTMinus(unittest.TestCase):
         for da in da_list:
             self.assertEqual(12, len(da.graph.nodes))
             self.assertEqual(2, len(da.decomposed()))
+
+    # def test_cap(self):
+    #     cap_da = type_da(ETangle(ETangle.Type.CAP, (-1, 1), 1))
+    #     cap_da.to_agraph(idempotents=False).draw('output/test_cap.svg')
 
     # def test_identity_bimodule(self):
     #     idempotents = False
@@ -231,21 +242,44 @@ class TestCTMinus(unittest.TestCase):
     #     ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
     #     ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
 
+    # def test_tensor(self):
+    #         idempotents = False
+    #         cup = ETangle(ETangle.Type.CAP, (-1, 1), 1)
+    #         cup_da = type_da(cup)
+    #         straight_da = type_da(ETangle(ETangle.Type.STRAIGHT, (-1, 1)))
+    #         unknot_long_da = (straight_da ** cup_da).reduce()
+    #         unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_cup.svg')
+    #         unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1a', 'U1b')
+    #         unknot_long_da = unknot_long_da.reduce()
+    #         unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_cup1.svg')
+    #         unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1a', 'U1c')
+    #         unknot_long_da = unknot_long_da.reduce()
+    #         unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_cup2.svg')
+    #         unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1a', 'U3a')
+    #         unknot_long_da = unknot_long_da.reduce()
+    #         unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_cup_s.svg')
+
     def test_tensor(self):
             idempotents = False
             cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
             cap = ETangle(ETangle.Type.CAP, (-1, 1), 1)
             cup_da = type_da(cup)
+            cup_da.to_agraph(idempotents=idempotents).draw('output/cup.svg')
             cap_da = type_da(cap)
+            cup_da.to_agraph(idempotents=idempotents).draw('output/cap.svg')
             straight = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
             straight_da = type_da(straight)
+            cup_da.to_agraph(idempotents=idempotents).draw('output/straight.svg')
             unknot_long_da = (cup_da ** straight_da ** cap_da).reduce()
-            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_unknot.svg')
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot.svg')
             unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1bc')
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot1.svg')
             unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1b')
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot2.svg')
             unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1cc')
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot3.svg')
             unknot_long_da = unknot_long_da.reduce()
-            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/test_unknot_s.svg')
+            unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot_simplified.svg')
 
     # def test_tensor(self):
     #     idempotents = False

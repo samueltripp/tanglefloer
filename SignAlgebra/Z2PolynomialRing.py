@@ -39,16 +39,30 @@ class Z2PolynomialRing:
 
             return Z2PolynomialRing.Map(source, target, {v: v for v in source.variables})
 
+        @multimethod
         def apply(self, x: Z2Polynomial) -> Z2Polynomial:
             assert x.ring == self.source
 
             y = self.target.zero()
 
             for x_term in x.terms:
-                y += Z2Monomial(self.target, {self.mapping[var]: power
-                                              for var, power in x_term.powers.items()}).to_polynomial()
+                y += self.apply(x_term).to_polynomial()
 
             return y
+
+        @multimethod
+        def apply(self, x: Z2Monomial):
+            assert x.ring == self.source
+
+            powers = {}
+            for var, power in x.powers.items():
+                output_var = self.mapping[var]
+                if output_var in powers:
+                    powers[output_var] += power
+                else:
+                    powers[output_var] = power
+
+            return Z2Monomial(self.target, powers)
 
         # applies f^{-1} to y if possible
         def retract(self, y: Z2Polynomial) -> Z2Polynomial:
