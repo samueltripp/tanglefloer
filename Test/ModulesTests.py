@@ -9,6 +9,13 @@ from Tangles import TangleRenderer
 
 class TestCTMinus(unittest.TestCase):
 
+    def test_apply(self):
+        r = Z2PolynomialRing(['a', 'b'])
+        f = Z2PolynomialRing.Map(r, r, {'a': 'a', 'b': 'a'})
+        x = Z2Monomial(r, {'a': 1, 'b': 1}).to_polynomial()
+        y = Z2Monomial(r, {'a': 2}).to_polynomial()
+        self.assertEqual(y, f.apply(x))
+
     @staticmethod
     def empty_da_module(etangle: ETangle):
         return TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra,
@@ -189,13 +196,6 @@ class TestCTMinus(unittest.TestCase):
         out = elt ** (c * y.to_generator(over1_module))
         self.assertEqual(out, delta_ell(over1_module, x))
 
-    def test_apply(self):
-        r = Z2PolynomialRing(['a', 'b'])
-        f = Z2PolynomialRing.Map(r, r, {'a': 'a', 'b': 'a'})
-        x = Z2Monomial(r, {'a': 1, 'b': 1}).to_polynomial()
-        y = Z2Monomial(r, {'a': 2}).to_polynomial()
-        self.assertEqual(y, f.apply(x))
-
     def test_type_da(self):
         idempotents = False
         cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
@@ -270,13 +270,13 @@ class TestCTMinus(unittest.TestCase):
             straight = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
             straight_da = type_da(straight)
             cup_da.to_agraph(idempotents=idempotents).draw('output/straight.svg')
-            unknot_long_da = (cup_da ** straight_da ** cap_da).reduce()
+            unknot_long_da = (cup_da ** straight_da ** cap_da)
             unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot.svg')
-            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1bc')
+            unknot_long_da = unknot_long_da.identify_variables('U1b', 'U1ac')
             unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot1.svg')
-            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1b')
+            unknot_long_da = unknot_long_da.identify_variables('U1b', 'U1bc')
             unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot2.svg')
-            unknot_long_da = unknot_long_da.simplify_homotopic_variables('U1ac', 'U1cc')
+            unknot_long_da = unknot_long_da.identify_variables('U1b', 'U1cc')
             unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot3.svg')
             unknot_long_da = unknot_long_da.reduce()
             unknot_long_da.to_agraph(idempotents=idempotents).draw('output/unknot_simplified.svg')

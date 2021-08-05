@@ -64,6 +64,11 @@ class Module(ABC):
     def __repr__(self) -> str:
         return str(self.__dict__)
 
+    # add the given generator to this module
+    def add_generator(self, generator: Module.TensorGenerator, grading: List[int]) -> None:
+        self.graph.add_node(generator)
+        self.gradings[generator] = grading
+
     def add_edge(self, x, y, k, c):
         current = self.graph.get_edge_data(x, y, key=k)
         if current is None:
@@ -92,10 +97,6 @@ class Module(ABC):
             reducible_edge = self.get_reducible_edge()
         return self
 
-    def simplify_homotopic_variables(self, var1, var2):
-        m_doubled = self.identify_variables(var1, var2)
-        return m_doubled
-
     def identify_variables(self, var1, var2):
         assert var1 in self.ring.variables and var2 in self.ring.variables
         r_merged = Z2PolynomialRing([v for v in self.ring.variables if v != var2])
@@ -104,20 +105,26 @@ class Module(ABC):
 
         left_scalar_action_merged = f_merge.compose(self.left_scalar_action) if self.left_scalar_action else None
         right_scalar_action_merged = f_merge.compose(self.right_scalar_action) if self.right_scalar_action else None
-        graph_merged = self.graph.copy()
+
+        subclass = type(self)
+        out = subclass(r_merged, self.left_algebra, self.right_algebra,
+                        left_scalar_action_merged, right_scalar_action_merged)
+
+        for x in self.graph.nodes:
+            out.add_generator(Module.change_module_of_generator(x, out), self.gradings[x])
         for x in self.graph.nodes:
             for _, y, k, d in self.graph.out_edges(x, keys=True, data=True):
                 c = d['c']
                 c = f_merge.apply(c)
-                if c == c.ring.zero():
-                    graph_merged.remove_edge(x, y, key=k)
-                else:
-                    graph_merged.add_edge(x, y, key=k, c=c)
+                out.add_edge(Module.change_module_of_generator(x, out), Module.change_module_of_generator(y, out), k, c)
+        return out
 
-        subclass = type(self)
-        return subclass(r_merged, self.left_algebra, self.right_algebra,
-                        left_scalar_action_merged, right_scalar_action_merged,
-                        graph_merged, self.gradings)
+    @staticmethod
+    def change_module_of_generator(x, m):
+        return Module.TensorGenerator(m, x.key, x.left_idempotent, x.right_idempotent, x.left, x.right)
+
+    def halve(self):
+        pass
 
     def get_reducible_edge(self):
         for x in self.graph:
@@ -138,12 +145,6 @@ class Module(ABC):
     @abstractmethod
     def direct_sum(modules: List[Module]) -> Module:
         pass
-
-    # add the given generator to this module
-    def add_generator(self, generator: Module.TensorGenerator, grading: List[int]) -> None:
-        self.graph.add_node(generator)
-        self.gradings[generator]=grading
-        self.gradings[generator] = grading
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
     def zero(self, i=0, j=0) -> Module.TensorElement:
