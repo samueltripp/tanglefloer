@@ -22,8 +22,8 @@ from Modules.Module import Module
 class TypeDA(Module):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
                  left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
-                 graph: MultiDiGraph = None, gradings: dict = None):
-        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph, gradings)
+                 graph: MultiDiGraph = None):
+        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph)
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
@@ -45,15 +45,18 @@ class TypeDA(Module):
     # turns this bimodule into a graphviz-compatible format
     def to_agraph(self, idempotents=True) -> AGraph:
         graph = AGraph(strict=False, directed=True)
-        for generator in self.graph.nodes:
-            graph.add_node(str(generator.key)+str(self.gradings[generator]),
+        for generator, data in self.graph.nodes(data=True):
+            graph.add_node(str(generator.key) + '[' + str(data['grading'])[1:-1] + ']',
                            shape='box',
                            fontname='Arial')
         for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
             c = d['c']
+            x_grading = self.graph.nodes(data=True)[x]['grading']
+            y_grading = self.graph.nodes(data=True)[y]['grading']
             if not idempotents and len(right) == 1 and right[0].is_idempotent():
                 continue
-            graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
+            graph.add_edge(str(x.key) + '[' + str(x_grading)[1:-1] + ']',
+                           str(y.key) + '[' + str(y_grading)[1:-1] + ']',
                            label=str((left, c, right)),
                            dir='forward',
                            color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
@@ -65,28 +68,14 @@ class TypeDA(Module):
     def to_chain_complex(self) -> ChainComplex:
         out = ChainComplex(self.ring)
 
-        for generator in self.graph.nodes:
-            out.add_generator(generator, self.gradings[generator])
+        for generator, generator_data in self.graph.nodes(data=True):
+            out.add_generator(generator, generator_data['grading'])
 
         for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
             if left.is_idempotent() and len(right) == 0:
                 out.add_structure_map(x, d['c'] * y)
 
         return out
-
-    # returns the direct sum decomposition of this module
-    def decomposed(self) -> List[TypeDA]:
-        return [TypeDA(self.ring, self.left_algebra, self.right_algebra,
-                    self.left_scalar_action, self.right_scalar_action, MultiDiGraph(self.graph.subgraph(component)),
-                       {g:self.gradings[g] for g in self.graph.subgraph(component).nodes})
-                for component in nx.weakly_connected_components(self.graph)]
-
-    @staticmethod
-    def direct_sum(modules: List) -> TypeDA:
-        new_graph = nx.union_all([da.graph for da in modules])
-        return TypeDA(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
-                      modules[0].left_scalar_action, modules[0].right_scalar_action, new_graph,
-                      {g:da.gradings[g] for da in modules for g in da.gradings.keys()})
 
     def reduce_edge(self, x, y, k, d) -> None:
         assert self.edge_is_reducible(x, y)
@@ -121,12 +110,14 @@ class TypeDA(Module):
         out = TypeDA(in_m.target, self.left_algebra, other.right_algebra,
                      in_m.compose(self.left_scalar_action), in_n.compose(other.right_scalar_action))
 
-        for x_m in self.graph.nodes:
-            for x_n in other.graph.nodes:
+        for x_m, x_m_data in self.graph.nodes(data=True):
+            for x_n, x_n_data in other.graph.nodes(data=True):
+                x_m_grading = x_m_data['grading']
+                x_n_grading = x_n_data['grading']
                 if x_m.right_idempotent == x_n.left_idempotent:
                     out.add_generator(Module.TensorGenerator(out, (x_m.key, x_n.key),
                                                              x_m.left_idempotent, x_n.right_idempotent),
-                                      list(map(add, self.gradings[x_m], other.gradings[x_n])))
+                                      (x_m_grading[0] + x_n_grading[0], x_m_grading[1] + x_n_grading[1]))
 
         for x_m in self.graph.nodes:
             for x_n in other.graph.nodes:
@@ -165,5 +156,3 @@ class TypeDA(Module):
                         for more_right, target, more_c in
                         self.delta_n(left[1:], new_source)]
             return out
-
-

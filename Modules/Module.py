@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import lru_cache
 
 from heapdict import heapdict
-from networkx import MultiDiGraph
+from networkx import MultiDiGraph, Graph, DiGraph
 import networkx as nx
 from typing import Iterable, List, Optional
 from pygraphviz import AGraph
@@ -24,26 +24,19 @@ class Module(ABC):
     def __init__(self, ring: Z2PolynomialRing, left_algebra: Optional[AMinus], right_algebra: Optional[AMinus],
                  left_scalar_action: Optional[Z2PolynomialRing.Map],
                  right_scalar_action: Optional[Z2PolynomialRing.Map],
-                 graph: MultiDiGraph = None,
-                 gradings: dict = None):
+                 graph: MultiDiGraph = None):
         self.ring = ring
         self.left_algebra = left_algebra
         self.right_algebra = right_algebra
         self.left_scalar_action = left_scalar_action
         self.right_scalar_action = right_scalar_action
         self.graph = graph or MultiDiGraph()
-        self.gradings = gradings or {}
         if left_scalar_action is not None:
             assert left_algebra.ring == left_scalar_action.source, "left scalar action has wrong source"
             assert ring == left_scalar_action.target, "left scalar action has wrong target"
         if right_scalar_action is not None:
             assert right_algebra.ring == right_scalar_action.source, "right scalar action has wrong source"
             assert ring == right_scalar_action.target, "right scalar action has wrong target"
-
-        if graph is not None:
-            if gradings is None:
-                raise AssertionError("Incomplete grading information")
-            assert set(graph.nodes).issubset(set(gradings.keys())), "Incomplete grading information"
 
     def __getstate__(self):
         return self.ring, self.left_algebra, self.right_algebra, self.left_scalar_action, self.right_scalar_action, \
@@ -65,9 +58,8 @@ class Module(ABC):
         return str(self.__dict__)
 
     # add the given generator to this module
-    def add_generator(self, generator: Module.TensorGenerator, grading: List[int]) -> None:
-        self.graph.add_node(generator)
-        self.gradings[generator] = grading
+    def add_generator(self, generator: Module.TensorGenerator, grading: (int, int)) -> None:
+        self.graph.add_node(generator, grading=grading)
 
     def add_edge(self, x, y, k, c):
         current = self.graph.get_edge_data(x, y, key=k)
@@ -108,23 +100,66 @@ class Module(ABC):
 
         subclass = type(self)
         out = subclass(r_merged, self.left_algebra, self.right_algebra,
-                        left_scalar_action_merged, right_scalar_action_merged)
+                       left_scalar_action_merged, right_scalar_action_merged)
 
-        for x in self.graph.nodes:
-            out.add_generator(Module.change_module_of_generator(x, out), self.gradings[x])
-        for x in self.graph.nodes:
-            for _, y, k, d in self.graph.out_edges(x, keys=True, data=True):
-                c = d['c']
+        for x, x_data in self.graph.nodes(data=True):
+            out.add_generator(Module.change_module_of_generator(x, out), grading=x_data['grading'])
+        for x in self.graph.nodes():
+            for _, y, k, xyk_data in self.graph.out_edges(x, keys=True, data=True):
+                c = xyk_data['c']
                 c = f_merge.apply(c)
                 out.add_edge(Module.change_module_of_generator(x, out), Module.change_module_of_generator(y, out), k, c)
         return out
 
+    def copy(self):
+        subclass = type(self)
+        return subclass(self.ring,
+                        self.left_algebra, self.right_algebra,
+                        self.left_scalar_action, self.right_scalar_action,
+                        self.graph.copy())
+
+    # mostly a helper method for identify_variables()
     @staticmethod
     def change_module_of_generator(x, m):
         return Module.TensorGenerator(m, x.key, x.left_idempotent, x.right_idempotent, x.left, x.right)
 
+    # shift gradings
+    def __getitem__(self, item):
+        maslov_shift, ta_shift = item
+        m = self.copy()
+        for x, x_data in self.graph.nodes(data=True):
+            maslov, ta = x_data['grading']
+            m.graph.add_node(x, grading=(maslov + maslov_shift, ta + ta_shift))
+        return m
+
+    def is_isomorphic_to(self, other: Module):
+        if (self.ring != other.ring) \
+                or (self.left_algebra != other.left_algebra) \
+                or (self.right_algebra != other.right_algebra) \
+                or (self.left_scalar_action != other.left_scalar_action) \
+                or (self.right_scalar_action != other.right_scalar_action):
+            return False
+        node_match = lambda x_data, y_data: x_data == y_data
+        edge_match = lambda e1_data, e2_data: e1_data == e2_data
+        return nx.is_isomorphic(self.graph, other.graph, node_match=node_match, edge_match=edge_match)
+
+    # if self is homotopic to C (+) C[1,2] for some C, return C, else return None
     def halve(self):
-        pass
+        components = self.decomposed()
+        component_matches = DiGraph()
+        for i in range(len(components)):
+            component_matches.add_node(i)
+
+        for i, comp1 in enumerate(components):
+            for j, comp2 in enumerate(components):
+                if comp1.is_isomorphic_to(comp2[1, 2]):
+                    component_matches.add_edge(i, j)
+
+        matching = nx.max_weight_matching(component_matches.to_undirected(), maxcardinality=True)
+        if len(matching) < len(components) / 2:
+            return None
+        matching_sources = [i if component_matches.has_edge(i, j) else j for (i, j) in matching]
+        return Module.direct_sum([components[i] for i in matching_sources])
 
     def get_reducible_edge(self):
         for x in self.graph:
@@ -137,14 +172,19 @@ class Module(ABC):
     def reduce_edge(self, x, y, k, d):
         pass
 
-    @abstractmethod
-    def decomposed(self) -> List[Module]:
-        pass
+    def decomposed(self):
+        subclass = type(self)
+        return [subclass(self.ring, self.left_algebra, self.right_algebra,
+                         self.left_scalar_action, self.right_scalar_action,
+                         MultiDiGraph(self.graph.subgraph(component)))
+                for component in nx.weakly_connected_components(self.graph)]
 
     @staticmethod
-    @abstractmethod
-    def direct_sum(modules: List[Module]) -> Module:
-        pass
+    def direct_sum(modules: List):
+        subclass = type(modules[0])
+        new_graph = nx.union_all([m.graph for m in modules])
+        return subclass(modules[0].ring, modules[0].left_algebra, modules[0].right_algebra,
+                        modules[0].left_scalar_action, modules[0].right_scalar_action, new_graph)
 
     # returns the zero element of A^(x)i (x) M (x) A^(x)j
     def zero(self, i=0, j=0) -> Module.TensorElement:
