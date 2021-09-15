@@ -1,5 +1,6 @@
 import unittest
 from SignAlgebra.AMinus import *
+from SignAlgebra.TensorAlgebra import *
 
 
 class TestAMinus(unittest.TestCase):
@@ -37,3 +38,19 @@ class TestAMinus(unittest.TestCase):
 
     def test_gradings(self):
         pass  # TODO
+
+    def test_tensor_algebra(self):
+        am = AMinus([1])
+        ta = TensorAlgebra(am)
+        r = am.ring
+        u1 = am.ring['U1']
+        a = am.generator({0: 0, 1: 1})
+        b = am.generator({0: 1, 1: 0})
+
+        z = ta.zero()
+        o = ta.one()
+        print(u1 * (o ** a) + u1 * u1 * (o ** (a * b)))
+
+
+if __name__ == '__main__':
+    unittest.main()
