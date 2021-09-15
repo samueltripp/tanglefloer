@@ -14,10 +14,10 @@ class AMinus:
         # the list of positive indices, which are important for variable indices
         self.positives = (None,) + tuple([i for i, s in enumerate(self.ss) if s is not None and s > 0])
         # the polynomial ring acting on this algebra
-        self.ring = Z2PolynomialRing(['U%s' % p for p in range(1, len(self.positives))])
+        self.ring = Z2PolynomialRing([f'U{p}' for p in range(1, len(self.positives))])
 
     # the zero element in A^-(P)
-    def zero(self):
+    def zero(self) -> AMinus.Element:
         return AMinus.Element(self, {})
 
     # a convenient way to construct elements of A^-(P)
@@ -139,7 +139,7 @@ class AMinus:
             self.algebra = algebra
             self.strands = frozendict(strands)
 
-        def is_idempotent(self):
+        def is_idempotent(self) -> bool:
             return self.to_element().is_idempotent()
 
         def to_element(self) -> AMinus.Element:
@@ -153,10 +153,10 @@ class AMinus:
         def right_idempotent(self) -> AMinus.Generator:
             return self.algebra.idempotent(self.strands.values())
 
-        def __add__(self, other):
+        def __add__(self, other) -> AMinus.Element:
             return self.to_element() + other
 
-        def __radd__(self, other):
+        def __radd__(self, other) -> AMinus.Element:
             return other + self.to_element()
 
         # the algebra multiplication
@@ -191,7 +191,7 @@ class AMinus:
             return c * AMinus.Generator(self.algebra, strands)
 
         @multimethod
-        def __mul__(self, other: AMinus.Element):
+        def __mul__(self, other: AMinus.Element) -> AMinus.Element:
             return self.to_element() * other
 
         @multimethod
@@ -258,7 +258,7 @@ class AMinus:
             return c * AMinus.Generator(self.algebra, new_strands)
 
         # twice the ALexander grading of this generator
-        def two_alexander(self, coeff):
+        def two_alexander(self, coeff) -> int:
             strands = dict(self.strands)
             out = -2 * coeff.degree()
             for key in strands.keys():
@@ -272,7 +272,7 @@ class AMinus:
             return out
 
         # the Maslov grading of this generator
-        def maslov(self, coeff):
+        def maslov(self, coeff: Z2Polynomial) -> int:
             strands = self.strands
             out = -2 * coeff.degree()
             for key in strands.keys():

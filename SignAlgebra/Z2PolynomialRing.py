@@ -1,5 +1,4 @@
 from __future__ import annotations
-from operator import add
 
 from frozendict import frozendict
 from multimethod import multimethod

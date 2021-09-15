@@ -57,10 +57,11 @@ class TypeDA(Module):
                 continue
             graph.add_edge(str(x.key) + '[' + str(x_grading)[1:-1] + ']',
                            str(y.key) + '[' + str(y_grading)[1:-1] + ']',
-                           label=str((left, c, right)),
+                           label=' '+str((left, c, right))+' ',
                            dir='forward',
                            color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
-                           fontname='Arial')
+                           fontname='Arial',
+                           decorate=True)
         graph.layout('dot')
         return graph
 

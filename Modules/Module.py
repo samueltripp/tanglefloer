@@ -226,7 +226,7 @@ class Module(ABC):
                     new_coefficients[g] = other * c
                 return Module.TensorElement(self.module, self.i, self.j, new_coefficients)
             else:
-                raise Exception('no action by the given polynomial')
+                raise Exception("no action by the given polynomial")
 
         @multimethod
         def __rpow__(self, other: AMinus.Generator) -> Module.TensorElement:
