@@ -257,17 +257,17 @@ class AMinus:
 
             return c * AMinus.Generator(self.algebra, new_strands)
 
-        # twice the ALexander grading of this generator
+        # twice the Alexander grading of this generator
         def two_alexander(self, coeff) -> int:
             strands = dict(self.strands)
             out = -2 * coeff.degree()
-            for key in strands.keys():
-                if key < strands[key]:
-                    checkrange = range(key, strands[key])
+            for start, end in strands.items():
+                if start < end:
+                    checkrange = range(start, end)
                 else:
-                    checkrange = range(strands[key], key)
-                for k in checkrange:
-                    out = out + (-1) * self.algebra.ss[k]
+                    checkrange = range(end, start)
+                for i in checkrange:
+                    out = out + (-1) * self.algebra.ss[i+1]
 
             return out
 
