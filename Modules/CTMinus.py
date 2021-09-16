@@ -44,7 +44,7 @@ def left_occupied_points(tangle: Tangle, i: int):
     return r
 
 
-def type_da(etangle: ETangle, pool: bool = False) -> TypeDA:
+def type_da(etangle: ETangle) -> TypeDA:
     components = [type_da_in_left_grading(etangle, r) for r in range(0, len(etangle.left_points()) + 1)]
     return TypeDA.direct_sum(components)
 
@@ -70,7 +70,8 @@ def type_da_in_left_grading(etangle: ETangle, i: int) -> TypeDA:
 
 
 def delta1_1(module: TypeDA, x: ETangleStrands) -> Module.TensorElement:
-    return x.left_idempotent().to_element() ** (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) + delta_ell(module, x)
+    return x.left_idempotent().to_element() ** (d_plus(module, x) + d_minus(module, x) + d_mixed(module, x)) \
+           + delta_ell(module, x)
 
 
 def delta1_2(module: TypeDA, x: ETangleStrands, a: AMinus.Generator) -> Module.TensorElement:
@@ -129,7 +130,7 @@ def d_mixed(module: Module, x: ETangleStrands) -> Module.TensorElement:
 
 
 def delta_ell(module: Module, x: ETangleStrands) -> Module.TensorElement:
-    out = module.zero(1, 0)
+    out = module.zero()
     unoccupied = set(x.etangle.left_points()) - set(x.left_strands.keys())
 
     for a1 in unoccupied:
@@ -358,7 +359,7 @@ def delta_ell_case_1(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     c2 = module.ring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_1a(a1, a2)
     if powers is None:
-        return module.zero(1, 0)
+        return module.zero()
     for orange, power in powers.items():
         if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
@@ -377,7 +378,7 @@ def delta_ell_case_2(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     c2 = x.etangle.ring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_2a(a1, a2)
     if powers is None:
-        return module.zero(1, 0)
+        return module.zero()
     for orange, power in powers.items():
         if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
@@ -393,7 +394,7 @@ def delta_ell_case_3(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     c2 = x.etangle.ring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_3a(a1, a2)
     if powers is None:
-        return module.zero(1, 0)
+        return module.zero()
     for orange, power in powers.items():
         if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power
@@ -416,7 +417,7 @@ def delta_ell_case_4(module: Module, x: ETangleStrands, a1: int, a2: int) -> Mod
     c2 = x.etangle.ring.one()
     powers = x.idempotent_and_left_strands().figure_8_case_4a(a1, a2)
     if powers is None:
-        return module.zero(1, 0)
+        return module.zero()
     for orange, power in powers.items():
         if x.etangle.strand_index_to_left_sign(orange) == 1:
             c1 *= x.etangle.left_algebra_strand_index_to_variable(orange) ** power

@@ -14,13 +14,26 @@ class TensorAlgebra:
     def zero(self):
         return TensorAlgebra.Element(self, {})
 
+    def one_generator(self):
+        return TensorAlgebra.Generator(self, tuple())
+
     def one(self):
-        return TensorAlgebra.Generator(self, tuple()).to_element()
+        return self.one_generator().to_element()
+
+    def __hash__(self):
+        return hash(self.algebra)
+
+    def __eq__(self, other: TensorAlgebra):
+        return self.algebra == other.algebra
 
     class Element:
         def __init__(self, tensor_algebra, coefficients):
             self.tensor_algebra = tensor_algebra
             self.coefficients = frozendict(simplify_coefficients(coefficients))
+
+        def to_algebra(self):
+            return AMinus.Element(self.tensor_algebra.algebra,
+                                  {g.to_algebra(): c for g, c in self.coefficients.items()})
 
         @multimethod
         def __add__(self, other: TensorAlgebra.Element) -> TensorAlgebra.Element:
@@ -62,6 +75,10 @@ class TensorAlgebra:
             return self ** other.to_element()
 
         @multimethod
+        def __pow__(self, other):
+            return other.__rpow__(self)
+
+        @multimethod
         def __rpow__(self, other: AMinus.Generator) -> TensorAlgebra.Element:
             return other.to_element() ** self
 
@@ -100,6 +117,13 @@ class TensorAlgebra:
         def to_element(self) -> TensorAlgebra.Element:
             return TensorAlgebra.Element(self.tensor_algebra, {self: self.tensor_algebra.algebra.ring.one()})
 
+        def to_algebra(self):
+            assert len(self.factors) == 1
+            return self.factors[0]
+
+        def num_factors(self):
+            return len(self.factors)
+
         def left_idempotent(self) -> AMinus.Element | None:
             if len(self.factors) == 0:
                 return None
@@ -137,6 +161,10 @@ class TensorAlgebra:
             assert self.right_idempotent() is None or other.left_idempotent() is None \
                 or self.right_idempotent() == other.left_idempotent()
             return TensorAlgebra.Generator(self.tensor_algebra, self.factors + other.factors)
+
+        @multimethod
+        def __pow__(self, other):
+            return other.__rpow__(self)
 
         # tensor product
         @multimethod

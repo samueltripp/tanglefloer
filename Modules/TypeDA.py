@@ -10,6 +10,7 @@ from pygraphviz import AGraph
 from Modules import ETangleStrands
 from Modules.ChainComplex import ChainComplex
 from SignAlgebra.AMinus import AMinus
+from SignAlgebra.TensorAlgebra import *
 from Modules.CTMinus import *
 from multimethod import *
 from frozendict import *
@@ -27,18 +28,21 @@ class TypeDA(Module):
 
     # add the structure map (input |-> output) to this module
     def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
-        assert len(input.left) == output.j == 0 and output.i == 1
+        assert input.num_left_factors() == 0
         x = input.get_module_generator()
-        right_gens = input.right
         for gen_out, c_out in output.coefficients.items():
+            assert gen_out.num_left_factors() == 1 and gen_out.num_right_factors() == 0
             y = gen_out.get_module_generator()
-            left_gen = gen_out.left[0]
-            self.add_edge(x, y, (left_gen, right_gens), c_out)
+            self.add_edge(x, y, (gen_out.left, input.right), c_out)
 
     def edge_is_reducible(self, x, y) -> bool:
         if x in self.graph and y in self.graph[x] and len(self.graph[x][y]) == 1:
             k, d = list(self.graph[x][y].items())[0]
-            if k[0].is_idempotent() and k[1] == tuple() and d['c'] == self.ring.one():
+            left = k[0]
+            right = k[1]
+            if left.to_algebra().is_idempotent() \
+                    and right == self.right_tensor_algebra.one() \
+                    and d['c'] == self.ring.one():
                 return True
         return False
 
@@ -53,30 +57,17 @@ class TypeDA(Module):
             c = d['c']
             x_grading = self.graph.nodes(data=True)[x]['grading']
             y_grading = self.graph.nodes(data=True)[y]['grading']
-            if not idempotents and len(right) == 1 and right[0].is_idempotent():
+            if not idempotents and right.num_factors() == 1 and right.to_algebra().is_idempotent():
                 continue
             graph.add_edge(str(x.key) + '[' + str(x_grading)[1:-1] + ']',
                            str(y.key) + '[' + str(y_grading)[1:-1] + ']',
                            label=' '+str((left, c, right))+' ',
                            dir='forward',
-                           color=['black', 'blue', 'red', 'green', 'purple'][min(len(right), 4)],
+                           color=['black', 'blue', 'red', 'green', 'purple'][min(right.num_factors(), 4)],
                            fontname='Arial',
                            decorate=True)
         graph.layout('dot')
         return graph
-
-    # probably wrong, don't actually know if A^- can be augmented
-    def to_chain_complex(self) -> ChainComplex:
-        out = ChainComplex(self.ring)
-
-        for generator, generator_data in self.graph.nodes(data=True):
-            out.add_generator(generator, generator_data['grading'])
-
-        for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
-            if left.is_idempotent() and len(right) == 0:
-                out.add_structure_map(x, d['c'] * y)
-
-        return out
 
     def reduce_edge(self, x, y, k, d) -> None:
         assert self.edge_is_reducible(x, y)
@@ -97,8 +88,8 @@ class TypeDA(Module):
                     continue
                 c_xz = d_xz['c']
                 self.add_structure_map(
-                    w ** (right_wy + right_xz),
-                    c_wy * c_xz * ((left_wy * left * left_xz) ** z))
+                    w ** (right_wy ** right_xz),
+                    c_wy * c_xz * ((left_wy.to_algebra() * left.to_algebra() * left_xz.to_algebra()) ** z))
 
     # tensor product of type DA structures
     # assumes self is bounded, other may or may not be
@@ -137,23 +128,21 @@ class TypeDA(Module):
                             x ** right_n,
                             left_m ** (in_m.apply(c_m) * in_n.apply(c_n) * y))
 
-        # assert (out.to_chain_complex().d_squared_is_zero())  # probably slow, take out when not debugging
-
         return out
 
     # returns [(right, target, coefficient)]
     #   representing the delta_n paths starting at source outputting left
-    def delta_n(self, left, source) -> List[Tuple[Tuple, Module.TensorGenerator, Z2Polynomial]]:
-        if len(left) == 0:
-            return [(tuple(), source, self.ring.one())]
+    def delta_n(self, left, source) -> List[Tuple[TensorAlgebra.Generator, Module.TensorGenerator, Z2Polynomial]]:
+        if left.num_factors() == 0:
+            return [(self.right_tensor_algebra.one_generator(), source, self.ring.one())]
         else:
             out = []
             for _, new_source, k, d in self.graph.out_edges(source, keys=True, data=True):
-                if k[0] != left[0]:
+                if k[0].to_algebra() != left.factors[0]:
                     continue
                 right = k[1]
                 c = d['c']
-                out += [(right + more_right, target, more_c * c)
+                out += [(right ** more_right, target, more_c * c)
                         for more_right, target, more_c in
-                        self.delta_n(left[1:], new_source)]
+                        self.delta_n(TensorAlgebra.Generator(self.left_tensor_algebra, left.factors[1:]), new_source)]
             return out

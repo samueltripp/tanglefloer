@@ -236,34 +236,34 @@ class TestCTMinus(unittest.TestCase):
         r_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/r.svg')
         r_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/r_reduced.svg')
 
-        for l in sublists(list(range(len(r.left_algebra.ss)))):
-            for g in r.left_algebra.left_gens(l):
-                print(f"{g}: {g.to_element().maslov()}, {g.to_element().two_alexander()}")
+        # for l in sublists(list(range(len(r.left_algebra.ss)))):
+        #     for g in r.left_algebra.left_gens(l):
+        #         print(f"{g}: {g.to_element().maslov()}, {g.to_element().two_alexander()}")
 
-        # l = ETangle(ETangle.Type.STRAIGHT, (-1,))
-        # l_da = type_da(l)
-        # l_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l.svg')
-        # l_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l_reduced.svg')
-        #
-        # rr = ETangle(ETangle.Type.STRAIGHT, (1, 1))
-        # rr_da = type_da(rr)
-        # rr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr.svg')
-        # rr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr_reduced.svg')
-        #
-        # rl = ETangle(ETangle.Type.STRAIGHT, (1, -1))
-        # rl_da = type_da(rl)
-        # rl_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl.svg')
-        # rl_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl_reduced.svg')
-        #
-        # lr = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
-        # lr_da = type_da(lr)
-        # lr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr.svg')
-        # lr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr_reduced.svg')
-        #
-        # ll = ETangle(ETangle.Type.STRAIGHT, (-1, -1))
-        # ll_da = type_da(ll)
-        # ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
-        # ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
+        l = ETangle(ETangle.Type.STRAIGHT, (-1,))
+        l_da = type_da(l)
+        l_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l.svg')
+        l_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l_reduced.svg')
+
+        rr = ETangle(ETangle.Type.STRAIGHT, (1, 1))
+        rr_da = type_da(rr)
+        rr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr.svg')
+        rr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr_reduced.svg')
+
+        rl = ETangle(ETangle.Type.STRAIGHT, (1, -1))
+        rl_da = type_da(rl)
+        rl_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl.svg')
+        rl_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl_reduced.svg')
+
+        lr = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
+        lr_da = type_da(lr)
+        lr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr.svg')
+        lr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr_reduced.svg')
+
+        ll = ETangle(ETangle.Type.STRAIGHT, (-1, -1))
+        ll_da = type_da(ll)
+        ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
+        ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
 
     # def test_tensor(self):
     #         idempotents = False
