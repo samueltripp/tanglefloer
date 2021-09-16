@@ -26,52 +26,29 @@ class TypeDA(Module):
                  graph: MultiDiGraph = None):
         super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph)
 
-    # add the structure map (input |-> output) to this module
-    def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
-        assert input.num_left_factors() == 0
-        x = input.get_module_generator()
-        for gen_out, c_out in output.coefficients.items():
-            assert gen_out.num_left_factors() == 1 and gen_out.num_right_factors() == 0
-            y = gen_out.get_module_generator()
-            self.add_edge(x, y, (gen_out.left, input.right), c_out)
+    @staticmethod
+    def valid_input_gen(g):
+        return g.num_left_factors() == 0
 
-    def edge_is_reducible(self, x, y) -> bool:
-        if x in self.graph and y in self.graph[x] and len(self.graph[x][y]) == 1:
-            k, d = list(self.graph[x][y].items())[0]
-            left = k[0]
-            right = k[1]
-            if left.to_algebra().is_idempotent() \
-                    and right == self.right_tensor_algebra.one() \
-                    and d['c'] == self.ring.one():
-                return True
-        return False
+    @staticmethod
+    def valid_output_gen(g):
+        return g.num_left_factors() == 1 and g.num_right_factors() == 0
 
-    # turns this bimodule into a graphviz-compatible format
-    def to_agraph(self, idempotents=True) -> AGraph:
-        graph = AGraph(strict=False, directed=True)
-        for generator, data in self.graph.nodes(data=True):
-            graph.add_node(str(generator.key) + '[' + str(data['grading'])[1:-1] + ']',
-                           shape='box',
-                           fontname='Arial')
-        for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
-            c = d['c']
-            x_grading = self.graph.nodes(data=True)[x]['grading']
-            y_grading = self.graph.nodes(data=True)[y]['grading']
-            if not idempotents and right.num_factors() == 1 and right.to_algebra().is_idempotent():
-                continue
-            graph.add_edge(str(x.key) + '[' + str(x_grading)[1:-1] + ']',
-                           str(y.key) + '[' + str(y_grading)[1:-1] + ']',
-                           label=' '+str((left, c, right))+' ',
-                           dir='forward',
-                           color=['black', 'blue', 'red', 'green', 'purple'][min(right.num_factors(), 4)],
-                           fontname='Arial',
-                           decorate=True)
-        graph.layout('dot')
-        return graph
+    @staticmethod
+    def is_idempotent_edge_data(left, c, right):
+        return right.num_factors() == 1 and right.to_algebra().is_idempotent()
+
+    @staticmethod
+    def edge_color(left, c, right):
+        return ['black', 'blue', 'red', 'green', 'purple'][min(right.num_factors(), 4)]
+
+    @staticmethod
+    def edge_is_reducible(left, c, right) -> bool:
+        return left.to_algebra().is_idempotent() \
+               and right == right.tensor_algebra.one() \
+               and c == c.ring.one()
 
     def reduce_edge(self, x, y, k, d) -> None:
-        assert self.edge_is_reducible(x, y)
-
         in_edges = list(self.graph.in_edges(y, keys=True, data=True))
         out_edges = list(self.graph.out_edges(x, keys=True, data=True))
 

@@ -42,6 +42,23 @@ class Module(ABC):
             assert right_algebra.ring == right_scalar_action.source, "right scalar action has wrong source"
             assert ring == right_scalar_action.target, "right scalar action has wrong target"
 
+    # add the structure map (input |-> output) to this module
+    def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
+        assert self.valid_input_gen(input)
+        x = input.get_module_generator()
+        for gen_out, c_out in output.coefficients.items():
+            assert self.valid_output_gen(gen_out)
+            y = gen_out.get_module_generator()
+            self.add_edge(x, y, (gen_out.left, input.right), c_out)
+
+    @staticmethod
+    def valid_input_gen(g):
+        pass
+
+    @staticmethod
+    def valid_output_gen(g):
+        pass
+
     def __repr__(self) -> str:
         return str(self.__dict__)
 
@@ -58,10 +75,6 @@ class Module(ABC):
         if current['c'] == self.ring.zero():
             self.graph.remove_edge(x, y, key=k)
 
-    @abstractmethod
-    def edge_is_reducible(self, x, y) -> bool:
-        pass
-
     def reduce(self) -> Module:
         components = self.decomposed()
         if len(components) == 0:
@@ -76,6 +89,25 @@ class Module(ABC):
             self.reduce_edge(*reducible_edge)
             reducible_edge = self.get_reducible_edge()
         return self
+
+    def get_reducible_edge(self):
+        for x in self.graph:
+            for y in self.graph[x]:
+                if len(self.graph[x][y]) == 1:
+                    k, d = list(self.graph[x][y].items())[0]
+                    left = k[0]
+                    right = k[1]
+                    if self.edge_is_reducible(left, d['c'], right):
+                        return x, y, k, d
+
+    @staticmethod
+    @abstractmethod
+    def edge_is_reducible(left, c, right):
+        pass
+
+    @abstractmethod
+    def reduce_edge(self, x, y, k, d):
+        pass
 
     def identify_variables(self, var1, var2):
         assert var1 in self.ring.variables and var2 in self.ring.variables
@@ -149,17 +181,6 @@ class Module(ABC):
         matching_sources = [i if component_matches.has_edge(i, j) else j for (i, j) in matching]
         return Module.direct_sum([components[i] for i in matching_sources])
 
-    def get_reducible_edge(self):
-        for x in self.graph:
-            for y in self.graph[x]:
-                if self.edge_is_reducible(x, y):
-                    k, d = list(self.graph[x][y].items())[0]
-                    return x, y, k, d
-
-    @abstractmethod
-    def reduce_edge(self, x, y, k, d):
-        pass
-
     def decomposed(self):
         subclass = type(self)
         return [subclass(self.ring, self.left_algebra, self.right_algebra,
@@ -176,6 +197,39 @@ class Module(ABC):
 
     def zero(self) -> Module.TensorElement:
         return Module.TensorElement(self)
+
+    # turns this bimodule into a graphviz-compatible format
+    def to_agraph(self, idempotents=True) -> AGraph:
+        graph = AGraph(strict=False, directed=True)
+        for generator, data in self.graph.nodes(data=True):
+            graph.add_node(str(generator.key) + '[' + str(data['grading'])[1:-1] + ']',
+                           shape='box',
+                           fontname='Arial')
+        for x, y, (left, right), d in self.graph.edges(keys=True, data=True):
+            c = d['c']
+            x_grading = self.graph.nodes(data=True)[x]['grading']
+            y_grading = self.graph.nodes(data=True)[y]['grading']
+            if not idempotents and self.is_idempotent_edge_data(left, c, right):
+                continue
+            graph.add_edge(str(x.key) + '[' + str(x_grading)[1:-1] + ']',
+                           str(y.key) + '[' + str(y_grading)[1:-1] + ']',
+                           label=' ' + str((left, c, right)) + ' ',
+                           dir='forward',
+                           color=self.edge_color(left, c, right),
+                           fontname='Arial',
+                           decorate=True)
+        graph.layout('dot')
+        return graph
+
+    @staticmethod
+    @abstractmethod
+    def is_idempotent_edge_data(left, c, right):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def edge_color(left, c, right):
+        pass
 
     class TensorElement:
         # coefficients - {TensorGenerator: Z2Polynomial}
