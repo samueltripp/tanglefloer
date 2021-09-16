@@ -284,7 +284,7 @@ class AMinus:
                 else:
                     checkrange = range(strands[key], key)
                 for k in checkrange:
-                    if k in self.algebra.positives:
+                    if k+1 in self.algebra.positives:
                         out -= 1
 
             return out
