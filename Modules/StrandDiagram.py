@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional
 import itertools
-from SignAlgebra.Z2PolynomialRing import Z2Polynomial
 
 
 class StrandDiagram:
@@ -286,65 +285,71 @@ class StrandDiagram:
     @staticmethod
     def times_crossed(p1: int, q1: int, r1: int, p2: int, q2: int, r2: int) -> int:
         out = 0
-        if None not in {p1,p2,q1,q2}:
+        if None not in {p1, p2, q1, q2}:
             if (p1 < p2) ^ (q1 < q2):
                 out += 1
-        if None not in {q1,q2,r1,r2}:
+        if None not in {q1, q2, r1, r2}:
             if (q1 < q2) ^ (r1 < r2):
                 out += 1
 
         return out
 
-
-# more crossing counts to do gradings
+    # more crossing counts to do gradings
     def num_orange_black_pos_crossings(self) -> int:
-        return sum(self.orange_times_crossed_black(orange,black)
-                   for orange in self.orange_strands if self.orange_signs[orange]==1 for black in self.black_strands)
+        return sum(self.orange_times_crossed_black(orange, black)
+                   for orange in self.orange_strands if self.orange_signs[orange] == 1 for black in self.black_strands)
+
     def num_orange_black_neg_crossings(self) -> int:
-        return sum(self.orange_times_crossed_black(orange,black)
-                   for orange in self.orange_strands if self.orange_signs[orange]==-1 for black in self.black_strands)
+        return sum(self.orange_times_crossed_black(orange, black)
+                   for orange in self.orange_strands if self.orange_signs[orange] == -1 for black in self.black_strands)
+
     def num_orange_orange_pos_crossings(self) -> int:
-        return sum(self.orange_times_crossed_orange(o1,o2)
-                   for o1 in self.orange_strands if self.orange_signs[o1]==1 for o2 in self.orange_strands if self.orange_signs[o1]==1)
+        return sum(self.orange_times_crossed_orange(o1, o2)
+                   for o1 in self.orange_strands if self.orange_signs[o1] == 1 for o2 in self.orange_strands if
+                   self.orange_signs[o1] == 1)
+
     def num_orange_orange_neg_crossings(self) -> int:
-        return sum(self.orange_times_crossed_orange(o1,o2)
-                   for o1 in self.orange_strands if self.orange_signs[o1]==-1 for o2 in self.orange_strands if self.orange_signs[o2]==-1)
+        return sum(self.orange_times_crossed_orange(o1, o2)
+                   for o1 in self.orange_strands if self.orange_signs[o1] == -1 for o2 in self.orange_strands if
+                   self.orange_signs[o2] == -1)
+
     def num_black_black_crossings(self) -> int:
-        return sum(self.black_times_crossed_black(b1,b2)
+        return sum(self.black_times_crossed_black(b1, b2)
                    for b1 in self.black_strands for b2 in self.black_strands) // 2
+
     def num_negative_orange(self) -> int:
-        return sum(1 for o in self.orange_strands if self.orange_signs[o]==-1)
+        return sum(1 for o in self.orange_strands if self.orange_signs[o] == -1)
 
     def nobpc(self) -> int:
         return self.num_orange_black_pos_crossings()
+
     def nobnc(self) -> int:
         return self.num_orange_black_neg_crossings()
+
     def noopc(self) -> int:
         return self.num_orange_orange_pos_crossings()
+
     def noonc(self) -> int:
         return self.num_orange_orange_neg_crossings()
+
     def nbbc(self) -> int:
         return self.num_black_black_crossings()
+
     def nno(self) -> int:
         return self.num_negative_orange()
 
-
-
     def maslov(self) -> int:
-        left_black = {k:self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][2]==None}
-        right_black = {k:self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][0]==None}
-        left_orange = {k:[self.orange_strands[k][0],self.orange_strands[k][1],None]
-                       for k in self.orange_strands.keys() if self.orange_strands[k][0] != None}
-        right_orange = {k:[None,self.orange_strands[k][1],self.orange_strands[k][2],None]
-                        for k in self.orange_strands.keys() if self.orange_strands[k][2] != None}
-        left = StrandDiagram(left_orange,self.orange_signs,left_black)
-        right = StrandDiagram(right_orange,self.orange_signs,right_black)
-        m = right.nbbc()-right.nobpc()+right.noopc()-left.nbbc()+left.nobnc()-left.noonc()-left.nno()
+        left_black = {k: self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][2] is None}
+        right_black = {k: self.black_strands[k] for k in self.black_strands.keys() if self.black_strands[k][0] is None}
+        left_orange = {k: [self.orange_strands[k][0], self.orange_strands[k][1], None]
+                       for k in self.orange_strands.keys() if self.orange_strands[k][0] is not None}
+        right_orange = {k: [None, self.orange_strands[k][1], self.orange_strands[k][2], None]
+                        for k in self.orange_strands.keys() if self.orange_strands[k][2] is not None}
+        left = StrandDiagram(left_orange, self.orange_signs, left_black)
+        right = StrandDiagram(right_orange, self.orange_signs, right_black)
+        m = right.nbbc() - right.nobpc() + right.noopc() - left.nbbc() + left.nobnc() - left.noonc() - left.nno()
         return m
 
     def twoalexander(self) -> int:
-        twoa = self.nobnc()-self.nobpc()+self.noopc()-self.noonc()-self.nno()
+        twoa = self.nobnc() - self.nobpc() + self.noopc() - self.noonc() - self.nno()
         return twoa
-
-
-

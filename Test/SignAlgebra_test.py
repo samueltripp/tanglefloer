@@ -4,7 +4,6 @@ from SignAlgebra.TensorAlgebra import TensorAlgebra
 
 def test_mul():
     am = AMinus([-1, 1, 1, -1])
-    r = am.ring
     u1 = am.ring['U1']
     u2 = am.ring['U2']
 
@@ -27,9 +26,7 @@ def test_mul():
 
 def test_diff():
     am = AMinus([-1, 1, 1, -1])
-    r = am.ring
     u1 = am.ring['U1']
-    u2 = am.ring['U2']
 
     elt = am.generator({0: 4, 1: 2, 3: 1})
     assert elt.diff() == u1 * am.generator({0: 4, 1: 1, 3: 2}) + am.generator({0: 2, 1: 4, 3: 1})
@@ -42,8 +39,6 @@ def test_gradings():
 def test_tensor_algebra():
     am = AMinus([1])
     ta = TensorAlgebra(am)
-    r = am.ring
-    u1 = am.ring['U1']
     a = am.generator({0: 0, 1: 1})
     b = am.generator({0: 1, 1: 0})
 

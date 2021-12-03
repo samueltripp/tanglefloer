@@ -205,7 +205,6 @@ def test_delta_ell():
 
 
 def test_type_da():
-    idempotents = False
     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
     cup_da = type_da(cup)
     da_list = [cup_da]

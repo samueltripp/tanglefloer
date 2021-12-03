@@ -43,9 +43,6 @@ class TypeAA(Module):
 
         self.graph.remove_nodes_from([x, y])
 
-        left = k[0]
-        right = k[1]
-
         for w, _, (left_wy, right_wy), d_wy in in_edges:
             if w == x or w == y:
                 continue

@@ -1,41 +1,37 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from functools import lru_cache
+from typing import List
 
+from multimethod import multimethod
 from networkx import MultiDiGraph
-import networkx as nx
-from typing import Iterable
-from pygraphviz import AGraph
-from Modules import ETangleStrands
-from SignAlgebra.AMinus import AMinus
-from Modules.CTMinus import *
-from multimethod import *
-from frozendict import *
-from SignAlgebra.Z2PolynomialRing import *
 
 from Modules.Module import Module
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing
 
 
-# represents a type DA bimodule
 class ChainComplex(Module):
-    def __init__(self, ring: Z2PolynomialRing, graph: MultiDiGraph = None, gradings: dict = None):
-        super().__init__(ring, None, None, None, None, graph, gradings)
 
-    # add the structure map (input |-> output) to this module
-    def add_structure_map(self, input: Module.TensorGenerator, output: Module.TensorElement) -> None:
-        assert len(input.left) == len(input.right) == output.i == output.j == 0
-        x = input
-        for gen_out, c_out in output.coefficients.items():
-            y = gen_out
-            self.add_edge(x, y, (), c_out)
+    def __init__(self, ring: Z2PolynomialRing, left_algebra: AMinus, right_algebra: AMinus,
+                 left_scalar_action: Z2PolynomialRing.Map, right_scalar_action: Z2PolynomialRing.Map,
+                 graph: MultiDiGraph = None):
+        super().__init__(ring, left_algebra, right_algebra, left_scalar_action, right_scalar_action, graph)
 
-    def edge_is_reducible(self, x, y) -> bool:
-        if x in self.graph and y in self.graph[x] and len(self.graph[x][y]) == 1:
-            k, d = list(self.graph[x][y].items())[0]
-            if d['c'] == self.ring.one():
-                return True
+    @staticmethod
+    def valid_input_gen(g):
+        return g.num_left_factors() == 0 and g.num_right_factors() == 0
+
+    @staticmethod
+    def valid_output_gen(g):
+        return g.num_left_factors() == 0 and g.num_right_factors() == 0
+
+    @staticmethod
+    def is_idempotent_edge_data(left, c, right):
         return False
+
+    @staticmethod
+    def edge_color(left, c, right):
+        return 'black'
 
     @multimethod
     def d(self, elt: Module.TensorElement) -> Module.TensorElement:
@@ -63,23 +59,6 @@ class ChainComplex(Module):
                 print(self.d(self.d(x)))
                 return False
         return True
-
-    # turns this bimodule into a graphviz-compatible format
-    def to_agraph(self) -> AGraph:
-        graph = AGraph(strict=False, directed=True)
-        for generator in self.graph.nodes:
-            graph.add_node(str(generator.key)+str(self.gradings[generator]),
-                           shape='box',
-                           fontname='Arial')
-        for x, y, (), d in self.graph.edges(keys=True, data=True):
-            c = d['c']
-            graph.add_edge(str(x.key)+str(self.gradings[x]), str(y.key)+str(self.gradings[y]),
-                           label=str(c),
-                           dir='forward',
-                           color='black',
-                           fontname='Arial')
-        graph.layout('dot')
-        return graph
 
     def m2_def(self) -> List[str]:
         arrows_per_def = 50
@@ -110,21 +89,13 @@ class ChainComplex(Module):
         with open(filename, 'w') as out:
             out.writelines([line+'\n' for line in self.m2_def()])
 
-    # returns the direct sum decomposition of this module
-    def decomposed(self) -> List[ChainComplex]:
-        return [ChainComplex(self.ring, MultiDiGraph(self.graph.subgraph(component)),
-                             {g: self.gradings[g] for g in self.graph.subgraph(component).nodes})
-                for component in nx.weakly_connected_components(self.graph)]
-
     @staticmethod
-    def direct_sum(modules: List) -> ChainComplex:
-        new_graph = nx.union_all([da.graph for da in modules])
-        return ChainComplex(modules[0].ring, new_graph,
-                            {g: da.gradings[g] for da in modules for g in da.gradings.keys()})
+    def edge_is_reducible(left, c, right) -> bool:
+        return left == left.tensor_algebra.one() \
+               and right == right.tensor_algebra.one() \
+               and c == c.ring.one()
 
     def reduce_edge(self, x, y, k, d) -> None:
-        assert self.edge_is_reducible(x, y)
-
         in_edges = list(self.graph.in_edges(y, keys=True, data=True))
         out_edges = list(self.graph.out_edges(x, keys=True, data=True))
 
