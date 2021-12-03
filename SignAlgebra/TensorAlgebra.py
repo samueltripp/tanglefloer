@@ -1,10 +1,12 @@
 from __future__ import annotations
-from multimethod import *
+from typing import Tuple
 
-from Functions.Functions import *
+from frozendict import frozendict
+from multimethod import multimethod
 
-from SignAlgebra.Z2PolynomialRing import *
-from SignAlgebra.AMinus import *
+from Functions.Functions import simplify_coefficients
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.Z2PolynomialRing import Z2Polynomial
 
 
 class TensorAlgebra:

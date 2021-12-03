@@ -1,0 +1,9 @@
+networkx~=2.6.3
+HeapDict~=1.0.1
+multimethod~=1.6
+frozendict~=2.0.3
+numpy~=1.21.4
+svgwrite~=1.4.1
+pytest~=6.2.5
+pathos~=0.2.8
+pygraphviz~=1.5

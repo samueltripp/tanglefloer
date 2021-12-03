@@ -1,22 +1,10 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from functools import lru_cache
-
 from networkx import MultiDiGraph
-import networkx as nx
-from typing import Iterable
-from pygraphviz import AGraph
-from Modules import ETangleStrands
-from Modules.ChainComplex import ChainComplex
-from SignAlgebra.AMinus import AMinus
-from SignAlgebra.TensorAlgebra import *
-from Modules.CTMinus import *
-from multimethod import *
-from frozendict import *
-from SignAlgebra.Z2PolynomialRing import *
 
 from Modules.Module import Module
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing
 
 
 # represents a type DD bimodule

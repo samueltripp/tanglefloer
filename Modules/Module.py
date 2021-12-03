@@ -1,24 +1,17 @@
 from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from collections import defaultdict
-from functools import lru_cache
+from typing import Optional, List
 
-from heapdict import heapdict
-from networkx import MultiDiGraph, Graph, DiGraph
 import networkx as nx
-from typing import Iterable, List, Optional
+from frozendict import frozendict
+from multimethod import multimethod
+from networkx import DiGraph, MultiDiGraph
 from pygraphviz import AGraph
-from Modules import ETangleStrands
-from SignAlgebra.AMinus import AMinus
-from Modules.CTMinus import *
-from multimethod import *
-from frozendict import *
 
-from SignAlgebra.TensorAlgebra import *
-from SignAlgebra.Z2PolynomialRing import *
 from Functions.Functions import simplify_coefficients
-from pathos.pools import ProcessPool
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.TensorAlgebra import TensorAlgebra
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing, Z2Polynomial
 
 
 # Base class for chain complexes and Type D, A, DD, AA, DA, and AD structures

@@ -1,5 +1,5 @@
-from SignAlgebra.AMinus import *
-from SignAlgebra.TensorAlgebra import *
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.TensorAlgebra import TensorAlgebra
 
 
 def test_mul():
@@ -24,6 +24,7 @@ def test_mul():
     elt6 = am.generator({2: 1, 1: 0})
     assert elt5 * elt6 == am.generator({4: 0, 3: 1})
 
+
 def test_diff():
     am = AMinus([-1, 1, 1, -1])
     r = am.ring
@@ -33,8 +34,10 @@ def test_diff():
     elt = am.generator({0: 4, 1: 2, 3: 1})
     assert elt.diff() == u1 * am.generator({0: 4, 1: 1, 3: 2}) + am.generator({0: 2, 1: 4, 3: 1})
 
+
 def test_gradings():
     pass  # TODO
+
 
 def test_tensor_algebra():
     am = AMinus([1])

@@ -1,9 +1,10 @@
-from Modules.CTMinus import *
-from Modules.Module import *
-from Modules.ETangleStrands import *
-import timeit
-
-from Tangles import TangleRenderer
+from Modules.CTMinus import d_plus, m2, delta_ell, type_da, delta_ell_case_1, delta_ell_case_2, delta_ell_case_3, \
+    delta_ell_case_4, d_mixed, d_minus
+from Modules.ETangleStrands import ETangleStrands
+from Modules.TypeDA import TypeDA
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing, Z2Monomial
+from Tangles.Tangle import ETangle
 
 
 def test_apply():
@@ -13,9 +14,11 @@ def test_apply():
     y = Z2Monomial(r, {'a': 2}).to_polynomial()
     assert f.apply(x) == y
 
+
 def empty_da_module(etangle: ETangle):
     return TypeDA(etangle.ring, etangle.left_algebra, etangle.right_algebra,
                   etangle.left_scalar_action, etangle.right_scalar_action)
+
 
 def test_d_plus():
     under1 = ETangle(ETangle.Type.UNDER, (1, 1, 1, 1), 2)
@@ -71,6 +74,7 @@ def test_d_plus():
     assert d_plus(cap1_module, sd_cap1_1) == sd_cap1_1_out
     assert d_plus(cap1_module, sd_cap1_2) == sd_cap1_2_out
 
+
 def test_d_minus():
     under1 = ETangle(ETangle.Type.OVER, (-1, -1, -1, -1), 2)
     under1_module = empty_da_module(under1)
@@ -90,6 +94,7 @@ def test_d_minus():
     assert d_minus(under1_module, sd_under1_1) == sd_under1_1_out
     assert d_minus(over3_module, sd_over3_1) == sd_over3_1_out
 
+
 def test_d_mixed():
     # Figure 9 from "An introduction..."
     over3 = ETangle(ETangle.Type.OVER, (1, 1, -1, -1), 2)
@@ -106,6 +111,7 @@ def test_d_mixed():
                      ETangleStrands(over3, {1: 2, 2: 1, 3: 3}, {0: 1, 4: 2}).to_generator(over3_module)
 
     assert d_mixed(over3_module, sd_over3_1) == sd_over3_1_out
+
 
 def test_m2():
     # Figure 10 from "An introduction..."
@@ -140,6 +146,7 @@ def test_m2():
 
     assert m2(cup2_module, sd_cup2_1, elt2) == sd_cup2_1_out
 
+
 def test_delta_ell_case_1():
     over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
     over1_module = empty_da_module(over1)
@@ -150,6 +157,7 @@ def test_delta_ell_case_1():
     out = over1.left_algebra.generator({1: 2, 2: 1}).to_element() ** \
           (over1.ring['U2'] * y.to_generator(over1_module))
     assert delta_ell_case_1(over1_module, x, a1, a2) == out
+
 
 def test_delta_ell_case_2():
     over1 = ETangle(ETangle.Type.OVER, (1, 1), 1)
@@ -162,6 +170,7 @@ def test_delta_ell_case_2():
           y.to_generator(over1_module)
     assert delta_ell_case_2(over1_module, x, a1, a2) == out
 
+
 def test_delta_ell_case_3():
     over1 = ETangle(ETangle.Type.OVER, (-1, 1), 1)
     over1_module = empty_da_module(over1)
@@ -171,6 +180,7 @@ def test_delta_ell_case_3():
     y = ETangleStrands(over1, {0: 1, 2: 2}, {0: 0})
     out = over1.left_algebra.generator({0: 1}).to_element() ** (over1.ring['U1'] * y.to_generator(over1_module))
     assert delta_ell_case_3(over1_module, x, a1, a2) == out
+
 
 def test_delta_ell_case_4():
     over1 = ETangle(ETangle.Type.OVER, (-1, -1), 1)
@@ -182,6 +192,7 @@ def test_delta_ell_case_4():
     out = over1.left_algebra.generator({2: 0}).to_element() ** (over1.ring['U2'] * y.to_generator(over1_module))
     assert delta_ell_case_4(over1_module, x, a1, a2) == out
 
+
 def test_delta_ell():
     over1 = ETangle(ETangle.Type.OVER, (-1, -1, 1), 2)
     over1_module = empty_da_module(over1)
@@ -192,6 +203,7 @@ def test_delta_ell():
     out = elt ** (c * y.to_generator(over1_module))
     assert delta_ell(over1_module, x) == out
 
+
 def test_type_da():
     idempotents = False
     cup = ETangle(ETangle.Type.CUP, (-1, 1), 1)
@@ -201,6 +213,7 @@ def test_type_da():
         assert len(da.graph.nodes) == 12
         assert len(da.decomposed()) == 2
 
+
 def test_isomorphism():
     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
     cup_da = type_da(cup)
@@ -209,6 +222,7 @@ def test_isomorphism():
     assert cup_da.is_isomorphic_to(cup_da)
     assert not cup_da.is_isomorphic_to(cup_da[1, 0])
     assert not cup_da.is_isomorphic_to(cap_da)
+
 
 def test_halve():
     cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
@@ -236,30 +250,30 @@ def test_halve():
 #         for g in r.left_algebra.left_gens(l):
 #             print(f"{g}: {g.to_element().maslov()}, {g.to_element().two_alexander()}")
 
-    # l = ETangle(ETangle.Type.STRAIGHT, (-1,))
-    # l_da = type_da(l)
-    # l_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l.svg')
-    # l_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l_reduced.svg')
-    #
-    # rr = ETangle(ETangle.Type.STRAIGHT, (1, 1))
-    # rr_da = type_da(rr)
-    # rr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr.svg')
-    # rr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr_reduced.svg')
-    #
-    # rl = ETangle(ETangle.Type.STRAIGHT, (1, -1))
-    # rl_da = type_da(rl)
-    # rl_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl.svg')
-    # rl_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl_reduced.svg')
-    #
-    # lr = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
-    # lr_da = type_da(lr)
-    # lr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr.svg')
-    # lr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr_reduced.svg')
-    #
-    # ll = ETangle(ETangle.Type.STRAIGHT, (-1, -1))
-    # ll_da = type_da(ll)
-    # ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
-    # ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
+# l = ETangle(ETangle.Type.STRAIGHT, (-1,))
+# l_da = type_da(l)
+# l_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l.svg')
+# l_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/l_reduced.svg')
+#
+# rr = ETangle(ETangle.Type.STRAIGHT, (1, 1))
+# rr_da = type_da(rr)
+# rr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr.svg')
+# rr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rr_reduced.svg')
+#
+# rl = ETangle(ETangle.Type.STRAIGHT, (1, -1))
+# rl_da = type_da(rl)
+# rl_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl.svg')
+# rl_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/rl_reduced.svg')
+#
+# lr = ETangle(ETangle.Type.STRAIGHT, (-1, 1))
+# lr_da = type_da(lr)
+# lr_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr.svg')
+# lr_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/lr_reduced.svg')
+#
+# ll = ETangle(ETangle.Type.STRAIGHT, (-1, -1))
+# ll_da = type_da(ll)
+# ll_da.to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll.svg')
+# ll_da.reduce().to_agraph(idempotents=idempotents).draw('output/identity_bimodules/ll_reduced.svg')
 
 # def test_tensor():
 #         idempotents = False
@@ -375,7 +389,7 @@ def test_halve():
 #     t12_da = t12_da.reduce()
 #     print(len(t12_da.graph.nodes()))
 #     print(t12_da.ring.variables)
-    # t12_da.to_agraph(idempotents=idempotents).draw('output/test_trefoil.svg')
+# t12_da.to_agraph(idempotents=idempotents).draw('output/test_trefoil.svg')
 
 # def test_priority():
 #     t = ETangle(ETangle.Type.CAP, (1, -1), 1)

@@ -1,16 +1,17 @@
 import numpy
-
 import svgwrite
-from Tangles.Tangle import *
-from Functions.Functions import *
+from svgwrite.path import Path
+
+from Functions.Functions import invert
+from Tangles.Tangle import ETangle
 
 
 # utility class for drawing tangles
 class TangleRenderer:
-    _CUP = numpy.array([list(l) for l in [' | ', '` ,', '- -', '- -']])
-    _CAP = numpy.array([list(l) for l in ['- -', '- -', '\' .', ' | ']])
-    _OVER = numpy.array([list(l) for l in ['- -', '- -', '- -', '- -', '\' .', ' / ', '` ,', '- -']])
-    _UNDER = numpy.array([list(l) for l in ['- -', '\' .', ' \ ', '` ,', '- -', '- -', '- -', '- -']])
+    _CUP = numpy.array([list(col) for col in [' | ', '` ,', '- -', '- -']])
+    _CAP = numpy.array([list(col) for col in ['- -', '- -', '\' .', ' | ']])
+    _OVER = numpy.array([list(col) for col in ['- -', '- -', '- -', '- -', '\' .', ' / ', '` ,', '- -']])
+    _UNDER = numpy.array([list(col) for col in ['- -', '\' .', ' \\ ', '` ,', '- -', '- -', '- -', '- -']])
 
     # turn the given etangle into a numpy array of characters with the given strand height
     @staticmethod
@@ -25,7 +26,7 @@ class TangleRenderer:
         for i in range(etangle.position - 1):
             for x in range(8):
                 a[x, 2 * i] = '-'
-            a[3, 2 * i] = '>' if etangle.signs[i+1] == 1 else '<'
+            a[3, 2 * i] = '>' if etangle.signs[i + 1] == 1 else '<'
         if etangle.etype in (ETangle.Type.CUP, ETangle.Type.CAP):
             if etangle.etype == ETangle.Type.CUP:
                 a[4:, 2 * etangle.position - 2:2 * etangle.position + 1] = TangleRenderer._CUP
@@ -49,7 +50,7 @@ class TangleRenderer:
             for i in range(etangle.position + 1, len(etangle.signs) - 1):
                 for x in range(8):
                     a[x, 2 * i] = '-'
-                a[3, 2 * i] = '>' if etangle.signs[i+1] == 1 else '<'
+                a[3, 2 * i] = '>' if etangle.signs[i + 1] == 1 else '<'
             if etangle.etype == ETangle.Type.OVER:
                 a[:, 2 * etangle.position - 2:2 * etangle.position + 1] = TangleRenderer._OVER
             else:
@@ -134,24 +135,24 @@ class TangleRenderer:
         dwg = svgwrite.Drawing(filename=filename, debug=True)
         for path in paths:
             dwg.add(path)
-        dwg.viewbox(0, -max([len(etangle.signs)-1 for etangle in tangle.etangles]), len(tangle.etangles),
+        dwg.viewbox(0, -max([len(etangle.signs) - 1 for etangle in tangle.etangles]), len(tangle.etangles),
                     max([len(etangle.signs) for etangle in tangle.etangles]))
         dwg.save(pretty=True)
 
 
 def cubic_bezier(x1, x2, x3, x4, color='orange', under=False):
     if under:
-        return svgwrite.path.Path('M {} {} C {} {} {} {} {} {}'.format(*x1, *x2, *x3, *x4), stroke=color,
-                                  stroke_width='0.05', fill='none', stroke_dasharray='0.4')
+        return Path('M {} {} C {} {} {} {} {} {}'.format(*x1, *x2, *x3, *x4), stroke=color,
+                    stroke_width='0.05', fill='none', stroke_dasharray='0.4')
     else:
-        return svgwrite.path.Path('M {} {} C {} {} {} {} {} {}'.format(*x1, *x2, *x3, *x4), stroke=color,
-                                  stroke_width='0.05', fill='none')
+        return Path('M {} {} C {} {} {} {} {} {}'.format(*x1, *x2, *x3, *x4), stroke=color,
+                    stroke_width='0.05', fill='none')
 
 
 def line(x1, x2, color='orange'):
-    return svgwrite.path.Path('M {} {} L {} {}'.format(*x1, *x2), stroke=color, stroke_width='0.05', fill='none')
+    return Path('M {} {} L {} {}'.format(*x1, *x2), stroke=color, stroke_width='0.05', fill='none')
 
 
 def semicircle(s, r, direction, color='orange'):
-    return svgwrite.path.Path('M {} {} A {} {} 0 1 {} {} {}'.format(*s, r, r, direction, s[0], s[1] - 2 * r),
-                              stroke=color, stroke_width='0.05', fill='none')
+    return Path('M {} {} A {} {} 0 1 {} {} {}'.format(*s, r, r, direction, s[0], s[1] - 2 * r),
+                stroke=color, stroke_width='0.05', fill='none')

@@ -1,8 +1,7 @@
-from Tangles.Tangle import *
-from Tangles.TangleRenderer import *
-
-
 # some simple examples
+from Tangles.Tangle import ETangle, Tangle
+from Tangles.TangleRenderer import TangleRenderer
+
 cup = ETangle(ETangle.Type.CUP, (1, -1), 1)
 over = ETangle(ETangle.Type.OVER, (1, -1), 1)
 under = ETangle(ETangle.Type.UNDER, (1, -1), 1)
@@ -34,6 +33,7 @@ b2 = ETangle(ETangle.Type.UNDER, (1, 1, 1), 2)
 twist = b1 + b2
 torus_knot = twist + twist + twist + twist
 
+
 def test_signs():
     assert cup.left_sign_sequence() == (None,)
     assert cup.right_sign_sequence() == (None, 1, -1)
@@ -62,6 +62,7 @@ def test_signs():
     assert [-1, -1, 1, -1] == [under2.strand_index_to_left_sign(i) for i in range(1, 5)]
     assert [-1, -1, 1, -1] == [cap2.strand_index_to_left_sign(i) for i in range(1, 5)]
 
+
 def test_y_pos():
     assert cup.left_y_pos(1) is None
     assert cup.left_y_pos(2) is None
@@ -88,19 +89,23 @@ def test_y_pos():
     assert under.right_y_pos(1) == .5
     assert under.right_y_pos(2) == 1.5
 
+
 def test_comparison():
     assert t1 + t2 == t1 + ETangle(ETangle.Type.CUP, (-1, 1, -1, 1), 3)
+
 
 def test_sum():
     assert t1 + t2 + t3 + t4 + t5 + t6 + t7 == trefoil
     assert sum([t1, t2, t3, t4, t5, t6, t7]) == trefoil
+
 
 def test_ascii_rendering():
     print('\n')
     print(unknot2)
     print(trefoil)
     print(torus_knot)
-    print(cup+straight+straight+cap)
+    print(cup + straight + straight + cap)
+
 
 def test_svg_rendering():
     TangleRenderer.svg('Test/output/trefoil.svg', trefoil)

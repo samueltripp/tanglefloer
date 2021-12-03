@@ -1,16 +1,19 @@
 from __future__ import annotations
-from Modules.CTMinus import *
-from Tangles.Tangle import *
-from SignAlgebra.AMinus import *
-from Modules.Module import *
-from Functions.Functions import *
+
+from typing import Dict
+from frozendict import frozendict
+
+from Functions.Functions import invert_injection, dict_to_sorted_string
+from Modules.StrandDiagram import StrandDiagram
+from SignAlgebra.AMinus import AMinus
+from Tangles.Tangle import ETangle
 
 
 # represents a pair of partial bijections overlaid on an elementary tangle
 class ETangleStrands:
     def __init__(self, etangle: ETangle, left_strands: Dict, right_strands: Dict):
         self.etangle = etangle
-        assert validdictionaries(etangle, left_strands, right_strands)
+        assert valid_dictionaries(etangle, left_strands, right_strands)
         self.left_strands = frozendict(left_strands)
         self.left_strands_inverse = frozendict(invert_injection(left_strands))
         self.right_strands = frozendict(right_strands)
@@ -88,7 +91,7 @@ class ETangleStrands:
         return hash(self.etangle) + hash(self.left_strands) + hash(self.right_strands)
 
 
-def validdictionaries(et: ETangle, ls: Dict, rs: Dict):
+def valid_dictionaries(et: ETangle, ls: Dict, rs: Dict):
     for key in ls.keys():
         if key not in et.left_points():
             return False

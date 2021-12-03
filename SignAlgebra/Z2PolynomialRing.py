@@ -1,8 +1,9 @@
 from __future__ import annotations
+from typing import Set, FrozenSet, Tuple, Dict, Iterable
 
 from frozendict import frozendict
 from multimethod import multimethod
-from typing import Set, FrozenSet, Tuple, Dict, Iterable
+
 from Functions.Functions import is_injection, invert_injection
 
 

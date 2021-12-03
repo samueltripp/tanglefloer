@@ -1,10 +1,15 @@
 from __future__ import annotations
+import itertools
 
-from Modules.TypeDA import TypeDA
+from multimethod import multimethod
+
+from Functions.Functions import swap_values, injections, partial_bijections
+from Modules.ETangleStrands import ETangleStrands
 from Modules.Module import Module
-from Tangles.Tangle import *
-from Modules.Module import *
-from Modules.ETangleStrands import *
+from Modules.StrandDiagram import StrandDiagram
+from Modules.TypeDA import TypeDA
+from SignAlgebra.AMinus import AMinus
+from Tangles.Tangle import Tangle, ETangle
 
 
 def reduced_type_da(tangle: Tangle) -> TypeDA:

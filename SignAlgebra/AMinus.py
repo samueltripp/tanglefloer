@@ -1,9 +1,12 @@
 from __future__ import annotations
 from typing import List
 
+from frozendict import frozendict
+from multimethod import multimethod
+
+from Functions.Functions import injections, simplify_coefficients, invert_injection, dict_to_sorted_string
 from Modules.StrandDiagram import StrandDiagram
-from SignAlgebra.Z2PolynomialRing import *
-from Functions.Functions import *
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing, Z2Polynomial
 
 
 # represents the algebra A^-(P) for some sign sequence P

@@ -1,7 +1,9 @@
 from __future__ import annotations
-from enum import *
-from typing import Optional, List
-from SignAlgebra.AMinus import *
+from enum import auto, Enum
+from typing import Optional, List, Tuple
+
+from SignAlgebra.AMinus import AMinus
+from SignAlgebra.Z2PolynomialRing import Z2PolynomialRing, Z2Polynomial
 
 
 # a tangle
@@ -81,8 +83,9 @@ class ETangle(Tangle):
 
         super().__init__((self,))
 
-        self.ring = Z2PolynomialRing(['U' + str(i)
-                                      for i in range(1, len(self.middle_points()) + len(self.left_algebra.positives) - 1)])
+        self.ring = \
+            Z2PolynomialRing(['U' + str(i)
+                              for i in range(1, len(self.middle_points()) + len(self.left_algebra.positives) - 1)])
 
         self.left_scalar_action = self.build_left_scalar_action()
         self.right_scalar_action = self.build_right_scalar_action()
